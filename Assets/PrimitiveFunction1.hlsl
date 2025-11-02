@@ -550,44 +550,6 @@ void Parallelogram01_float(float2 UV, float2 A, float2 u, float2 v, out float In
 }
 
 
-//--------------------------------------------------------------------------
-//  ParallelogramAA_float  (anti-aliased mask)
-//--------------------------------------------------------------------------
-//  Parameters:
-//      UV       : float2 → input point (e.g., normalized UVs).
-//      A        : float2 → one corner of the parallelogram.
-//      u, v     : float2 → side vectors.
-//      edgeSoft : float  → minimum feather width (e.g., 0.001). AA adapts with fwidth.
-//      Mask     : out float → smooth mask (≈1 inside, ≈0 outside, feathered on edges).
-//
-//  Implementation:
-//  - Computes (s,t) as above.
-//  - Uses smoothstep around the four inequalities with an AA width based on fwidth.
-//--------------------------------------------------------------------------
-void ParallelogramAA_float(float2 UV, float2 A, float2 u, float2 v, float edgeSoft, out float Mask)
-{
-    float2 p = UV - float2(0.5, 0.5);
-    float2 r = p - A;
-    float  D = det2(u, v);
-    float  invD = 1.0 / D;
-
-    float  s = det2(r, v) * invD;
-    float  t = det2(u, r) * invD;
-
-    // Adaptive feather from screen-space derivatives; never smaller than edgeSoft
-    float ws = max(edgeSoft, fwidth(s));
-    float wt = max(edgeSoft, fwidth(t));
-
-    // Smooth constraints:
-    //  s ≥ 0,  s ≤ 1,  t ≥ 0,  t ≤ 1
-    float in_s0 = smoothstep(0.0, ws, s);                 // ramps from 0→1 across s=0
-    float in_s1 = 1.0 - smoothstep(1.0 - ws, 1.0, s);     // ramps from 1→0 across s=1
-    float in_t0 = smoothstep(0.0, wt, t);
-    float in_t1 = 1.0 - smoothstep(1.0 - wt, 1.0, t);
-
-    Mask = in_s0 * in_s1 * in_t0 * in_t1;
-}
-
 //==========================================================================
 //  Procedural Primitives Library
 //  Primitive: Ellipse (axis-aligned, centered)
@@ -676,37 +638,6 @@ void Ellipse01_float(float2 UV, float width, float height, out float Inside01)
     Inside01 = (sd <= 0.0) ? 1.0 : 0.0;
 }
 
-
-//--------------------------------------------------------------------------
-//  EllipseAA_float  (anti-aliased mask)
-//--------------------------------------------------------------------------
-//  Description:
-//      Smooth mask with feathered edges using screen-space derivatives.
-//      Great for compositing, outlines, and stable alpha clipping.
-//
-//  Parameters:
-//      UV        : float2 → normalized texture coordinates [0..1]
-//      width     : float  → full width
-//      height    : float  → full height
-//      edgeSoft  : float  → minimum feather (e.g., 0.001)
-//      Mask      : out float → ~1 inside, ~0 outside, smooth on edges
-//
-//  Notes:
-//      We use fwidth over the signed pseudo-distance for adaptive AA.
-//--------------------------------------------------------------------------
-void EllipseAA_float(float2 UV, float width, float height, float edgeSoft, out float Mask)
-{
-    float2 p = UV - float2(0.5, 0.5);
-    float2 halfAxes = float2(width * 0.5, height * 0.5);
-
-    float sd = sdEllipseApprox(p, halfAxes);
-
-    // Adaptive feather (and clamp to a floor)
-    float aa = max(edgeSoft, fwidth(sd));
-
-    // Soft transition: sd = 0 is the boundary
-    Mask = 1.0 - smoothstep(0.0, aa, sd);
-}
 
 //==========================================================================
 //  Procedural Primitives Library
