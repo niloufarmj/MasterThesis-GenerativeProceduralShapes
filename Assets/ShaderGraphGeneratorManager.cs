@@ -313,7 +313,6 @@ namespace ShaderGraphGenerator
                 // Check if we are doing the split logic
                 if (useTransparency && outputSplitNode != null && outputVec3Node != null && fragmentAlphaBlock != null)
                 {
-                    // **FIX**: Corrected all slot indices
                     // 1. Func Out -> Split In
                     edges.Add(FormatEdge(customFunctionNode, firstOutput.SlotId, outputSplitNode, 0)); // Split In (0)
                     // 2. Split R -> Vec3 X
@@ -476,7 +475,6 @@ namespace ShaderGraphGenerator
             if (outputVec3Node != null)
             {
                 AppendVector3Node(sb, outputVec3Node, outputVec3SlotGuids);
-                // **FIX**: Corrected Slot IDs to 1, 2, 3 for inputs and 0 for output
                 AppendVector3SlotIn(sb, outputVec3SlotGuids["X"], 1, "X");
                 AppendVector3SlotIn(sb, outputVec3SlotGuids["Y"], 2, "Y");
                 AppendVector3SlotIn(sb, outputVec3SlotGuids["Z"], 3, "Z");
@@ -1156,7 +1154,6 @@ namespace ShaderGraphGenerator
 }}");
         }
 
-        // **FIX**: Corrected Slot ID 'id'
         private void AppendVector3SlotIn(StringBuilder sb, string guid, int id, string name)
         {
             sb.AppendLine($@"
@@ -1176,7 +1173,6 @@ namespace ShaderGraphGenerator
 }}");
         }
 
-        // **FIX**: Corrected Slot ID 'id'
         private void AppendVector3SlotOut(StringBuilder sb, string guid, int id, string name)
         {
             sb.AppendLine($@"
@@ -1251,6 +1247,8 @@ namespace ShaderGraphGenerator.Editor
         private UnityEngine.Object hlslFile;
         private string outputPath = "Assets/ShaderGraphs/Generated.shadergraph";
         private bool useTransparency = false;
+        // **NEW**: Added toggle for material creation
+        private bool createMaterial = true;
 
         [MenuItem("Tools/ShaderGraph Generator")]
         public static void ShowWindow()
@@ -1266,6 +1264,8 @@ namespace ShaderGraphGenerator.Editor
             hlslFile = EditorGUILayout.ObjectField("HLSL File", hlslFile, typeof(UnityEngine.Object), false);
             outputPath = EditorGUILayout.TextField("Output Path", outputPath);
             useTransparency = EditorGUILayout.Toggle("Use Transparency", useTransparency);
+            // **NEW**: Render the toggle
+            createMaterial = EditorGUILayout.Toggle("Create Material", createMaterial);
 
             EditorGUILayout.Space();
 
@@ -1293,9 +1293,28 @@ namespace ShaderGraphGenerator.Editor
 
                 try
                 {
+                    // 1. Generate the ShaderGraph
                     ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency);
+
+                    // 2. Refresh the AssetDatabase to compile the new graph
                     AssetDatabase.Refresh();
-                    EditorUtility.DisplayDialog("Success", $"ShaderGraph generated at:\n{outputPath}", "OK");
+
+                    string successMessage = $"ShaderGraph generated at:\n{outputPath}";
+
+                    // 3. **NEW**: Create the material if toggled
+                    if (createMaterial)
+                    {
+                        string materialPath = HLSLContextMenu.CreateMaterialForShaderGraph(outputPath);
+                        if (!string.IsNullOrEmpty(materialPath))
+                        {
+                            successMessage += $"\n\nMaterial created at:\n{materialPath}";
+                        }
+                    }
+
+                    // 4. Refresh again to show the new material
+                    AssetDatabase.Refresh();
+
+                    EditorUtility.DisplayDialog("Success", successMessage, "OK");
                 }
                 catch (System.Exception ex)
                 {
@@ -1349,9 +1368,25 @@ namespace ShaderGraphGenerator.Editor
 
             try
             {
+                // 1. Generate ShaderGraph
                 ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency);
+
+                // 2. Refresh to compile graph
                 AssetDatabase.Refresh();
-                EditorUtility.DisplayDialog("Success", $"ShaderGraph generated:\n{outputPath}", "OK");
+
+                // 3. **NEW**: Always create material for context menu
+                string materialPath = CreateMaterialForShaderGraph(outputPath);
+                string successMessage = $"ShaderGraph generated:\n{outputPath}";
+
+                if (!string.IsNullOrEmpty(materialPath))
+                {
+                    successMessage += $"\n\nMaterial created:\n{materialPath}";
+                }
+
+                // 4. Refresh again to show material
+                AssetDatabase.Refresh();
+
+                EditorUtility.DisplayDialog("Success", successMessage, "OK");
             }
             catch (System.Exception ex)
             {
@@ -1369,6 +1404,36 @@ namespace ShaderGraphGenerator.Editor
             string path = AssetDatabase.GetAssetPath(selected);
             return !string.IsNullOrEmpty(path) && path.EndsWith(".hlsl");
         }
+
+        // **NEW**: Helper method to create the material
+        public static string CreateMaterialForShaderGraph(string shaderGraphPath)
+        {
+            try
+            {
+                Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderGraphPath);
+                if (shader == null)
+                {
+                    Debug.LogError($"Could not load shader at path: {shaderGraphPath}. Material not created.");
+                    return null;
+                }
+
+                Material mat = new Material(shader);
+                string materialPath = shaderGraphPath.Replace(".shadergraph", ".mat");
+
+                // Ensure unique path
+                materialPath = AssetDatabase.GenerateUniqueAssetPath(materialPath);
+
+                AssetDatabase.CreateAsset(mat, materialPath);
+
+                Debug.Log($"✓ Created Material: {materialPath}");
+                return materialPath;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to create material for {shaderGraphPath}: {ex.Message}");
+                return null;
+            }
+        }
     }
 }
 #endif
@@ -1383,22 +1448,31 @@ METHOD 1: Editor Window
 2. Drag your HLSL file into the "HLSL File" field
 3. Set output path (e.g., "Assets/ShaderGraphs/MyShader.shadergraph")
 4. Check "Use Transparency" if your shader has alpha output
-5. Click "Generate ShaderGraph"
+5. **NEW**: Check "Create Material" to also generate a .mat file
+6. Click "Generate ShaderGraph"
 
 METHOD 2: Context Menu
 -----------------------
 1. Right-click on any .hlsl file in Project window
 2. Select "Generate ShaderGraph from HLSL (Opaque)" or "(Transparent)"
-3. ShaderGraph will be created in the same folder with .shadergraph extension
+3. A ShaderGraph and a matching Material will be created in the same folder
 
 METHOD 3: Script (Runtime/Custom Tool)
 ---------------------------------------
+// This part is unchanged
 ShaderGraphJSONGenerator.GenerateFromHLSL(
     "Assets/Shaders/PrimitiveFunction1.hlsl",
     "YOUR_HLSL_FILE_GUID",  // Get from Unity meta file
     "Assets/ShaderGraphs/Generated.shadergraph",
     true // or false for opaque
 );
+
+// You could then call the new helper method from your own editor scripts:
+// AssetDatabase.Refresh();
+// ShaderGraphGenerator.Editor.HLSLContextMenu.CreateMaterialForShaderGraph(
+//     "Assets/ShaderGraphs/Generated.shadergraph"
+// );
+// AssetDatabase.Refresh();
 
 =============================================================================
 HLSL REQUIREMENTS
