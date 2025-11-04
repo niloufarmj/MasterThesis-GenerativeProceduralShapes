@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: triangle
-  m_Shader: {fileID: -6465566751694194690, guid: 16a5d541e6962064da470e6e82e201f5, type: 3}
+  m_Name: square 4
+  m_Shader: {fileID: -6465566751694194690, guid: 54bcb1d5c9ec92846826510ae0a36ef8, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -40,17 +40,17 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _angleRad: 0.19129637
-    - _cornerRadius: 0.25913107
-    - _radius: 0.67
-    - _strokeWidth: 0.15762173
+    - _angleRad: 0.37961355
+    - _cornerRadius: 0.17
+    - _halfSize: 0.24369423
+    - _strokeWidth: 0.14
     m_Colors:
-    - _center01: {r: 0.53726196, g: 0.44425198, b: 0, a: 0}
-    - _fillColor: {r: 0.16798526, g: 0.39549088, b: 1, a: 1}
-    - _strokeColor: {r: 0.25802365, g: 0.13044655, b: 1, a: 1}
+    - _center01: {r: 0.3114468, g: 0.3200236, b: 0, a: 0}
+    - _fillColor: {r: 0.104736924, g: 1, b: 0.33945987, a: 1}
+    - _strokeColor: {r: 1, g: 0.6027267, b: 0.18878537, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &3128183967107872082
+--- !u!114 &1602281220293397832
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
