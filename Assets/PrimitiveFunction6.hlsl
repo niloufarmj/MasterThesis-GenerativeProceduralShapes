@@ -1021,106 +1021,246 @@ void HeptagonRoundedColorOutlineCenteredRotated01_float(
 //
 //  Description
 //  ------------------------------------------------------------------------
-//  **Rotatable** regular octagon (8 sides) with uniform **corner radius**
-//  that rounds the geometric silhouette (NOT the stroke). Uses convex polygon
-//  SDF and analytic AA. All parameters are in 0..1 UV units.
+//  Centered, rotatable **rounded regular octagon** (uniform corner radius)
+//  with solid fill + outline via SDF and analytic AA. Corner rounding
+//  affects the shape's silhouette (NOT the stroke).
 //
 //  Minimal Shader Graph Interface (single RGBA output)
 //  ------------------------------------------------------------------------
 //  Function Name : OctagonRoundedColorOutlineCenteredRotated01_float
 //  Inputs  :
 //      uv01         (float2) – UV in 0..1
-//      radius       (float)  – circumradius (center→vertex), UV units
-//      cornerRadius (float)  – geometric corner radius, UV units
+//      radius       (float)  – circumradius (center→vertex) in UV units
+//      cornerRadius (float)  – shape corner radius in UV units
 //      center01     (float2) – octagon center in 0..1 UV
-//      angleRad     (float)  – rotation in radians (CCW). 0 = upright
+//      angleRad     (float)  – rotation in radians (CCW). 0 = flat edge on top
 //      fillColor    (float4) – RGBA fill
 //      strokeColor  (float4) – RGBA outline
-//      strokeWidth  (float)  – outline thickness (UV units, total)
+//      strokeWidth  (float)  – outline thickness in UV units (total)
 //  Output :
 //      outColor     (float4) – RGBA (straight alpha; A = coverage)
 //
+//  Shader Graph (Custom Function - File)
+//  ------------------------------------------------------------------------
+//  • Source File  : this HLSL
+//  • Function Name: OctagonRoundedColorOutlineCenteredRotated01_float
+//  • Wire: UV→uv01, Vector2→center01, Floats→radius/cornerRadius/angleRad/
+//    strokeWidth, Colors→fillColor/strokeColor.
+//  • Use Unlit/Transparent; plug RGB→BaseColor and A→Alpha.
+//
 //  Notes
 //  ------------------------------------------------------------------------
-//  • True geometric rounding: for a regular N-gon, apothem = R * cos(π/N).
-//    Inset circumradius = (Apothem - r) / cos(π/N).
-//    For N=8 → cos(π/8) ≈ 0.9239.
-//  • cornerRadius is clamped to [0, apothem].
+//  • We rotate the *sampling point* by -angle so the shape appears rotated
+//    by +angle (standard SDF trick).
+//  • Corner radius is clamped to stay valid for the octagon dimensions.
 //  • Stroke is composited OVER the fill.
 //==========================================================================
 
-
-// Signed distance to an origin-centered upright regular octagon (circumradius = r)
-inline float nm_sdOctagon(float2 p, float r)
+// Exact SDF to a **convex** polygon (8 vertices for octagon) in CCW order.
+// Returns d<0 inside, ~0 on edge, d>0 outside.
+inline float sdConvexPoly8(float2 p, float2 v[8])
 {
-    const int N = 8;
-    float2 v[N];
+    // min squared distance to edges
+    float d2 = 1e20;
+    // inside test accumulator (keeps the most positive signed half-space)
+    float s = -1e20;
 
     [unroll]
-    for (int i = 0; i < N; ++i)
+    for (int i = 0; i < 8; ++i)
     {
-        float ang = 0.5 * PI + (2.0 * PI * i) / (float) N; // start at top
-        v[i] = r * float2(cos(ang), sin(ang));
-    }
+        float2 a = v[i];
+        float2 b = v[(i + 1) & 7]; // wrap to 0 after 7
 
-    float maxHalf = -1e9;
-    float minEdge = 1e9;
+        // distance to edge segment
+        float sdE = sdSegment(p, a, b);
+        d2 = min(d2, sdE * sdE);
 
-    [unroll]
-    for (int i = 0; i < N; ++i)
-    {
-        int j = (i + 1) % N;
-        float2 a = v[i], b = v[j];
+        // signed distance to edge line (outward normal for CCW polygon)
         float2 e = b - a;
-        float2 n = normalize(nm_perpRight(e)); // outward normal
-        maxHalf = max(maxHalf, dot(p - a, n));
-        minEdge = min(minEdge, nm_distPointToSegment(p, a, b));
+        float2 n = normalize(float2(e.y, -e.x)); // outward normal (CCW)
+        float sEdge = dot(p - a, n);
+        s = max(s, sEdge);
     }
 
-    float sgn = (maxHalf <= 0.0) ? -1.0 : 1.0;
-    return minEdge * sgn; // d<0 inside
+    // outside: positive (distance to boundary); inside: negative
+    return (s > 0.0) ? sqrt(d2) : -sqrt(d2);
 }
+
+// Guarded straight-alpha "src over dst" (minimizes redefinition risk)
+#ifndef NM_OVER_HELPER
+#define NM_OVER_HELPER
+inline float4 nm_over(float4 src, float4 dst)
+{
+    float a = src.a + dst.a * (1.0 - src.a);
+    float3 c = (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / max(a, 1e-8);
+    return float4(c, a);
+}
+#endif
 
 // --- Main -----------------------------------------------------------------
 void OctagonRoundedColorOutlineCenteredRotated01_float(
-    float2 uv01, // 0..1 UV
-    float radius, // circumradius (UV units)
-    float cornerRadius, // shape corner radius (UV units)
-    float2 center01, // 0..1 center
-    float angleRad, // radians (CCW)
-    float4 fillColor, // RGBA
+    float2 uv01,        // 0..1 UV
+    float radius,       // circumradius (UV units)
+    float cornerRadius, // UV units (shape corner radius)
+    float2 center01,    // 0..1 center
+    float angleRad,     // radians (CCW)
+    float4 fillColor,   // RGBA
     float4 strokeColor, // RGBA
-    float strokeWidth, // UV units (total)
+    float strokeWidth,  // UV units (total thickness)
     out float4 outColor)
 {
-    // 1) Center in UV
+    // 1) Recenter in UV space
     float2 p = uv01 - center01;
 
-    // 2) Rotate sampling point by -angle so shape appears rotated by +angle
+    // 2) Rotate sampling point by -angle (shape appears +angle)
     float c = cos(angleRad);
     float s = sin(angleRad);
     float2 pr = float2(c * p.x + s * p.y,
                        -s * p.x + c * p.y);
 
-    // 3) Compute insetting for rounded edges
-    const float N = 8.0;
-    float R = max(radius, 0.0);
-    float cosTerm = cos(PI / N); // cos(π/8)
-    float apothem = R * cosTerm;
-    float r = clamp(cornerRadius, 0.0, apothem);
-    float Rinset = (apothem - r) / cosTerm;
+    // 3) Clamp corner radius to valid range
+    // For a regular octagon, edge length = 2 * radius * sin(PI/8)
+    float edgeLength = 2.0 * radius * 0.38268343; // sin(PI/8) ≈ 0.38268343
+    float maxRadius = edgeLength * 0.5;
+    float r = clamp(cornerRadius, 0.0, maxRadius);
 
-    // 4) Rounded octagon SDF
-    float d = nm_sdOctagon(pr, max(Rinset, 0.0)) - r;
+    // 4) Calculate octagon vertices (regular octagon, CCW)
+    // Starting at angle 0 (right side), going CCW
+    // Angles: 0, PI/4, PI/2, 3PI/4, PI, 5PI/4, 3PI/2, 7PI/4
+    
+    float angleStep = PI * 0.25; // 45 degrees
 
-    // 5) Analytic AA
+    // Scale radius down for inset (rounded corners)
+    float scaleFactor = max(1.0 - r / max(radius, 0.001), 0.0);
+    float rInset = radius * scaleFactor;
+
+    float2 vertices[8];
+    [unroll]
+    for (int i = 0; i < 8; ++i)
+    {
+        float angle = i * angleStep;
+        vertices[i] = float2(cos(angle), sin(angle)) * rInset;
+    }
+
+    // 5) True Euclidean signed distance with rounding offset
+    float d = sdConvexPoly8(pr, vertices) - r;
     float aa = fwidth(d);
 
-    // 6) Fill coverage
+    // 6) Fill coverage (inside polygon)
     float fillMask = 1.0 - smoothstep(0.0, aa, d);
     float4 fillOut = float4(fillColor.rgb, saturate(fillColor.a) * fillMask);
 
-    // 7) Stroke coverage (uniform band)
+    // 7) Stroke coverage (uniform band around edge)
+    float halfW = 0.5 * max(strokeWidth, 0.0);
+    float edge = abs(d) - halfW;
+    float strokeMask = 1.0 - smoothstep(0.0, aa, edge);
+    float4 strokeOut = float4(strokeColor.rgb, saturate(strokeColor.a) * strokeMask);
+
+    // 8) Composite: stroke OVER fill
+    outColor = nm_over(strokeOut, fillOut);
+}
+
+//==========================================================================
+//  Procedural Primitive – Parallelogram (Rounded) + Color + Outline + Rotation
+//  Author: Niloufar Moradijam
+//  File: ParallelogramRoundedColorOutlineCenteredRotated.hlsl
+//
+//  Description
+//  ------------------------------------------------------------------------
+//  Centered, rotatable **rounded parallelogram** (uniform corner radius)
+//  with solid fill + outline via SDF and analytic AA. Corner rounding
+//  affects the shape's silhouette (NOT the stroke).
+//
+//  Minimal Shader Graph Interface (single RGBA output)
+//  ------------------------------------------------------------------------
+//  Function Name : ParallelogramRoundedColorOutlineCenteredRotated01_float
+//  Inputs  :
+//      uv01         (float2) – UV in 0..1
+//      width        (float)  – base width in UV units
+//      height       (float)  – height in UV units
+//      skew         (float)  – horizontal skew amount in UV units (positive = right lean)
+//      cornerRadius (float)  – shape corner radius in UV units
+//      center01     (float2) – parallelogram center in 0..1 UV
+//      angleRad     (float)  – rotation in radians (CCW). 0 = base horizontal
+//      fillColor    (float4) – RGBA fill
+//      strokeColor  (float4) – RGBA outline
+//      strokeWidth  (float)  – outline thickness in UV units (total)
+//  Output :
+//      outColor     (float4) – RGBA (straight alpha; A = coverage)
+//
+//  Shader Graph (Custom Function - File)
+//  ------------------------------------------------------------------------
+//  • Source File  : this HLSL
+//  • Function Name: ParallelogramRoundedColorOutlineCenteredRotated01_float
+//  • Wire: UV→uv01, Vector2→center01, Floats→width/height/skew/cornerRadius/
+//    angleRad/strokeWidth, Colors→fillColor/strokeColor.
+//  • Use Unlit/Transparent; plug RGB→BaseColor and A→Alpha.
+//
+//  Notes
+//  ------------------------------------------------------------------------
+//  • We rotate the *sampling point* by -angle so the shape appears rotated
+//    by +angle (standard SDF trick).
+//  • Skew: positive values lean the top edge to the right, negative to the left.
+//  • Corner radius is clamped to stay valid for the parallelogram dimensions.
+//  • Stroke is composited OVER the fill.
+//==========================================================================
+
+
+// --- Main -----------------------------------------------------------------
+void ParallelogramRoundedColorOutlineCenteredRotated01_float(
+    float2 uv01,        // 0..1 UV
+    float width,        // base width (UV units)
+    float height,       // height (UV units)
+    float skew,         // horizontal skew (UV units)
+    float cornerRadius, // UV units (shape corner radius)
+    float2 center01,    // 0..1 center
+    float angleRad,     // radians (CCW)
+    float4 fillColor,   // RGBA
+    float4 strokeColor, // RGBA
+    float strokeWidth,  // UV units (total thickness)
+    out float4 outColor)
+{
+    // 1) Recenter in UV space
+    float2 p = uv01 - center01;
+
+    // 2) Rotate sampling point by -angle (shape appears +angle)
+    float c = cos(angleRad);
+    float s = sin(angleRad);
+    float2 pr = float2(c * p.x + s * p.y,
+                       -s * p.x + c * p.y);
+
+    // 3) Clamp corner radius to valid range
+    // For a parallelogram, we need to consider both the vertical edges and slanted edges
+    float halfWidth = width * 0.5;
+    float halfHeight = height * 0.5;
+    // Calculate the length of the slanted edge
+    float slantEdgeLength = sqrt(skew * skew + height * height);
+    // Max radius is limited by the shorter of: half height or half slant edge
+    float maxRadius = min(halfHeight, min(halfWidth, slantEdgeLength * 0.5));
+    float r = clamp(cornerRadius, 0.0, maxRadius);
+
+    // 4) Calculate parallelogram vertices (CCW)
+    // Bottom-left, bottom-right, top-right, top-left
+    // The skew shifts the top edge horizontally
+    float scaleFactor = max(1.0 - r / max(min(halfHeight, halfWidth), 0.001), 0.0);
+    float wInset = halfWidth * scaleFactor;
+    float hInset = halfHeight * scaleFactor;
+    float skewInset = skew * scaleFactor;
+
+    float2 v0 = float2(-wInset, -hInset);              // bottom-left
+    float2 v1 = float2(wInset, -hInset);               // bottom-right
+    float2 v2 = float2(wInset + skewInset, hInset);    // top-right (skewed)
+    float2 v3 = float2(-wInset + skewInset, hInset);   // top-left (skewed)
+
+    // 5) True Euclidean signed distance with rounding offset
+    float d = sdConvexPoly4(pr, v0, v1, v2, v3) - r;
+    float aa = fwidth(d);
+
+    // 6) Fill coverage (inside polygon)
+    float fillMask = 1.0 - smoothstep(0.0, aa, d);
+    float4 fillOut = float4(fillColor.rgb, saturate(fillColor.a) * fillMask);
+
+    // 7) Stroke coverage (uniform band around edge)
     float halfW = 0.5 * max(strokeWidth, 0.0);
     float edge = abs(d) - halfW;
     float strokeMask = 1.0 - smoothstep(0.0, aa, edge);
