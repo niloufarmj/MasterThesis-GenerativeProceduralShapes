@@ -14,6 +14,8 @@ namespace ShaderGraphGenerator.Editor
         private bool useTransparency = false;
         private bool createMaterial = true;
         private bool createPreviewQuad = true;
+        private bool captureScreenshot = true;
+        private string screenshotPath = "Assets/ShaderGraphs/Previews/GeneratedPreview.png";
 
         [MenuItem("Tools/ShaderGraph Generator")]
         public static void ShowWindow()
@@ -31,6 +33,14 @@ namespace ShaderGraphGenerator.Editor
             useTransparency = EditorGUILayout.Toggle("Use Transparency", useTransparency);
             createMaterial = EditorGUILayout.Toggle("Create Material", createMaterial);
             createPreviewQuad = EditorGUILayout.Toggle("Create Preview Quad", createPreviewQuad);
+            
+            EditorGUI.BeginDisabledGroup(!createPreviewQuad);
+            captureScreenshot = EditorGUILayout.Toggle("Capture Screenshot", captureScreenshot);
+            if (captureScreenshot)
+            {
+                screenshotPath = EditorGUILayout.TextField("Screenshot Path", screenshotPath);
+            }
+            EditorGUI.EndDisabledGroup();
 
             EditorGUILayout.Space();
 
@@ -78,14 +88,18 @@ namespace ShaderGraphGenerator.Editor
                         }
                     }
 
-                    // 4. Create the quad if toggled (and material exists)
+                    // 4. **MODIFIED**: Create the quad if toggled (and material exists)
                     if (createPreviewQuad && mat != null && functionInfo != null)
                     {
-                        // Use the new utility class
-                        GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(mat, functionInfo);
+                        // Pass the new screenshot parameters to the utility function
+                        GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
+                            mat, 
+                            functionInfo, 
+                            captureScreenshot, 
+                            screenshotPath); // Pass the path
+                            
                         successMessage += $"\n\nCreated and selected Preview Quad: {quad.name}";
                     }
-
                     // 5. Refresh again to show the new material/quad
                     AssetDatabase.Refresh();
 

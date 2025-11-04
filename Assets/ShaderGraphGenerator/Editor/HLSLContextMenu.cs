@@ -49,11 +49,17 @@ namespace ShaderGraphGenerator.Editor
                 {
                     successMessage += $"\n\nMaterial created:\n{AssetDatabase.GetAssetPath(mat)}";
 
-                    // 4. Always create preview quad for context menu
+                    // 4. **MODIFIED**: Always create preview quad and request screenshot
                     if (functionInfo != null)
                     {
-                        // Use the new utility class
-                        GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(mat, functionInfo);
+                        // We pass 'true' for captureScreenshot
+                        // We pass 'null' for the path, so the utility creates a default path
+                        GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
+                            mat, 
+                            functionInfo, 
+                            true,       // captureScreenshot
+                            null);      // Use default path
+                            
                         successMessage += $"\n\nCreated and selected Preview Quad: {quad.name}";
                     }
                 }
