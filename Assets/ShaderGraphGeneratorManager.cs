@@ -1195,7 +1195,8 @@ namespace ShaderGraphGenerator
         /// <summary>
         /// Main entry point - Generate from HLSL file
         /// </summary>
-        public static void GenerateFromHLSL(string hlslFilePath, string hlslFileGUID, string outputPath, bool useTransparency)
+        // **NEW**: Changed return type from void to HLSLFunctionInfo
+        public static HLSLFunctionInfo GenerateFromHLSL(string hlslFilePath, string hlslFileGUID, string outputPath, bool useTransparency)
         {
             try
             {
@@ -1223,6 +1224,9 @@ namespace ShaderGraphGenerator
                 Debug.Log($"  Function: {functionInfo.FunctionName}");
                 Debug.Log($"  Inputs: {string.Join(", ", functionInfo.InputParameters.Select(p => $"{p.Type} {p.Name}"))}");
                 Debug.Log($"  Outputs: {string.Join(", ", functionInfo.OutputParameters.Select(p => $"{p.Type} {p.Name}"))}");
+
+                // **NEW**: Return the parsed info
+                return functionInfo;
             }
             catch (Exception ex)
             {
@@ -1247,8 +1251,9 @@ namespace ShaderGraphGenerator.Editor
         private UnityEngine.Object hlslFile;
         private string outputPath = "Assets/ShaderGraphs/Generated.shadergraph";
         private bool useTransparency = false;
-        // **NEW**: Added toggle for material creation
         private bool createMaterial = true;
+        // **NEW**: Added toggle for preview quad
+        private bool createPreviewQuad = true;
 
         [MenuItem("Tools/ShaderGraph Generator")]
         public static void ShowWindow()
@@ -1264,8 +1269,9 @@ namespace ShaderGraphGenerator.Editor
             hlslFile = EditorGUILayout.ObjectField("HLSL File", hlslFile, typeof(UnityEngine.Object), false);
             outputPath = EditorGUILayout.TextField("Output Path", outputPath);
             useTransparency = EditorGUILayout.Toggle("Use Transparency", useTransparency);
-            // **NEW**: Render the toggle
             createMaterial = EditorGUILayout.Toggle("Create Material", createMaterial);
+            // **NEW**: Render the toggle
+            createPreviewQuad = EditorGUILayout.Toggle("Create Preview Quad", createPreviewQuad);
 
             EditorGUILayout.Space();
 
@@ -1293,25 +1299,33 @@ namespace ShaderGraphGenerator.Editor
 
                 try
                 {
-                    // 1. Generate the ShaderGraph
-                    ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency);
+                    // 1. Generate the ShaderGraph (and get function info back)
+                    HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency);
 
                     // 2. Refresh the AssetDatabase to compile the new graph
                     AssetDatabase.Refresh();
 
                     string successMessage = $"ShaderGraph generated at:\n{outputPath}";
+                    Material mat = null;
 
-                    // 3. **NEW**: Create the material if toggled
+                    // 3. Create the material if toggled
                     if (createMaterial)
                     {
-                        string materialPath = HLSLContextMenu.CreateMaterialForShaderGraph(outputPath);
-                        if (!string.IsNullOrEmpty(materialPath))
+                        mat = HLSLContextMenu.CreateMaterialForShaderGraph(outputPath);
+                        if (mat != null)
                         {
-                            successMessage += $"\n\nMaterial created at:\n{materialPath}";
+                            successMessage += $"\n\nMaterial created at:\n{AssetDatabase.GetAssetPath(mat)}";
                         }
                     }
 
-                    // 4. Refresh again to show the new material
+                    // 4. **NEW**: Create the quad if toggled (and material exists)
+                    if (createPreviewQuad && mat != null && functionInfo != null)
+                    {
+                        GameObject quad = HLSLContextMenu.CreatePreviewQuad(mat, functionInfo);
+                        successMessage += $"\n\nCreated and selected Preview Quad: {quad.name}";
+                    }
+
+                    // 5. Refresh again to show the new material/quad
                     AssetDatabase.Refresh();
 
                     EditorUtility.DisplayDialog("Success", successMessage, "OK");
@@ -1368,22 +1382,29 @@ namespace ShaderGraphGenerator.Editor
 
             try
             {
-                // 1. Generate ShaderGraph
-                ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency);
+                // 1. Generate ShaderGraph (and get info)
+                HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency);
 
                 // 2. Refresh to compile graph
                 AssetDatabase.Refresh();
 
-                // 3. **NEW**: Always create material for context menu
-                string materialPath = CreateMaterialForShaderGraph(outputPath);
+                // 3. Always create material for context menu
+                Material mat = CreateMaterialForShaderGraph(outputPath);
                 string successMessage = $"ShaderGraph generated:\n{outputPath}";
 
-                if (!string.IsNullOrEmpty(materialPath))
+                if (mat != null)
                 {
-                    successMessage += $"\n\nMaterial created:\n{materialPath}";
+                    successMessage += $"\n\nMaterial created:\n{AssetDatabase.GetAssetPath(mat)}";
+
+                    // 4. **NEW**: Always create preview quad for context menu
+                    if (functionInfo != null)
+                    {
+                        GameObject quad = CreatePreviewQuad(mat, functionInfo);
+                        successMessage += $"\n\nCreated and selected Preview Quad: {quad.name}";
+                    }
                 }
 
-                // 4. Refresh again to show material
+                // 5. Refresh again to show material/quad
                 AssetDatabase.Refresh();
 
                 EditorUtility.DisplayDialog("Success", successMessage, "OK");
@@ -1395,7 +1416,7 @@ namespace ShaderGraphGenerator.Editor
         }
 
         [MenuItem("Assets/Generate ShaderGraph from HLSL (Opaque)", true)]
-        [MenuItem("Assets/Generate ShaderGraph from HLSL (Transparent)", true)]
+        [MenuItem("Assets.Generate ShaderGraph from HLSL (Transparent)", true)]
         private static bool ValidateGenerateShaderGraph()
         {
             var selected = Selection.activeObject;
@@ -1405,16 +1426,22 @@ namespace ShaderGraphGenerator.Editor
             return !string.IsNullOrEmpty(path) && path.EndsWith(".hlsl");
         }
 
-        // **NEW**: Helper method to create the material
-        public static string CreateMaterialForShaderGraph(string shaderGraphPath)
+        // **NEW**: Changed return type to Material
+        public static Material CreateMaterialForShaderGraph(string shaderGraphPath)
         {
             try
             {
                 Shader shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderGraphPath);
                 if (shader == null)
                 {
-                    Debug.LogError($"Could not load shader at path: {shaderGraphPath}. Material not created.");
-                    return null;
+                    // Try to load again after a short delay, as AssetDatabase refresh might be slow
+                    System.Threading.Thread.Sleep(100); // Small delay
+                    shader = AssetDatabase.LoadAssetAtPath<Shader>(shaderGraphPath);
+                    if (shader == null)
+                    {
+                        Debug.LogError($"Could not load shader at path: {shaderGraphPath}. Material not created.");
+                        return null;
+                    }
                 }
 
                 Material mat = new Material(shader);
@@ -1426,13 +1453,91 @@ namespace ShaderGraphGenerator.Editor
                 AssetDatabase.CreateAsset(mat, materialPath);
 
                 Debug.Log($"✓ Created Material: {materialPath}");
-                return materialPath;
+                return mat;
             }
             catch (Exception ex)
             {
                 Debug.LogError($"Failed to create material for {shaderGraphPath}: {ex.Message}");
                 return null;
             }
+        }
+
+        // **NEW**: Helper to create the quad
+        public static GameObject CreatePreviewQuad(Material material, HLSLFunctionInfo functionInfo)
+        {
+            GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            quad.name = $"{material.shader.name} Preview Quad";
+
+            // Ensure we are getting the shared material, not an instance
+            quad.GetComponent<MeshRenderer>().sharedMaterial = material;
+
+            // Set random properties
+            SetRandomMaterialProperties(material, functionInfo);
+
+            // Select and frame it in the scene
+            Selection.activeGameObject = quad;
+            if (SceneView.lastActiveSceneView != null)
+            {
+                SceneView.lastActiveSceneView.FrameSelected();
+            }
+
+            return quad;
+        }
+
+        // **NEW**: Helper to set random material properties
+        public static void SetRandomMaterialProperties(Material material, HLSLFunctionInfo functionInfo)
+        {
+            if (material == null || functionInfo == null) return;
+
+            foreach (var param in functionInfo.InputParameters)
+            {
+                // Shader properties in the material are prefixed with _ by default, but
+                // ShaderGraph properties (since v7) use the exact name.
+                // We'll check for both, starting with the exact name.
+                string propName = param.Name;
+                if (!material.HasProperty(propName))
+                {
+                    // Fallback for older versions or non-graph properties
+                    propName = $"_{param.Name}";
+                    if (!material.HasProperty(propName))
+                    {
+                        continue; // Skip (e.g., this was the UV param)
+                    }
+                }
+
+                try
+                {
+                    switch (param.Type.ToLower())
+                    {
+                        case "float":
+                            material.SetFloat(propName, UnityEngine.Random.Range(0.1f, 0.45f));
+                            break;
+                        case "float2":
+                            material.SetVector(propName, new Vector4(UnityEngine.Random.Range(0.3f, 0.6f), UnityEngine.Random.Range(0.3f, 0.6f), 0, 0));
+                            break;
+                        case "float3":
+                            material.SetVector(propName, new Vector4(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), 0));
+                            break;
+                        case "float4":
+                            if (param.IsColorProperty())
+                            {
+                                // Use a bright, saturated color
+                                material.SetColor(propName, UnityEngine.Random.ColorHSV(0f, 1f, 0.8f, 1f, 1f, 1f, 1f, 1f));
+                            }
+                            else
+                            {
+                                material.SetVector(propName, new Vector4(UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f), UnityEngine.Random.Range(0f, 1f)));
+                            }
+                            break;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogWarning($"Could not set property {propName}: {ex.Message}");
+                }
+            }
+
+            Debug.Log($"✓ Set random properties on material: {material.name}");
         }
     }
 }
@@ -1448,35 +1553,21 @@ METHOD 1: Editor Window
 2. Drag your HLSL file into the "HLSL File" field
 3. Set output path (e.g., "Assets/ShaderGraphs/MyShader.shadergraph")
 4. Check "Use Transparency" if your shader has alpha output
-5. **NEW**: Check "Create Material" to also generate a .mat file
-6. Click "Generate ShaderGraph"
+5. Check "Create Material" to also generate a .mat file
+6. **NEW**: Check "Create Preview Quad" to spawn a quad in the scene with the material
+7. Click "Generate ShaderGraph"
 
 METHOD 2: Context Menu
 -----------------------
 1. Right-click on any .hlsl file in Project window
 2. Select "Generate ShaderGraph from HLSL (Opaque)" or "(Transparent)"
-3. A ShaderGraph and a matching Material will be created in the same folder
-
-METHOD 3: Script (Runtime/Custom Tool)
----------------------------------------
-// This part is unchanged
-ShaderGraphJSONGenerator.GenerateFromHLSL(
-    "Assets/Shaders/PrimitiveFunction1.hlsl",
-    "YOUR_HLSL_FILE_GUID",  // Get from Unity meta file
-    "Assets/ShaderGraphs/Generated.shadergraph",
-    true // or false for opaque
-);
-
-// You could then call the new helper method from your own editor scripts:
-// AssetDatabase.Refresh();
-// ShaderGraphGenerator.Editor.HLSLContextMenu.CreateMaterialForShaderGraph(
-//     "Assets/ShaderGraphs/Generated.shadergraph"
-// );
-// AssetDatabase.Refresh();
+3. A ShaderGraph, a Material, and a Preview Quad in your scene will all be created.
 
 =============================================================================
 HLSL REQUIREMENTS
 =============================================================================
+
+(Unchanged)
 
 Your HLSL function must follow this format:
 
@@ -1507,6 +1598,8 @@ This creates:
 • "radius" property (exposed parameter)
 • "strokeColor" property (Color property with a color picker)
 • "outColor" output (connected to Base Color and Alpha)
+• A "Circle01.mat" material
+• A "Circle01 Preview Quad" in your scene with the material applied and random properties set
 
 =============================================================================
 */
