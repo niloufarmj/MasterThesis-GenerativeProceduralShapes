@@ -52,11 +52,13 @@ namespace ShaderGraphGenerator.Editor
                     // 4. **MODIFIED**: Always create preview quad and request screenshot
                     if (functionInfo != null)
                     {
+                        // We now call this *before* creating the quad.
+                        ShaderGraphGeneratorEditorUtility.SetRandomMaterialProperties(mat, functionInfo);
+
                         // We pass 'true' for captureScreenshot
                         // We pass 'null' for the path, so the utility creates a default path
                         GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
-                            mat, 
-                            functionInfo, 
+                            mat,
                             true,       // captureScreenshot
                             null);      // Use default path
                             

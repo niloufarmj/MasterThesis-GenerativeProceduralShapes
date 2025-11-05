@@ -4,6 +4,7 @@ using System;
 using System.IO; // For file saving
 using System.Collections.Generic; // For the queue
 using ShaderGraphGenerator; // Import the runtime namespace
+using System.Text;
 
 namespace ShaderGraphGenerator.Editor
 {
@@ -15,6 +16,38 @@ namespace ShaderGraphGenerator.Editor
         // We use a queue to ensure screenshots happen *after* the current
         // editor script is finished and a new frame has been rendered.
         private static Queue<Action> s_UpdateQueue = new Queue<Action>();
+
+        /// <summary>
+        /// NEW: Builds the master prompt to send to the LLM.
+        /// </summary>
+        public static string BuildLLMPrompt(string userInput)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("You are a Unity HLSL shader expert. Your sole purpose is to generate code for a Unity ShaderGraph Custom Function Node.");
+            sb.AppendLine("Your entire response MUST be a single, raw JSON object and nothing else. Do not use markdown ticks (```json) or any other formatting.");
+            sb.AppendLine("\nThe user wants a shader function based on this description:");
+            sb.AppendLine($"--- USER DESCRIPTION ---");
+            sb.AppendLine(userInput);
+            sb.AppendLine($"--- END DESCRIPTION ---");
+            sb.AppendLine("\nFollow these rules STRICTLY:");
+            sb.AppendLine("1. The HLSL function must be `void FunctionName_float(...)`.");
+            sb.AppendLine("2. The *first* parameter MUST be `float2 UV`.");
+            sb.AppendLine("3. The *last* parameter MUST be `out float4 outColor`.");
+            sb.AppendLine("4. All other 'dynamic' parameters from the user's prompt (like 'dynamic size') MUST be input parameters (e.g., `float size`, `float rotation`).");
+            sb.AppendLine("5. The generated JSON object must have this exact structure:");
+            sb.AppendLine("{\"file_name\": \"YourFileName\", \"hlsl_code\": \"YourHLSLCode...\", \"properties\": [ ... ]}");
+            sb.AppendLine("6. `file_name` should be a PascalCase version of the function name, without '_float'.");
+            sb.AppendLine("7. `hlsl_code` must be a valid, complete HLSL function as a JSON string.");
+            sb.AppendLine("8. `properties` must be a JSON array of *only* the input parameters (excluding `UV`).");
+            sb.AppendLine("9. Each object in `properties` MUST have this structure:");
+            sb.AppendLine("{\"name\": \"paramName\", \"type\": \"paramType\", \"default_value\": {\"x\":0.0, \"y\":0.0, \"z\":0.0, \"w\":0.0}}");
+            sb.AppendLine("10. For `default_value`, provide reasonable values that create a visible, centered result:");
+            sb.AppendLine("   - For `float`: {\"x\": 0.5, \"y\": 0, \"z\": 0, \"w\": 0}");
+            sb.AppendLine("   - For `float2`: {\"x\": 0.5, \"y\": 0.5, \"z\": 0, \"w\": 0}");
+            sb.AppendLine("   - For `float3`: {\"x\": 1.0, \"y\": 0.0, \"z\": 1.0, \"w\": 0} (e.g., a color)");
+            sb.AppendLine("   - For `float4`/`Color`: {\"x\": 1.0, \"y\": 0.0, \"z\": 1.0, \"w\": 1.0} (e.g., a color with alpha)");
+            return sb.ToString();
+        }
 
         public static Material CreateMaterialForShaderGraph(string shaderGraphPath)
         {
@@ -53,7 +86,6 @@ namespace ShaderGraphGenerator.Editor
 
         public static GameObject CreatePreviewQuad(
             Material material,
-            HLSLFunctionInfo functionInfo,
             bool captureScreenshot = false,
             string screenshotPath = null) 
         {
@@ -61,7 +93,7 @@ namespace ShaderGraphGenerator.Editor
             quad.name = $"{material.shader.name} Preview Quad";
 
             quad.GetComponent<MeshRenderer>().sharedMaterial = material;
-            SetRandomMaterialProperties(material, functionInfo);
+            
             Selection.activeGameObject = quad;
 
             if (SceneView.lastActiveSceneView != null)
@@ -100,6 +132,7 @@ namespace ShaderGraphGenerator.Editor
 
             return quad;
         }
+
 
         public static void SetRandomMaterialProperties(Material material, HLSLFunctionInfo functionInfo)
         {
@@ -221,7 +254,7 @@ namespace ShaderGraphGenerator.Editor
             // 5. Read the pixels from the RenderTexture
             RenderTexture previousActive = RenderTexture.active;
             RenderTexture.active = rt;
-            
+
             Texture2D tex = new Texture2D(width, height, TextureFormat.RGB24, false);
             tex.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             tex.Apply();
@@ -250,6 +283,62 @@ namespace ShaderGraphGenerator.Editor
                 rt.Release();
                 UnityEngine.Object.DestroyImmediate(rt);
             }
+        }
+
+        /// <summary>
+        /// NEW: Creates the .hlsl file on disk from the LLM response.
+        /// </summary>
+        public static string CreateHLSLFile(string fileName, string hlslCode, string folderPath = "Assets/ShaderGraphs/Generated/HLSL")
+        {
+            if (!Directory.Exists(folderPath))
+            {
+                Directory.CreateDirectory(folderPath);
+            }
+
+            string filePath = Path.Combine(folderPath, $"{fileName}.hlsl");
+            File.WriteAllText(filePath, hlslCode);
+
+            AssetDatabase.ImportAsset(filePath);
+            Debug.Log($"✓ Created HLSL file at: {filePath}");
+            return filePath;
+        }
+        
+        /// <summary>
+        /// NEW: Sets specific properties on a material from the LLM response.
+        /// </summary>
+        public static void SetDefaultMaterialProperties(Material material, List<LLMShaderProperty> properties)
+        {
+            if (material == null || properties == null) return;
+
+            foreach (var prop in properties)
+            {
+                if (!material.HasProperty(prop.name))
+                {
+                    Debug.LogWarning($"Material '{material.name}' does not have property '{prop.name}'. Skipping.");
+                    continue;
+                }
+
+                var val = prop.default_value;
+                switch (prop.type.ToLower())
+                {
+                    case "float":
+                        material.SetFloat(prop.name, val.x);
+                        break;
+                    case "float2":
+                        material.SetVector(prop.name, new Vector4(val.x, val.y, 0, 0));
+                        break;
+                    case "float3":
+                        material.SetVector(prop.name, new Vector4(val.x, val.y, val.z, 0));
+                        break;
+                    case "float4":
+                        material.SetVector(prop.name, new Vector4(val.x, val.y, val.z, val.w));
+                        break;
+                    default:
+                        Debug.LogWarning($"Unsupported property type: {prop.type}");
+                        break;
+                }
+            }
+            Debug.Log($"✓ Set default properties on material: {material.name}");
         }
     }
 }

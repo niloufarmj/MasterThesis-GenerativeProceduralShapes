@@ -1,6 +1,7 @@
 using UnityEditor;
 using UnityEngine;
 using ShaderGraphGenerator; // Import the runtime namespace
+using System.Collections.Generic;
 
 namespace ShaderGraphGenerator.Editor
 {
@@ -33,7 +34,7 @@ namespace ShaderGraphGenerator.Editor
             useTransparency = EditorGUILayout.Toggle("Use Transparency", useTransparency);
             createMaterial = EditorGUILayout.Toggle("Create Material", createMaterial);
             createPreviewQuad = EditorGUILayout.Toggle("Create Preview Quad", createPreviewQuad);
-            
+
             EditorGUI.BeginDisabledGroup(!createPreviewQuad);
             captureScreenshot = EditorGUILayout.Toggle("Capture Screenshot", captureScreenshot);
             if (captureScreenshot)
@@ -93,11 +94,10 @@ namespace ShaderGraphGenerator.Editor
                     {
                         // Pass the new screenshot parameters to the utility function
                         GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
-                            mat, 
-                            functionInfo, 
-                            captureScreenshot, 
+                            mat,
+                            captureScreenshot,
                             screenshotPath); // Pass the path
-                            
+
                         successMessage += $"\n\nCreated and selected Preview Quad: {quad.name}";
                     }
                     // 5. Refresh again to show the new material/quad
@@ -126,4 +126,30 @@ namespace ShaderGraphGenerator.Editor
                 MessageType.Info);
         }
     }
+
+    [System.Serializable]
+    public struct LLMValueObject
+    {
+        public float x;
+        public float y;
+        public float z;
+        public float w;
+    }
+
+    [System.Serializable]
+    public class LLMShaderProperty
+    {
+        public string name;
+        public string type;
+        public LLMValueObject default_value;
+    }
+
+    [System.Serializable]
+    public class LLMShaderResponse
+    {
+        public string file_name;
+        public string hlsl_code;
+        public List<LLMShaderProperty> properties;
+    }
+
 }
