@@ -184,7 +184,7 @@ namespace ShaderGraphGenerator.Editor
             try
             {
                 // 1. Build the meta prompt
-                string metaPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt);
+                string metaPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt, useTransparency);
 
                 // 2. Call OpenAI API
                 EditorUtility.DisplayProgressBar("LLM", "Contacting OpenAI...", 0.2f);

@@ -20,32 +20,45 @@ namespace ShaderGraphGenerator.Editor
         /// <summary>
         /// NEW: Builds the master prompt to send to the LLM.
         /// </summary>
-        public static string BuildLLMPrompt(string userInput)
+        public static string BuildLLMPrompt(string userInput, bool useTransparency)
         {
             var sb = new StringBuilder();
-            sb.AppendLine("You are a Unity HLSL shader expert. Your sole purpose is to generate code for a Unity ShaderGraph Custom Function Node.");
+            sb.AppendLine("You are a Unity HLSL shader expert. Your sole purpose is to generate VALID, COMPILABLE code for a Unity ShaderGraph Custom Function Node.");
             sb.AppendLine("Your entire response MUST be a single, raw JSON object and nothing else. Do not use markdown ticks (```json) or any other formatting.");
-            sb.AppendLine("\nThe user wants a shader function based on this description:");
-            sb.AppendLine($"--- USER DESCRIPTION ---");
+
+            sb.AppendLine("\n=== USER REQUEST ===");
             sb.AppendLine(userInput);
-            sb.AppendLine($"--- END DESCRIPTION ---");
-            sb.AppendLine("\nFollow these rules STRICTLY:");
-            sb.AppendLine("1. The HLSL function must be `void FunctionName_float(...)`.");
-            sb.AppendLine("2. The *first* parameter MUST be `float2 UV`.");
-            sb.AppendLine("3. The *last* parameter MUST be `out float4 outColor`.");
-            sb.AppendLine("4. All other 'dynamic' parameters from the user's prompt (like 'dynamic size') MUST be input parameters (e.g., `float size`, `float rotation`).");
-            sb.AppendLine("5. The generated JSON object must have this exact structure:");
-            sb.AppendLine("{\"file_name\": \"YourFileName\", \"hlsl_code\": \"YourHLSLCode...\", \"properties\": [ ... ]}");
-            sb.AppendLine("6. `file_name` should be a PascalCase version of the function name, without '_float'.");
-            sb.AppendLine("7. `hlsl_code` must be a valid, complete HLSL function as a JSON string.");
-            sb.AppendLine("8. `properties` must be a JSON array of *only* the input parameters (excluding `UV`).");
-            sb.AppendLine("9. Each object in `properties` MUST have this structure:");
-            sb.AppendLine("{\"name\": \"paramName\", \"type\": \"paramType\", \"default_value\": {\"x\":0.0, \"y\":0.0, \"z\":0.0, \"w\":0.0}}");
-            sb.AppendLine("10. For `default_value`, provide reasonable values that create a visible, centered result:");
-            sb.AppendLine("   - For `float`: {\"x\": 0.5, \"y\": 0, \"z\": 0, \"w\": 0}");
-            sb.AppendLine("   - For `float2`: {\"x\": 0.5, \"y\": 0.5, \"z\": 0, \"w\": 0}");
-            sb.AppendLine("   - For `float3`: {\"x\": 1.0, \"y\": 0.0, \"z\": 1.0, \"w\": 0} (e.g., a color)");
-            sb.AppendLine("   - For `float4`/`Color`: {\"x\": 1.0, \"y\": 0.0, \"z\": 1.0, \"w\": 1.0} (e.g., a color with alpha)");
+            sb.AppendLine("===================");
+
+            sb.AppendLine("\n=== CRITICAL RULES / HLSL CODE REQUIREMENTS ===");
+            sb.AppendLine("A final 'main' function, which ShaderGraph will call, MUST have this signature: void FunctionName_float(float2 UV, [other inputs...], out float4 outColor)");
+            sb.AppendLine("HELPER FUNCTIONS: You are ENCOURAGED to write other helper functions (e.g., `float sdf_box(float2 p, float2 b)`) within the HLSL code. The 'main' function can then call these helpers. This is good practice for complex shapes.");
+            sb.AppendLine("UV is [0..1]. Always center as float2 p = UV - 0.5; Do not remap to [-1,1].");
+            sb.AppendLine("Inside means sd < 0. Use aa = max(fwidth(sd), 1e-5); and fill = 1 - smoothstep(0.0, aa, sd).");
+            sb.AppendLine("Output outColor = float4(BaseColor * fill, 1.0) (or fill if transparent).");
+            sb.AppendLine("Do not change vector dimensions: if the input is float2, keep float2 throughout unless explicitly building a float3.");
+            sb.AppendLine("The JSON 'file_name' MUST match the function name prefix (<FileBase>).");
+            sb.AppendLine("- FUNCTION ORDER: If you define any helper functions, they MUST appear *before* the main function {FileBase}_float.");
+            sb.AppendLine("- Do NOT place helper functions below the main function — Unity’s HLSL compiler requires called functions to be declared earlier.");
+            sb.AppendLine("- The main function {FileBase}_float must be the *last* function in the file.");
+            sb.AppendLine("- RESIZABILITY: The final shape and any added features MUST be resizable via parameters even if not requested explicitly.");
+            sb.AppendLine("  Include at least one explicit size/scale parameter (e.g., size or scale). When relevant, also expose radius and/or thickness.");
+            sb.AppendLine("IMPLICIT/EQN SHAPES: If you use trigonometric/polar forms (e.g., atan2/sin/cos) they MUST produce a true signed distance.\r\n  Otherwise prefer a known SDF construction (box, circle, arcs, blends). Do not output mask-only formulas.");
+            sb.AppendLine(" SCALING RULE: For any 'size'/'scale' parameter you MUST implement SDF scaling as:\r\n  sd_scaled(p) = scale * sd_base(p / scale). Do NOT scale coordinates as p *= size without compensating.\r\n\r\nAnd in your Forbidden Patterns add:");
+            sb.AppendLine(" Direct coordinate scaling like 'p *= size;' or 'p = p * size;' (unless followed by 'sd = size * sd_base(p/size)')");
+            sb.AppendLine("- Using atan2/sin/cos to return a mask without an actual signed distance");
+            sb.AppendLine(" If a size/scale parameter exists, did you apply sd = size * sd0(p/size)?");
+            sb.AppendLine(" If you used atan2/sin/cos, can you prove sd<0 inside and >0 outside with consistent units?");
+
+            sb.AppendLine("\n=== REQUIRED JSON STRUCTURE ===");
+            sb.AppendLine("{");
+            sb.AppendLine("  \"file_name\": \"DescriptiveName\",");
+            sb.AppendLine("  \"hlsl_code\": \"void FunctionName_float(float2 UV, float param1, out float4 outColor) { ... }\",");
+            sb.AppendLine("  \"properties\": [");
+            sb.AppendLine("    {\"name\": \"param1\", \"type\": \"float\", \"default_value\": {\"x\": 0.5, \"y\": 0, \"z\": 0, \"w\": 0}}");
+            sb.AppendLine("  ]");
+            sb.AppendLine("}");
+
             return sb.ToString();
         }
 
@@ -75,7 +88,7 @@ namespace ShaderGraphGenerator.Editor
                 AssetDatabase.CreateAsset(mat, materialPath);
 
                 Debug.Log($"✓ Created Material: {materialPath}");
-                return mat;
+                return mat; 
             }
             catch (Exception ex)
             {
