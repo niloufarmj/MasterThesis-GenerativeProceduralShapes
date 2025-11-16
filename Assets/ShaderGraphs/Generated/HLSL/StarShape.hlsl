@@ -1,18 +1,22 @@
-void StarShape_float(float2 UV, float Radius, float4 Color, out float4 outColor) {
-    // Center UV coordinates and scale
-    float2 centered = (UV - 0.5) * 2.0;
-    float angle = atan2(centered.y, centered.x) + 3.14159;
-    float r = length(centered);
-    // 5-point star shape calculation using sine wave modulation
-    float n = 5.0; // Number of star points
-    float starInnerRadius = 0.4; // Inner radius ratio
-    float density = 0.5; // Controls the sharpness of corners
-    // Modulate radius with sine waves (5 waves for 5 points)
-    float starRadius = (sin(n * angle) + 1.0) / 2.0 * (starInnerRadius - 1.0) + 1.0;
-    // Star's SDF
-    float dist = (r / Radius - starRadius) * density;
-    // Anti-aliasing using smoothstep
+void StarShape_float(float2 UV, float StarInnerRadius, float StarOuterRadius, float4 Color, out float4 outColor) {
+    // PLAN:
+    // 1) Remap UV to local coordinates centered around (0.5, 0.5)
+    // 2) Calculate the radial & angular components of the UV coordinates
+    // 3) Define path for the star's outer and inner vertices
+    // 4) Generate the signed distance field (SDF) for the star by comparing angles and radii
+    // 5) Calculate soft edge (anti-aliasing) using smoothstep based on SDF
+    // 6) Output final color using calculated mask
+
+    float2 centered = UV - float2(0.5, 0.5);
+    centered *= 2.0;
+    float angle = atan2(centered.y, centered.x) + PI;
+    float rad = length(centered);
+    float nip = 5.0; // Number of star points
+    float step = 2.0 * PI / nip;
+    float phase = fmod(angle + step / 2.0, step) - step / 2.0;
+    float innerOuterMix = cos(phase * nip) * 0.5 + 0.5;
+    float radiusMix = lerp(StarInnerRadius, StarOuterRadius, innerOuterMix);
+    float dist = radiusMix - rad;
     float edge = smoothstep(0.01, -0.01, dist);
-    // Set output color with transparency
     outColor = float4(Color.rgb * edge, edge);
 }

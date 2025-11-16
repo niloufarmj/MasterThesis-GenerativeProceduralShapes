@@ -6,9 +6,16 @@ using System.Threading.Tasks;
 using UnityEngine.Networking;
 using System.IO;
 using Newtonsoft.Json;
+using System;
 
 namespace ShaderGraphGenerator.Editor
 {
+    public class LLMMatchScoreResponse
+    {
+        public int score;          // 1–10
+        public string explanation; // short text
+    }
+
     /// <summary>
     /// Unity Editor integration for easy ShaderGraph generation
     /// </summary>
@@ -231,32 +238,105 @@ namespace ShaderGraphGenerator.Editor
 
                 // 8. Create Material
                 EditorUtility.DisplayProgressBar("LLM", "Creating material...", 0.8f);
+
                 Material mat = ShaderGraphGeneratorEditorUtility.CreateMaterialForShaderGraph(graphPath);
                 if (mat == null)
                 {
-                    throw new System.Exception("Failed to create material. Shader may not have compiled.");
+                    EditorUtility.DisplayDialog(
+                        "Error",
+                        "Could not create material for the generated ShaderGraph.",
+                        "OK");
+                    return;
+                }
+
+                // Apply LLM defaults
+                ShaderGraphGeneratorEditorUtility.SetDefaultMaterialProperties(mat, llmResponse.properties);
+
+                // NEW: check compile errors
+                if (ShaderGraphGeneratorEditorUtility.HasShaderCompileErrors(mat.shader))
+                {
+                    EditorUtility.ClearProgressBar();
+                    EditorUtility.DisplayDialog(
+                        "HLSL Compile Error",
+                        "The generated HLSL file contains errors and the shader could not be compiled.\n\n" +
+                        "Generation is cancelled. Please check the Console for details.",
+                        "OK");
+
+                    // Optional clean-up:
+                    // AssetDatabase.DeleteAsset(graphPath);
+                    // AssetDatabase.DeleteAsset(hlslPath);
+
+                    return; // do NOT create preview or run eval-LLM
                 }
 
                 // 9. Set Default Properties (from LLM)
                 ShaderGraphGeneratorEditorUtility.SetDefaultMaterialProperties(mat, llmResponse.properties);
 
                 // 10. Create Quad & Screenshot
-                EditorUtility.DisplayProgressBar("LLM", "Creating preview...", 0.9f);
+                EditorUtility.DisplayProgressBar("LLM", "Creating preview.", 0.9f);
                 if (!Directory.Exists(llmPreviewFolder)) Directory.CreateDirectory(llmPreviewFolder);
                 string previewPath = Path.Combine(llmPreviewFolder, $"{llmResponse.file_name}.png");
 
                 GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
                     mat,
-                    true, // captureScreenshot
+                    true,  // captureScreenshot
                     previewPath);
 
-                string successMessage = "AI Generation Complete!\n\n" +
+                // 11. Wait for the screenshot file to be written
+                EditorUtility.DisplayProgressBar("LLM", "Waiting for preview image...", 0.93f);
+                bool previewReady = await WaitForPreviewFileAsync(previewPath);
+
+                if (!previewReady)
+                {
+                    Debug.LogError($"Preview image not found at: {previewPath}");
+                }
+                else
+                {
+                    // 12. Evaluate match quality with LLM
+                    EditorUtility.DisplayProgressBar("LLM", "Evaluating match quality...", 0.95f);
+
+                    string evalJson = await CallOpenAIEvalAsync(
+                        llmPrompt,
+                        llmResponse.hlsl_code,
+                        llmResponse.properties,
+                        previewPath,
+                        openAIKey);
+
+                    int matchScore = -1;
+                    string matchExplanation = "";
+                    if (!string.IsNullOrEmpty(evalJson))
+                    {
+                        try
+                        {
+                            var eval = JsonConvert.DeserializeObject<LLMMatchScoreResponse>(evalJson);
+                            if (eval != null)
+                            {
+                                matchScore = eval.score;
+                                matchExplanation = eval.explanation;
+                            }
+                        }
+                        catch (System.Exception ex)
+                        {
+                            Debug.LogWarning($"Failed to parse match score JSON: {ex.Message}\nRaw eval JSON: {evalJson}");
+                        }
+                    }
+
+                    string successMessage = "AI Generation Complete!\n\n" +
                                         $"HLSL: {hlslPath}\n" +
                                         $"Graph: {graphPath}\n" +
                                         $"Material: {AssetDatabase.GetAssetPath(mat)}\n" +
                                         $"Preview: {previewPath}";
 
-                EditorUtility.DisplayDialog("Success", successMessage, "OK");
+                    if (matchScore >= 0)
+                    {
+                        successMessage += $"\n\nMatch Score: {matchScore}/10";
+                        if (!string.IsNullOrEmpty(matchExplanation))
+                            successMessage += $"\n{matchExplanation}";
+                    }
+
+                    EditorUtility.DisplayDialog("Success", successMessage, "OK");
+                }
+                
             }
             catch (System.Exception ex)
             {
@@ -329,6 +409,134 @@ namespace ShaderGraphGenerator.Editor
                 }
             }
         }
+    
+        /// <summary>
+        /// Calls OpenAI with image + text and asks for a 1–10 match score.
+        /// </summary>
+        private async Task<string> CallOpenAIEvalAsync(
+            string userPrompt,
+            string hlslCode,
+            List<LLMShaderProperty> properties,
+            string previewPath,
+            string apiKey)
+        {
+            string url = "https://api.openai.com/v1/chat/completions";
+
+            // 1) Read preview image and convert to data URL
+            if (!File.Exists(previewPath))
+            {
+                Debug.LogError($"Preview image not found at: {previewPath}");
+                return null;
+            }
+
+            byte[] imageBytes = File.ReadAllBytes(previewPath);
+            string base64 = Convert.ToBase64String(imageBytes);
+            string dataUrl = $"data:image/png;base64,{base64}";
+
+            // 2) Build text content
+            string propertiesJson = BuildPropertySummaryJson(properties);
+
+            string textContent =
+                "You are a strict visual evaluator for procedurally generated shapes.\n\n" +
+                "User requested shape (natural language):\n" +
+                userPrompt + "\n\n" +
+                "HLSL code that produced the image:\n" +
+                hlslCode + "\n\n" +
+                "Shader properties (name, type, default_value) used for this preview:\n" +
+                propertiesJson + "\n\n" +
+                "Using ONLY the attached image and this information, rate from 1 to 10 how well " +
+                "the rendered image matches the user's request. 1 = completely wrong, 10 = perfect match.\n\n" +
+                "Return ONLY valid JSON with this structure:\n" +
+                "{ \"score\": <integer 1-10>, \"explanation\": \"short explanation\" }";
+
+            // 3) Build messages with multimodal content
+            var bodyObject = new
+            {
+                model = "gpt-4.1-mini", // or gpt-4o if you prefer
+                response_format = new { type = "json_object" },
+                messages = new object[]
+                {
+                    new {
+                        role = "system",
+                        content = "You are a helpful assistant that only responds with valid, raw JSON. " +
+                                "Do not include markdown or any other text outside the JSON object."
+                    },
+                    new {
+                        role = "user",
+                        content = new object[]
+                        {
+                            new { type = "text", text = textContent },
+                            new { type = "image_url", image_url = new { url = dataUrl } }
+                        }
+                    }
+                }
+            };
+
+            string jsonBody = JsonConvert.SerializeObject(bodyObject);
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+            {
+                www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                www.downloadHandler = new DownloadHandlerBuffer();
+                www.SetRequestHeader("Content-Type", "application/json");
+                www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+
+                var op = www.SendWebRequest();
+                while (!op.isDone)
+                {
+                    await Task.Yield();
+                }
+
+                if (www.result == UnityWebRequest.Result.ConnectionError ||
+                    www.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogError($"OpenAI Eval API Error: {www.error}\n{www.downloadHandler.text}");
+                    return null;
+                }
+                else
+                {
+                    string rawResponse = www.downloadHandler.text;
+                    try
+                    {
+                        var openAiResponse = JsonConvert.DeserializeObject<dynamic>(rawResponse);
+                        string jsonContent = openAiResponse.choices[0].message.content;
+                        return jsonContent;
+                    }
+                    catch (System.Exception ex)
+                    {
+                        Debug.LogError($"Failed to parse OpenAI eval response shell: {ex.Message}\nRaw response: {rawResponse}");
+                        // Fallback: sometimes the API just returns the content directly
+                        return rawResponse;
+                    }
+                }
+            }
+        }
+
+        
+        private string BuildPropertySummaryJson(List<LLMShaderProperty> properties)
+        {
+            if (properties == null) return "[]";
+            return JsonConvert.SerializeObject(properties, Formatting.Indented);
+        }
+
+        private async Task<bool> WaitForPreviewFileAsync(string path, float timeoutSeconds = 5f)
+        {
+            double start = EditorApplication.timeSinceStartup;
+
+            // Normalize slashes just in case
+            path = path.Replace("\\", "/");
+
+            while (!File.Exists(path) &&
+                EditorApplication.timeSinceStartup - start < timeoutSeconds)
+            {
+                await Task.Delay(200); // wait 0.2s and check again
+            }
+
+            return File.Exists(path);
+        }
+
+    
     }
 
 

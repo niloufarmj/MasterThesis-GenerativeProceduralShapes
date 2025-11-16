@@ -5,6 +5,7 @@ using System.IO; // For file saving
 using System.Collections.Generic; // For the queue
 using ShaderGraphGenerator; // Import the runtime namespace
 using System.Text;
+using UnityEditor.Rendering;
 
 namespace ShaderGraphGenerator.Editor
 {
@@ -115,6 +116,8 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("✅ float edge = smoothstep(0.01, -0.01, dist); outColor = float4(Color * edge, edge);");
             sb.AppendLine("❌ Complex nested calculations without SDF");
             sb.AppendLine("✅ Clean SDF calculation with smoothstep anti-aliasing");
+            sb.AppendLine("❌ const float PI = 3.14159265; will lead to compile error");
+            sb.AppendLine("✅ define PI outside the function like this #ifndef PI #define PI 3.14159265359 #endif");
 
             AppendPrimitiveLibraryDocs(sb);
 
@@ -135,6 +138,29 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("4. Every shape MUST be resizable via at least one size parameter");
             sb.AppendLine("   (radius, halfExtents, size, etc.). Scaling must stay clean.");
             sb.AppendLine("5. You must declare helper functions BEFORE they are called.");
+
+            sb.AppendLine("- FINAL COLOR PATTERN (IMPORTANT):");
+            sb.AppendLine("  * Color parameters are float4 RGBA.");
+            sb.AppendLine("  * Never call float4(Color * mask, mask) because Color is float4 and that");
+            sb.AppendLine("    would be 5 components (float4 + float) → compile error.");
+            sb.AppendLine("  * Instead, ALWAYS do one of these:");
+            sb.AppendLine("      outColor = float4(Color.rgb * mask, mask);");
+            sb.AppendLine("      // or: outColor = float4(Color.rgb * mask, Color.a * mask);");
+            sb.AppendLine("  * Do NOT use compound assignments (+=, -=, *=, /=) on outColor.");
+            sb.AppendLine("    Just assign once: outColor = <final value>;");
+
+
+            sb.AppendLine("- CONSTANT DEFINITIONS RULE (IMPORTANT):");
+            sb.AppendLine("  You MUST NOT declare numeric constants inside functions (e.g. `const float PI = ...;`).");
+            sb.AppendLine("  Unity HLSL will produce compile errors such as 'unexpected float constant'.");
+            sb.AppendLine("  Instead, ALWAYS define constants using preprocessor macros at the TOP of the file:");
+            sb.AppendLine("  #ifndef PI");
+            sb.AppendLine("  #define PI 3.14159265359");
+            sb.AppendLine("  #endif");
+            sb.AppendLine("  If you need TAU or HALF_PI, define them the same way.");
+            sb.AppendLine("  Never place constant definitions inside the main function or helper functions.");
+            sb.AppendLine("  If you use ANY constant value more than once, promote it to a #define at the top.");
+            sb.AppendLine("  This ensures compatibility with Unity ShaderGraph's HLSL injection system.");  
 
             sb.AppendLine("\n=== LIBRARY & COMPOSITION RULES ===");
             sb.AppendLine("1. If a shape can be built from existing primitives (circle, box, rectangle, etc.),");
@@ -563,5 +589,37 @@ namespace ShaderGraphGenerator.Editor
             Debug.Log($"✓ Set default LLM properties on material: {material.name}");
         }
 
+        #if UNITY_EDITOR
+        public static bool HasShaderCompileErrors(Shader shader)
+        {
+            if (shader == null)
+                return true;
+
+            // Clear any old messages
+            ShaderUtil.ClearShaderMessages(shader);
+
+            // Force the shader asset to reimport/compile
+            var path = AssetDatabase.GetAssetPath(shader);
+            if (!string.IsNullOrEmpty(path))
+            {
+                AssetDatabase.ImportAsset(path, ImportAssetOptions.ForceUpdate);
+            }
+
+            // Now read messages
+            var messages = ShaderUtil.GetShaderMessages(shader);
+            foreach (var msg in messages)
+            {
+                if (msg.severity == ShaderCompilerMessageSeverity.Error)
+                {
+                    Debug.LogError(
+                        $"Shader compile error in '{shader.name}': {msg.message} " +
+                        $"(file: {msg.file}, line: {msg.line})");
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        #endif
     }
 }

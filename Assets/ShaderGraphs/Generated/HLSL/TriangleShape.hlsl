@@ -1,16 +1,25 @@
-void TriangleShape_float(float2 UV, float Size, float3 Color, out float4 outColor) {
+void TriangleShape_float(float2 UV, float Size, float4 Color, out float4 outColor) {
     // PLAN:
     // 1) Center UV coordinates
-    float2 centered = UV - 0.5;
-    // 2) Scale UV by Size
-    centered *= Size * 2.0;
-    // 3) Define triangle SDF
-    const float k = sqrt(3.0);
-    float dist = max(abs(centered.x) - 1.0, centered.y);
-    float2 p1 = abs(centered) - float2(1.0, 1.0/k);
-    if (centered.x + k*centered.y > 0.0) dist = length(max(p1,0.0)) + min(max(p1.x,p1.y),0.0);
-    // 4) Anti-aliasing
+    // 2) Scale by size
+    // 3) Calculate SDF for equilateral triangle
+    // 4) Anti-alias with smoothstep
+    // 5) Set formatted color output
+
+    // Center and scale UV coordinates
+    float2 centered = (UV - 0.5) * 2.0;
+    centered /= Size;
+
+    // Triangle SDF (normalized to Size)
+    float k = 1.73205080757; // sqrt(3.0)
+    centered.x = abs(centered.x) - 0.5;
+    centered.y += 0.25 * k;
+    float dist = max(centered.x, centered.y);
+    if (centered.x + k * centered.y < 0.0) dist = length(centered);
+
+    // Anti-alias
     float edge = smoothstep(0.01, -0.01, dist);
-    // 5) Output color
-    outColor = float4(Color * edge, edge);
+
+    // Output with smooth alpha
+    outColor = float4(Color.rgb * edge, edge);
 }
