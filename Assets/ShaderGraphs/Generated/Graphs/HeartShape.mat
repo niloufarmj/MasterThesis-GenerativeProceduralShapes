@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-4019607989125744397
+--- !u!114 &-5405090090512134209
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: HeartShape
-  m_Shader: {fileID: -6465566751694194690, guid: 5bd62a43daa95cf429388b338b10d7e3, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 211b5cab54c737640a9e0485c8b3acfe, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -53,12 +53,10 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _b: 0
-    - _g: 0
-    - _r: 0
-    - _scale: 0
-    - _size: 0.22
+    - _Roundness: 2
+    - _Size: 0.68
     m_Colors:
-    - _BaseColor: {r: 0.4339623, g: 0.22312212, b: 0.22312212, a: 1}
+    - _Center: {r: 0.49, g: 0.47, b: 0, a: 0}
+    - _Color: {r: 0.1, g: 0.19, b: 0.74, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

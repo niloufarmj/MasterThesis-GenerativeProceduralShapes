@@ -139,6 +139,11 @@ namespace ShaderGraphGenerator.Editor
                     mat = ShaderGraphGeneratorEditorUtility.CreateMaterialForShaderGraph(outputPath);
                     if (mat != null)
                     {
+                        // NEW: set random values so shapes are visible
+                        if (functionInfo != null)
+                        {
+                            ShaderGraphGeneratorEditorUtility.SetRandomMaterialProperties(mat, functionInfo);
+                        }
                         successMessage += $"\n\nMaterial created at:\n{AssetDatabase.GetAssetPath(mat)}";
                     }
                 }
@@ -184,7 +189,7 @@ namespace ShaderGraphGenerator.Editor
             try
             {
                 // 1. Build the meta prompt
-                string metaPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt, useTransparency);
+                string metaPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt, true);
 
                 // 2. Call OpenAI API
                 EditorUtility.DisplayProgressBar("LLM", "Contacting OpenAI...", 0.2f);
@@ -218,7 +223,7 @@ namespace ShaderGraphGenerator.Editor
                 string graphPath = Path.Combine(llmGraphFolder, $"{llmResponse.file_name}.shadergraph");
 
                 // Assuming 'opaque' for now. You could ask the LLM for this too.
-                HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, hlslGuid, graphPath, false);
+                HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, hlslGuid, graphPath, true);
 
                 // 7. Refresh AssetDatabase again to compile shader
                 EditorUtility.DisplayProgressBar("LLM", "Compiling shader...", 0.7f);

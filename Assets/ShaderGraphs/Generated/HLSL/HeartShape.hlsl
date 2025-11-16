@@ -1,1 +1,18 @@
-float sd_heart(float2 p, float size) { float2 q = p * float2(1, -1) * 4.0 / size; float l = length(q); return pow(l, 2) - pow(q.x, 2) + q.y; } float heart_SDF(float2 p, float scale) { return scale * sd_heart(p / scale, 1.0); } void HeartShape_float(float2 UV, float scale, float r, float g, float b, out float4 outColor) { float2 p = UV - 0.5; float sd = heart_SDF(p, scale); float aa = max(fwidth(sd), 1e-5); float fill = 1 - smoothstep(0.0, aa, sd); outColor = float4(fill * r, fill * g, fill * b, 1.0); }
+void HeartShape_float(float2 UV, float Size, float3 Color, out float4 outColor) {
+    // Center UV and scale
+    float2 centered = (UV - float2(0.5, 0.5)) / Size;
+    
+    // Define the heart shape using circles and a triangle
+    float2 p = float2(centered.x, -centered.y); // flip y for easier math
+    p.x = abs(p.x); // heart is symmetrical along y-axis
+    float d1 = length(p - float2(0.5, 0.4)); // circle right
+    float d2 = length(p - float2(-0.5, 0.4)); // circle left
+    float dTriangleBase = (p.y - 0.4) + 0.6 * abs(p.x); // triangle shape
+    float d = min(min(d1, d2), dTriangleBase);
+    
+    // Compute smooth edge
+    float edge = smoothstep(0.01, -0.01, d);
+    
+    // Set output color
+    outColor = float4(Color * edge, edge);
+}
