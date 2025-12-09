@@ -30,7 +30,8 @@ namespace ShaderGraphGenerator.Editor
         private string screenshotPath = "Assets/ShaderGraphs/Previews/GeneratedPreview.png";
 
         private string llmPrompt = "a pentagon with dynamic size and dynamic stroke, centered, with dynamic rotation and dynamic corner radius";
-        private string AIKey = "MY_OPENAI_KEY";
+
+        private ShaderGraphGeneratorConfig config;
         private string llmHlslFolder = "Assets/ShaderGraphs/Generated/HLSL";
         private string llmGraphFolder = "Assets/ShaderGraphs/Generated/Graphs";
         private string llmPreviewFolder = "Assets/ShaderGraphs/Generated/Previews";
@@ -41,6 +42,13 @@ namespace ShaderGraphGenerator.Editor
         public static void ShowWindow()
         {
             GetWindow<ShaderGraphGeneratorWindow>("ShaderGraph Generator");
+        }
+
+        private void OnEnable()
+        {
+            config = AssetDatabase.LoadAssetAtPath<ShaderGraphGeneratorConfig>(
+                "Assets/ShaderGraphGeneratorConfig.asset"
+            );
         }
 
         private void OnGUI()
@@ -84,7 +92,7 @@ namespace ShaderGraphGenerator.Editor
 
             // --- New LLM Flow ---
             GUILayout.Label("Generate from Text (Experimental)", EditorStyles.boldLabel);
-            AIKey = EditorGUILayout.PasswordField("API Key", AIKey);
+
             GUILayout.Label("Describe your shader function:");
             llmPrompt = EditorGUILayout.TextArea(llmPrompt, GUILayout.Height(80));
 
@@ -184,7 +192,7 @@ namespace ShaderGraphGenerator.Editor
         private async void GenerateFromLLMAsync()
         {
             if (isGenerating) return;
-            if (string.IsNullOrEmpty(AIKey) || AIKey == "sk-PASTE_YOUR_KEY_HERE")
+            if (string.IsNullOrEmpty(config.geminiKey) || config.geminiKey == "sk-PASTE_YOUR_KEY_HERE")
             {
                 EditorUtility.DisplayDialog("Error", "Please enter a valid OpenAI API Key.", "OK");
                 return;
@@ -199,8 +207,8 @@ namespace ShaderGraphGenerator.Editor
                 string metaPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt, true);
 
                 // 2. Call OpenAI API
-                EditorUtility.DisplayProgressBar("LLM", "Contacting OpenAI...", 0.2f);
-                string jsonResponse = await CallGeminiAsync(metaPrompt, "AIzaSyBFuT76FV2ojfRtlqFn04OPBB26vlYfIu4");
+                EditorUtility.DisplayProgressBar("LLM", "Contacting LLM...", 0.2f);
+                string jsonResponse = await CallGeminiAsync(metaPrompt, config.geminiKey);
                 if (string.IsNullOrEmpty(jsonResponse))
                 {
                     throw new System.Exception("Received empty response from LLM.");
@@ -299,7 +307,7 @@ namespace ShaderGraphGenerator.Editor
                         llmResponse.hlsl_code,
                         llmResponse.properties,
                         previewPath,
-                        AIKey);
+                        config.openAIKey);
 
                     int matchScore = -1;
                     string matchExplanation = "";
