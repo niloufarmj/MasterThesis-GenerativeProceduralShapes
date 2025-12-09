@@ -112,12 +112,12 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("}");
 
             sb.AppendLine("\n=== BAD EXAMPLE (DO NOT DO THIS) ===");
-            sb.AppendLine("❌ if (dist < size) outColor = float4(1,1,1,1); else outColor = float4(0,0,0,0);");
-            sb.AppendLine("✅ float edge = smoothstep(0.01, -0.01, dist); outColor = float4(Color * edge, edge);");
-            sb.AppendLine("❌ Complex nested calculations without SDF");
-            sb.AppendLine("✅ Clean SDF calculation with smoothstep anti-aliasing");
-            sb.AppendLine("❌ const float PI = 3.14159265; will lead to compile error");
-            sb.AppendLine("✅ define PI outside the function like this #ifndef PI #define PI 3.14159265359 #endif");
+            sb.AppendLine("bad: if (dist < size) outColor = float4(1,1,1,1); else outColor = float4(0,0,0,0);");
+            sb.AppendLine("good: float edge = smoothstep(0.01, -0.01, dist); outColor = float4(Color * edge, edge);");
+            sb.AppendLine("bad: Complex nested calculations without SDF");
+            sb.AppendLine("good: Clean SDF calculation with smoothstep anti-aliasing");
+            sb.AppendLine("bad: const float PI = 3.14159265; will lead to compile error");
+            sb.AppendLine("good: define PI outside the function like this #ifndef PI #define PI 3.14159265359 #endif");
 
             AppendPrimitiveLibraryDocs(sb);
 
@@ -182,6 +182,7 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("float2 (Position): {0.5, 0.5} (center of screen)");
             sb.AppendLine("float3 (Color RGB): {1.0, 0.0, 1.0} (bright magenta)");
             sb.AppendLine("float4 (Color RGBA): {1.0, 0.0, 1.0, 1.0} (bright magenta, opaque)");
+            sb.AppendLine("MANDATORY: The generated ShaderGraph or HLSL instructions must set center01 = float2(0.5, 0.5). Never leave the center at (0,0). So the Default value for center x and center y should be 0.5 and 0.5. Never output any other default. The rendered object must appear centered.");
 
             sb.AppendLine("\n=== REMEMBER ===");
             sb.AppendLine("- Test your logic mentally before outputting");
@@ -586,6 +587,17 @@ namespace ShaderGraphGenerator.Editor
                 }
             }
 
+            // Force center parameters
+            foreach (var prop in properties)
+            {
+                if (prop.name.ToLower().Contains("center"))
+                {
+                    if (material.HasVector(prop.name))
+                    {
+                        material.SetVector(prop.name, new Vector4(0.5f, 0.5f, 0f, 0f));
+                    }
+                }
+            }
             Debug.Log($"✓ Set default LLM properties on material: {material.name}");
         }
 

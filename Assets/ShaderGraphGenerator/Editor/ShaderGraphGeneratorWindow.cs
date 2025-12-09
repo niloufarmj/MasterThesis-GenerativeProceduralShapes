@@ -30,7 +30,7 @@ namespace ShaderGraphGenerator.Editor
         private string screenshotPath = "Assets/ShaderGraphs/Previews/GeneratedPreview.png";
 
         private string llmPrompt = "a pentagon with dynamic size and dynamic stroke, centered, with dynamic rotation and dynamic corner radius";
-        private string openAIKey = "MY_OPENAI_KEY";
+        private string AIKey = "MY_OPENAI_KEY";
         private string llmHlslFolder = "Assets/ShaderGraphs/Generated/HLSL";
         private string llmGraphFolder = "Assets/ShaderGraphs/Generated/Graphs";
         private string llmPreviewFolder = "Assets/ShaderGraphs/Generated/Previews";
@@ -84,7 +84,7 @@ namespace ShaderGraphGenerator.Editor
 
             // --- New LLM Flow ---
             GUILayout.Label("Generate from Text (Experimental)", EditorStyles.boldLabel);
-            openAIKey = EditorGUILayout.PasswordField("OpenAI API Key", openAIKey);
+            AIKey = EditorGUILayout.PasswordField("API Key", AIKey);
             GUILayout.Label("Describe your shader function:");
             llmPrompt = EditorGUILayout.TextArea(llmPrompt, GUILayout.Height(80));
 
@@ -184,7 +184,7 @@ namespace ShaderGraphGenerator.Editor
         private async void GenerateFromLLMAsync()
         {
             if (isGenerating) return;
-            if (string.IsNullOrEmpty(openAIKey) || openAIKey == "sk-PASTE_YOUR_KEY_HERE")
+            if (string.IsNullOrEmpty(AIKey) || AIKey == "sk-PASTE_YOUR_KEY_HERE")
             {
                 EditorUtility.DisplayDialog("Error", "Please enter a valid OpenAI API Key.", "OK");
                 return;
@@ -200,8 +200,7 @@ namespace ShaderGraphGenerator.Editor
 
                 // 2. Call OpenAI API
                 EditorUtility.DisplayProgressBar("LLM", "Contacting OpenAI...", 0.2f);
-                string jsonResponse = await CallOpenAIAsync(metaPrompt, openAIKey);
-
+                string jsonResponse = await CallGeminiAsync(metaPrompt, "AIzaSyBFuT76FV2ojfRtlqFn04OPBB26vlYfIu4");
                 if (string.IsNullOrEmpty(jsonResponse))
                 {
                     throw new System.Exception("Received empty response from LLM.");
@@ -300,7 +299,7 @@ namespace ShaderGraphGenerator.Editor
                         llmResponse.hlsl_code,
                         llmResponse.properties,
                         previewPath,
-                        openAIKey);
+                        AIKey);
 
                     int matchScore = -1;
                     string matchExplanation = "";
@@ -354,62 +353,102 @@ namespace ShaderGraphGenerator.Editor
         /// <summary>
         /// NEW: Handles the raw web request to OpenAI
         /// </summary>
-        private async Task<string> CallOpenAIAsync(string prompt, string apiKey)
+        private async Task<string> CallClaudeAsync(string prompt, string apiKey)
         {
-            string url = "https://api.openai.com/v1/chat/completions";
+            string url = "https://api.anthropic.com/v1/messages";
 
-            // Manually craft the request body
-            string jsonBody = JsonConvert.SerializeObject(new
+            // ── JSON Schema مخصوص پروژه تو ─────────────────────────────
+            var schema = new
             {
-                model = "gpt-4-turbo",
-                response_format = new { type = "json_object" },
-                messages = new[]
-               {
-                   new { role = "system", content = "You are a helpful assistant that only responds with valid, raw JSON. Do not include markdown ticks or any other text outside the JSON object." },
-                   new { role = "user", content = prompt }
-               }
-            });
+                type = "object",
+                properties = new
+                {
+                    file_name = new { type = "string" },
+                    hlsl_code = new { type = "string" },
+                    properties = new
+                    {
+                        type = "array",
+                        items = new
+                        {
+                            type = "object",
+                            properties = new {
+                                name = new { type = "string" },
+                                type = new { type = "string" },
+                                default_value = new {
+                                    type = "object",
+                                    properties = new {
+                                        x = new { type = "number" },
+                                        y = new { type = "number" },
+                                        z = new { type = "number" },
+                                        w = new { type = "number" }
+                                    },
+                                    required = new[] { "x", "y", "z", "w" },
+                                    additionalProperties = false
+                                }
+                            },
+                            required = new[] { "name", "type", "default_value" },
+                            additionalProperties = false
+                        }
+                    }
+                },
+                required = new[] { "file_name", "hlsl_code", "properties" },
+                additionalProperties = false
+            };
 
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+            var bodyObject = new
+            {
+                model = "claude-sonnet-4-5-20250929",
+                max_tokens = 4096,
+                messages = new object[]
+                {
+                    new {
+                        role = "user",
+                        content = new object[]
+                        {
+                            new { type = "text", text = prompt }
+                        }
+                    }
+                },
+                output_format = new {
+                    type = "json_schema",
+                    schema = schema
+                },
+                betas = new[] { "structured-outputs-2025-11-13" }
+            };
+
+            string jsonBody = JsonConvert.SerializeObject(bodyObject);
+            byte[] raw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
 
             using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
             {
-                www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                www.uploadHandler = new UploadHandlerRaw(raw);
                 www.downloadHandler = new DownloadHandlerBuffer();
-                www.SetRequestHeader("Content-Type", "application/json");
-                www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+
+                www.SetRequestHeader("content-type", "application/json");
+                www.SetRequestHeader("x-api-key", apiKey);
+                www.SetRequestHeader("anthropic-version", "2023-06-01");
+                www.SetRequestHeader("anthropic-beta", "structured-outputs-2025-11-13");
 
                 var op = www.SendWebRequest();
                 while (!op.isDone)
-                {
                     await Task.Yield();
-                }
 
-                if (www.result == UnityWebRequest.Result.ConnectionError || www.result == UnityWebRequest.Result.ProtocolError)
+                if (www.result != UnityWebRequest.Result.Success)
                 {
-                    Debug.LogError($"OpenAI API Error: {www.error}\n{www.downloadHandler.text}");
+                    Debug.LogError("Claude API Error: " + www.error + "\n" + www.downloadHandler.text);
                     return null;
                 }
-                else
-                {
-                    string rawResponse = www.downloadHandler.text;
-                    try
-                    {
-                        // Parse the { "choices": [ ... ] } wrapper
-                        var openAiResponse = JsonConvert.DeserializeObject<dynamic>(rawResponse);
-                        string jsonContent = openAiResponse.choices[0].message.content;
-                        return jsonContent;
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogError($"Failed to parse OpenAI response shell: {ex.Message}\nRaw response: {rawResponse}");
-                        // Fallback: sometimes the API just returns the content directly
-                        return rawResponse;
-                    }
-                }
+
+                var rawResponse = www.downloadHandler.text;
+                dynamic parsed = JsonConvert.DeserializeObject(rawResponse);
+
+                // structured JSON always appears here:
+                string jsonText = parsed.content[0].text;
+
+                return jsonText;
             }
         }
-    
+
         /// <summary>
         /// Calls OpenAI with image + text and asks for a 1–10 match score.
         /// </summary>
@@ -452,7 +491,7 @@ namespace ShaderGraphGenerator.Editor
             // 3) Build messages with multimodal content
             var bodyObject = new
             {
-                model = "gpt-4.1-mini", // or gpt-4o if you prefer
+                model = "gpt-5.1",
                 response_format = new { type = "json_object" },
                 messages = new object[]
                 {
@@ -513,7 +552,67 @@ namespace ShaderGraphGenerator.Editor
             }
         }
 
-        
+        private async Task<string> CallGeminiAsync(string prompt, string apiKey)
+        {
+            string model = "gemini-3-pro-preview";
+
+            string url =
+                $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+
+            var bodyObj = new
+            {
+                contents = new object[]
+                {
+                    new
+                    {
+                        parts = new object[]
+                        {
+                            new { text = prompt }
+                        }
+                    }
+                }
+            };
+
+            string jsonBody = JsonConvert.SerializeObject(bodyObj);
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+            {
+                www.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                www.downloadHandler = new DownloadHandlerBuffer();
+                www.SetRequestHeader("Content-Type", "application/json");
+
+                var op = www.SendWebRequest();
+                while (!op.isDone)
+                    await Task.Yield();
+
+                if (www.result == UnityWebRequest.Result.ConnectionError ||
+                    www.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogError($"Gemini API Error: {www.error}\n{www.downloadHandler.text}");
+                    return null;
+                }
+
+                string raw = www.downloadHandler.text;
+
+                try
+                {
+                    dynamic parsed = JsonConvert.DeserializeObject(raw);
+
+                    string text =
+                        parsed.candidates[0].content.parts[0].text;
+
+                    return text;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Gemini parse error: {ex.Message}\nRaw: {raw}");
+                    return null;
+                }
+            }
+        }
+
+
         private string BuildPropertySummaryJson(List<LLMShaderProperty> properties)
         {
             if (properties == null) return "[]";

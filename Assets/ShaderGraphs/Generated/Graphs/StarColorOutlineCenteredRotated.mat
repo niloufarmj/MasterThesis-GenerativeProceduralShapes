@@ -1,18 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-8228847814782373638
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 9
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -20,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: TriangleShape
-  m_Shader: {fileID: -6465566751694194690, guid: 6f36ba8d69295fc46a3437bb21ff5429, type: 3}
+  m_Name: StarColorOutlineCenteredRotated
+  m_Shader: {fileID: -6465566751694194690, guid: 0c5486e82e0872e4cbad07f87bfa9089, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -51,10 +38,29 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _InnerRadius: 0.2
+    - _OuterRadius: 0.4
+    - _Points: 5
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Size: 0.51
+    - _Rotation: 0
+    - _StrokeWidth: 0.02
     m_Colors:
-    - _Color: {r: 1, g: 0.43137255, b: 0, a: 1}
+    - _Center: {r: 0, g: 0, b: 0, a: 0}
+    - _FillColor: {r: 1, g: 0.8, b: 0, a: 1}
+    - _StrokeColor: {r: 1, g: 1, b: 1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!114 &5132709310077162043
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
