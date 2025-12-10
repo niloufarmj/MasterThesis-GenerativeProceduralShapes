@@ -69,6 +69,7 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("  \"hlsl_code\": \"void FunctionName_float(float2 UV, float param1, out float4 outColor) { ... }\",");
             sb.AppendLine("  \"properties\": [");
             sb.AppendLine("    {\"name\": \"param1\", \"type\": \"float\", \"default_value\": {\"x\": 0.5, \"y\": 0, \"z\": 0, \"w\": 0}}");
+            sb.AppendLine("    {\"name\": \"param2\", \"type\": \"float2\", \"default_value\": {\"x\": 0.5, \"y\": 0.5, \"z\": 0, \"w\": 0}}");
             sb.AppendLine("  ]");
             sb.AppendLine("}");
             sb.AppendLine("- For color parameters, use \"type\": \"color\" and provide RGBA defaults:");
