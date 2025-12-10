@@ -2,79 +2,105 @@
 #define PI 3.14159265359
 #endif
 
-// SDF for an N-pointed star
-// p: Centered UV coordinates
-// r: Outer radius (peak)
-// n: Number of points
-// rInner: Inner radius (valley)
-float sdStar(float2 p, float r, float n, float rInner) {
-    // Angle per sector (half wedge)
+// --- Helper: Signed Distance to an N-pointed Star ---
+// p: sampling point (centered)
+// r: outer radius
+// rInner: inner radius (valley)
+// n: number of points
+inline float sdStar_Function(float2 p, float r, float rInner, float n)
+{
+    // Clamp N to reasonable value
+    n = max(2.0, n);
+    
+    // Angle per sector (half-wedge for one point)
     float an = PI / n;
     float sector = 2.0 * an;
     
-    // Convert to polar coordinates (angle 0 is +Y axis)
+    // Rotate p to align 0 angle with Y axis (standard for this math)
     float angle = atan2(p.x, p.y);
     
-    // Fold angle to repeat sectors
-    // Shift angle by half sector to align sector center to 0
-    float id = floor((angle + an) / sector);
-    float localAngle = angle - id * sector;
+    // Sector repetition: map full circle to [-an, an]
+    float id = floor(angle / sector + 0.5);
+    float a = angle - id * sector;
     
-    // Map back to cartesian in the local rotated frame
+    // Fold symmetry: map [-an, an] to [0, an]
+    // This reduces the problem to a single edge in the first half-sector
+    a = abs(a);
+    
+    // Reconstruct point in the folded wedge
     float len = length(p);
-    p = float2(sin(localAngle), cos(localAngle)) * len;
+    float2 p_wedge = float2(sin(a), cos(a)) * len;
     
-    // Symmetry along the Y axis (local sector center)
-    p.x = abs(p.x);
+    // Define the star edge segment in this wedge
+    // Vertex 1: Outer tip (at angle 0 in wedge, radius r) -> (0, r)
+    float2 v1 = float2(0.0, r);
+    // Vertex 2: Inner valley (at angle 'an' in wedge, radius rInner)
+    float2 v2 = float2(sin(an), cos(an)) * rInner;
     
-    // Define the edge segment from Peak (0, r) to Valley
-    float2 p1 = float2(0.0, r);
-    float2 p2 = float2(rInner * sin(an), rInner * cos(an));
+    // Calculate distance to segment v1-v2
+    float2 pa = p_wedge - v1;
+    float2 ba = v2 - v1;
+    float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
+    float2 dVec = pa - ba * h;
     
-    // Standard distance to segment
-    float2 e = p2 - p1;
-    float2 w = p - p1;
-    float2 b = w - e * clamp(dot(w, e) / dot(e, e), 0.0, 1.0);
-    float d = length(b);
+    // Determine sign (negative inside)
+    // We use the normal (-ba.y, ba.x) which points outward from the origin side
+    float2 normal = float2(-ba.y, ba.x);
+    float s = dot(pa, normal);
     
-    // Determine sign (negative inside, positive outside)
-    // Use perpendicular vector to edge to determine side
-    // Edge goes from Top to Right-Down. Normal points 'right/up' (outside)
-    float2 perp = float2(e.y, -e.x);
-    float s = dot(w, perp);
-    
-    return d * sign(s);
+    return length(dVec) * sign(s);
 }
 
-void StarShape_float(float2 UV, float Radius, float InnerRadius, float Points, float Rotation, float2 Center, float4 Color, out float4 outColor) {
-    // PLAN:
-    // 1) Center the UV coordinates based on Center input.
-    // 2) Rotate the coordinates.
-    // 3) Calculate SDF using the star formula.
-    // 4) Apply smoothstep for anti-aliased edges.
-    // 5) Output the final color.
+// --- Helper: Alpha Blending (Src Over Dst) ---
+inline float4 star_blend_over(float4 src, float4 dst)
+{
+    float a = src.a + dst.a * (1.0 - src.a);
+    float3 c = (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / max(a, 1e-8);
+    return float4(c, a);
+}
 
-    // 1) Center UVs
-    float2 p = UV - Center;
+void StarShape_float(float2 UV, float Size, float Points, float InnerRatio, float Rotation, float4 FillColor, float4 StrokeColor, float StrokeWidth, out float4 outColor)
+{
+    // PLAN:
+    // 1) Center UV coordinates at (0.5, 0.5).
+    // 2) Rotate the coordinate system by the Rotation parameter.
+    // 3) Compute SDF for the star using helper function.
+    // 4) Compute Fill and Stroke masks using smoothstep AA.
+    // 5) Composite Stroke over Fill for final output.
+
+    // 1) Center UV
+    float2 center = float2(0.5, 0.5);
+    float2 p = UV - center;
     
-    // 2) Apply Rotation
+    // 2) Apply Rotation (rotate point by -angle -> shape rotates by +angle)
     float c = cos(Rotation);
     float s = sin(Rotation);
-    p = float2(p.x * c - p.y * s, p.x * s + p.y * c);
+    p = float2(c * p.x + s * p.y, -s * p.x + c * p.y);
     
-    // 3) Calculate Signed Distance Field (SDF)
-    // Ensure safe values for n and radii
-    float n = max(3.0, round(Points));
-    float r = max(0.0, Radius);
-    float r2 = max(0.0, InnerRadius);
+    // 3) Calculate Radii
+    float rOuter = max(Size, 0.0);
+    float rInner = rOuter * clamp(InnerRatio, 0.01, 1.0);
     
-    float dist = sdStar(p, r, n, r2);
+    // Calculate SDF
+    float dist = sdStar_Function(p, rOuter, rInner, Points);
     
-    // 4) Anti-aliasing
-    // Use fwidth for resolution-independent smoothness, or fallback to fixed value
-    float delta = fwidth(dist);
-    float edge = smoothstep(delta, -delta, dist);
+    // 4) Antialiasing
+    // fwidth gives a good estimate for pixel-perfect AA
+    float aa = fwidth(dist);
+    aa = max(aa, 0.0001); // Safety clamp
     
-    // 5) Final Output
-    outColor = float4(Color.rgb * edge, edge * Color.a);
+    // Fill Mask (dist < 0 is inside)
+    // smoothstep(0, aa, dist) goes 0->1 at edge. We want 1 inside.
+    float fillAlpha = 1.0 - smoothstep(-0.5 * aa, 0.5 * aa, dist);
+    float4 fillLayer = float4(FillColor.rgb, FillColor.a * fillAlpha);
+    
+    // Stroke Mask (band around dist == 0)
+    // We subtract stroke width from abs(dist)
+    float halfStroke = max(StrokeWidth, 0.0) * 0.5;
+    float strokeDist = abs(dist) - halfStroke;
+    float strokeAlpha = 1.0 - smoothstep(-0.5 * aa, 0.5 * aa, strokeDist);
+    float4 strokeLayer = float4(StrokeColor.rgb, StrokeColor.a * strokeAlpha);
+    
+    // 5) Composite
+    outColor = star_blend_over(strokeLayer, fillLayer);
 }

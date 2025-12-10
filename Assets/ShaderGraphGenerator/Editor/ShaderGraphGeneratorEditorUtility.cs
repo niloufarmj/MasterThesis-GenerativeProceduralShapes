@@ -560,14 +560,17 @@ namespace ShaderGraphGenerator.Editor
                             material.SetFloat(propName, val.x);
                             break;
 
+                        case "vector2":
                         case "float2":
                             material.SetVector(propName, new Vector4(val.x, val.y, 0f, 0f));
                             break;
 
+                        case "vector3":
                         case "float3":
                             material.SetVector(propName, new Vector4(val.x, val.y, val.z, 0f));
                             break;
 
+                        case "vector4":
                         case "float4":
                         case "color":
                             // Treat as generic float4 / color
