@@ -192,171 +192,149 @@ namespace ShaderGraphGenerator.Editor
         private async void GenerateFromLLMAsync()
         {
             if (isGenerating) return;
-            if (string.IsNullOrEmpty(config.geminiKey) || config.geminiKey == "sk-PASTE_YOUR_KEY_HERE")
-            {
-                EditorUtility.DisplayDialog("Error", "Please enter a valid OpenAI API Key.", "OK");
-                return;
-            }
 
             isGenerating = true;
-            Repaint(); // Update button text to "Generating..."
+            Repaint();
 
-            try
+            const int maxIterations = 4;
+
+            string firstPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt, true);
+            string currentPrompt = firstPrompt;
+            LLMShaderResponse llmResponse = null;
+            int iteration = 0;
+
+            while (iteration < maxIterations)
             {
-                // 1. Build the meta prompt
-                string metaPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt, true);
+                iteration++;
+                Debug.Log($"=== ITERATION {iteration} ===");
 
-                // 2. Call OpenAI API
-                EditorUtility.DisplayProgressBar("LLM", "Contacting LLM...", 0.2f);
-                string jsonResponse = await CallGeminiAsync(metaPrompt, config.geminiKey);
-                if (string.IsNullOrEmpty(jsonResponse))
+                // 1. CALL GEMINI
+                string jsonResponse = await CallGeminiAsync(currentPrompt, config.geminiKey);
+                llmResponse = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
+
+                // 2. BUILD PIPELINE → HLSL → ShaderGraph → Material → Screenshot
+                string previewPath = await BuildPipelineOnce(llmResponse);
+
+                // 3. EVALUATE PREVIEW
+                var evalJson = await CallOpenAIEvalAsync(
+                    llmPrompt,
+                    llmResponse.hlsl_code,
+                    llmResponse.properties,
+                    previewPath,
+                    config.openAIKey
+                );
+
+                var eval = JsonConvert.DeserializeObject<LLMMatchScoreResponse>(evalJson);
+
+                Debug.Log($"Score = {eval.score}, Explanation = {eval.explanation}");
+
+                if (eval.score >= 7)
                 {
-                    throw new System.Exception("Received empty response from LLM.");
+                    SaveSuccessfulResult(llmResponse);
+                    EditorUtility.DisplayDialog("Success", "Shape looks correct!", "OK");
+                    break;
                 }
 
-                // 3. Parse JSON Response
-                EditorUtility.DisplayProgressBar("LLM", "Parsing response...", 0.4f);
-                LLMShaderResponse llmResponse = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
-
-                if (llmResponse == null || string.IsNullOrEmpty(llmResponse.hlsl_code))
-                {
-                    throw new System.Exception($"Failed to parse LLM response. Raw response: {jsonResponse}");
-                }
-
-                // 4. Create the .hlsl file
-                EditorUtility.DisplayProgressBar("LLM", "Creating HLSL file...", 0.5f);
-                string hlslPath = ShaderGraphGeneratorEditorUtility.CreateHLSLFile(llmResponse.file_name, llmResponse.hlsl_code, llmHlslFolder);
-                string hlslGuid = AssetDatabase.AssetPathToGUID(hlslPath);
-
-                // 5. Refresh AssetDatabase and wait
-                AssetDatabase.Refresh();
-
-                // 6. Generate ShaderGraph
-                EditorUtility.DisplayProgressBar("LLM", "Generating ShaderGraph...", 0.6f);
-                if (!Directory.Exists(llmGraphFolder)) Directory.CreateDirectory(llmGraphFolder);
-                string graphPath = Path.Combine(llmGraphFolder, $"{llmResponse.file_name}.shadergraph");
-
-                // Assuming 'opaque' for now. You could ask the LLM for this too.
-                HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, hlslGuid, graphPath, true);
-
-                // 7. Refresh AssetDatabase again to compile shader
-                EditorUtility.DisplayProgressBar("LLM", "Compiling shader...", 0.7f);
-                AssetDatabase.Refresh();
-
-                // 8. Create Material
-                EditorUtility.DisplayProgressBar("LLM", "Creating material...", 0.8f);
-
-                Material mat = ShaderGraphGeneratorEditorUtility.CreateMaterialForShaderGraph(graphPath);
-                if (mat == null)
-                {
-                    EditorUtility.DisplayDialog(
-                        "Error",
-                        "Could not create material for the generated ShaderGraph.",
-                        "OK");
-                    return;
-                }
-
-                // Apply LLM defaults
-                ShaderGraphGeneratorEditorUtility.SetDefaultMaterialProperties(mat, llmResponse.properties);
-
-                // NEW: check compile errors
-                if (ShaderGraphGeneratorEditorUtility.HasShaderCompileErrors(mat.shader))
-                {
-                    EditorUtility.ClearProgressBar();
-                    EditorUtility.DisplayDialog(
-                        "HLSL Compile Error",
-                        "The generated HLSL file contains errors and the shader could not be compiled.\n\n" +
-                        "Generation is cancelled. Please check the Console for details.",
-                        "OK");
-
-                    // Optional clean-up:
-                    // AssetDatabase.DeleteAsset(graphPath);
-                    // AssetDatabase.DeleteAsset(hlslPath);
-
-                    return; // do NOT create preview or run eval-LLM
-                }
-
-                // 9. Set Default Properties (from LLM)
-                ShaderGraphGeneratorEditorUtility.SetDefaultMaterialProperties(mat, llmResponse.properties);
-
-                // 10. Create Quad & Screenshot
-                EditorUtility.DisplayProgressBar("LLM", "Creating preview.", 0.9f);
-                if (!Directory.Exists(llmPreviewFolder)) Directory.CreateDirectory(llmPreviewFolder);
-                string previewPath = Path.Combine(llmPreviewFolder, $"{llmResponse.file_name}.png");
-
-                GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
-                    mat,
-                    true,  // captureScreenshot
-                    previewPath);
-
-                // 11. Wait for the screenshot file to be written
-                EditorUtility.DisplayProgressBar("LLM", "Waiting for preview image...", 0.93f);
-                bool previewReady = await WaitForPreviewFileAsync(previewPath);
-
-                if (!previewReady)
-                {
-                    Debug.LogError($"Preview image not found at: {previewPath}");
-                }
-                else
-                {
-                    // 12. Evaluate match quality with LLM
-                    EditorUtility.DisplayProgressBar("LLM", "Evaluating match quality...", 0.95f);
-
-                    string evalJson = await CallOpenAIEvalAsync(
-                        llmPrompt,
-                        llmResponse.hlsl_code,
-                        llmResponse.properties,
-                        previewPath,
-                        config.openAIKey);
-
-                    int matchScore = -1;
-                    string matchExplanation = "";
-                    if (!string.IsNullOrEmpty(evalJson))
-                    {
-                        try
-                        {
-                            var eval = JsonConvert.DeserializeObject<LLMMatchScoreResponse>(evalJson);
-                            if (eval != null)
-                            {
-                                matchScore = eval.score;
-                                matchExplanation = eval.explanation;
-                            }
-                        }
-                        catch (System.Exception ex)
-                        {
-                            Debug.LogWarning($"Failed to parse match score JSON: {ex.Message}\nRaw eval JSON: {evalJson}");
-                        }
-                    }
-
-                    string successMessage = "AI Generation Complete!\n\n" +
-                                        $"HLSL: {hlslPath}\n" +
-                                        $"Graph: {graphPath}\n" +
-                                        $"Material: {AssetDatabase.GetAssetPath(mat)}\n" +
-                                        $"Preview: {previewPath}";
-
-                    if (matchScore >= 0)
-                    {
-                        successMessage += $"\n\nMatch Score: {matchScore}/10";
-                        if (!string.IsNullOrEmpty(matchExplanation))
-                            successMessage += $"\n{matchExplanation}";
-                    }
-
-                    EditorUtility.DisplayDialog("Success", successMessage, "OK");
-                }
-                
+                // 4. PREPARE FEEDBACK PROMPT FOR NEXT ITERATION
+                currentPrompt = ShaderGraphGeneratorEditorUtility.BuildRefinementPrompt(firstPrompt, llmResponse, eval.explanation);
             }
-            catch (System.Exception ex)
+
+            if (iteration == maxIterations)
             {
-                Debug.LogError($"AI Generation Failed: {ex.ToString()}");
-                EditorUtility.DisplayDialog("Error", $"AI Generation Failed:\n{ex.Message}", "OK");
+                EditorUtility.DisplayDialog("Failure", "Max attempts reached. Shape not correct.", "OK");
             }
-            finally
-            {
-                isGenerating = false;
-                EditorUtility.ClearProgressBar();
-                Repaint();
-            }
+
+            isGenerating = false;
+            Repaint();
         }
+
+        private void SaveSuccessfulResult(LLMShaderResponse resp)
+        {
+            string folder = "Assets/ShaderGraphs/SuccessfulResults";
+            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+            string path = Path.Combine(folder, resp.file_name + ".hlsl");
+            File.WriteAllText(path, resp.hlsl_code);
+            AssetDatabase.ImportAsset(path);
+
+            Debug.Log($"✓ Saved final successful result to {path}");
+        }
+
+        /// <summary>
+        /// Runs ONE full generation pipeline:
+        /// HLSL → ShaderGraph → Material → Preview Quad → Screenshot.
+        /// Returns the path to the screenshot.
+        /// </summary>
+        private async Task<string> BuildPipelineOnce(LLMShaderResponse llmResponse)
+        {
+            // -----------------------
+            // 1. Write HLSL file
+            // -----------------------
+            string hlslPath = ShaderGraphGeneratorEditorUtility.CreateHLSLFile(
+                llmResponse.file_name,
+                llmResponse.hlsl_code,
+                llmHlslFolder
+            );
+
+            string hlslGuid = AssetDatabase.AssetPathToGUID(hlslPath);
+            AssetDatabase.Refresh();
+
+            // -----------------------
+            // 2. Create ShaderGraph
+            // -----------------------
+            string graphPath = Path.Combine(llmGraphFolder, llmResponse.file_name + ".shadergraph");
+            HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(
+                hlslPath,
+                hlslGuid,
+                graphPath,
+                true
+            );
+
+            AssetDatabase.Refresh();
+
+            // -----------------------
+            // 3. Create Material
+            // -----------------------
+            Material mat = ShaderGraphGeneratorEditorUtility.CreateMaterialForShaderGraph(graphPath);
+            if (mat == null)
+                throw new Exception("Failed to create material from generated ShaderGraph.");
+
+            // -----------------------
+            // 4. Apply defaults from LLM
+            // -----------------------
+            ShaderGraphGeneratorEditorUtility.SetDefaultMaterialProperties(mat, llmResponse.properties);
+
+            // -----------------------
+            // 5. Check for shader compile errors
+            // -----------------------
+            if (ShaderGraphGeneratorEditorUtility.HasShaderCompileErrors(mat.shader))
+                throw new Exception("Shader compile error — stopping iteration.");
+
+            // -----------------------
+            // 6. Preview & Screenshot
+            // -----------------------
+            if (!Directory.Exists(llmPreviewFolder))
+                Directory.CreateDirectory(llmPreviewFolder);
+
+            // To avoid overwriting the previous preview:
+            string previewPath = Path.Combine(llmPreviewFolder, $"{llmResponse.file_name}_{Guid.NewGuid()}.png");
+
+            GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
+                mat,
+                true, // capture screenshot
+                previewPath
+            );
+
+            // Wait until file exists
+            bool ready = await WaitForPreviewFileAsync(previewPath);
+            if (!ready)
+                throw new Exception("Screenshot not produced in time.");
+
+            return previewPath;
+        }
+
+
+
 
         /// <summary>
         /// NEW: Handles the raw web request to OpenAI

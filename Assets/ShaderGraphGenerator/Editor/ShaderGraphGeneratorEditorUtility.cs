@@ -6,6 +6,7 @@ using System.Collections.Generic; // For the queue
 using ShaderGraphGenerator; // Import the runtime namespace
 using System.Text;
 using UnityEditor.Rendering;
+using Newtonsoft.Json;
 
 namespace ShaderGraphGenerator.Editor
 {
@@ -264,6 +265,28 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("In your final hlsl_code you MUST NOT call these functions by name unless you");
             sb.AppendLine("have also copied their full definitions into the same file, above your main function.");
         }
+
+        public static string BuildRefinementPrompt(
+            string originalUserPrompt,
+            LLMShaderResponse previous,
+            string feedback)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("Your previous shader result was not correct.");
+            sb.AppendLine("PREVIOUS REQUEST:");
+            sb.AppendLine(originalUserPrompt);
+            sb.AppendLine("FEEDBACK FROM IMAGE EVALUATION:");
+            sb.AppendLine(feedback);
+            sb.AppendLine("YOUR PREVIOUS HLSL CODE:");
+            sb.AppendLine(previous.hlsl_code);
+            sb.AppendLine("PREVIOUS PROPERTIES:");
+            sb.AppendLine(JsonConvert.SerializeObject(previous.properties, Formatting.Indented));
+            sb.AppendLine("Please FIX all issues and regenerate a NEW JSON reply with improved HLSL.");
+            sb.AppendLine("IMPORTANT: Output ONLY the JSON with the same structure as before.");
+
+            return sb.ToString();
+        }
+
 
 
 
