@@ -52,3 +52,18 @@ void DiamondShape_float(float2 UV, float Width, float Height, float Rotation, fl
     // Using edge as alpha mask
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D diamond (rhombus) primitive** using
+//  a Signed Distance Function (SDF).
+//
+//  The shape is defined by four straight edges forming a symmetric
+//  quadrilateral with diagonals aligned along two axes. Its proportions,
+//  orientation, placement, and visual appearance are fully controlled
+//  by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for geometric icons,
+//  symbolic shapes, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

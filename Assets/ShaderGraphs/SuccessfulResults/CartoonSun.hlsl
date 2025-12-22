@@ -88,3 +88,19 @@ void CartoonSun_float(float2 UV, float SunRadius, float4 SunColor, float RayCoun
     // This ensures that if the gap is negative, the sun covers the ray roots cleanly.
     outColor = blendOver(layerBody, layerRay);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D sun-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is composed of a circular core combined with multiple
+//  radially repeated triangular elements, forming a symbolic sun or
+//  radiant shape. The number, size, spacing, orientation, and appearance
+//  of these elements are fully controlled by input parameters and are
+//  not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  decorative graphics, and expressive procedural 2D visuals.
+// ------------------------------------------------------------------------

@@ -70,3 +70,19 @@ void PieChartSlice_float(float2 UV, float2 Center, float Radius, float StartAngl
     // 6. Composition
     outColor = over_PieSlice(strokeLayer, fillLayer);
 }
+
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D circular sector (pie-slice) primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape represents a portion of a circle bounded by two radial edges
+//  and an outer arc, forming a wedge-like silhouette. The angular span,
+//  orientation, radius, placement, fill, and outline appearance are fully
+//  controlled by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for data visualization
+//  elements, charts, gauges, icons, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

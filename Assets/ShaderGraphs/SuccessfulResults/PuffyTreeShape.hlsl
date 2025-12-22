@@ -101,3 +101,20 @@ void PuffyTreeShape_float(
     // Composite: Foliage sits ON TOP of Trunk
     outColor = compositeOver(layerFoliage, layerTrunk);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D tree-like primitive with soft,
+//  rounded foliage** using Signed Distance Functions (SDFs).
+//
+//  The shape is composed of a rounded canopy formed from multiple smoothly
+//  blended circular elements, combined with a simple vertical trunk.
+//  The relative proportions, scale, placement, and coloring of the foliage
+//  and trunk are fully controlled by input parameters and are not fixed by
+//  the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  decorative UI elements, environmental symbols, and expressive
+//  procedural 2D graphics.
+// ------------------------------------------------------------------------

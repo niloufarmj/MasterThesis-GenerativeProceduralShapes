@@ -60,3 +60,19 @@ void LocationPinShape_float(float2 UV, float Size, float Width, float Height, fl
     
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D location-pin-like primitive**
+//  using a Signed Distance Function (SDF).
+//
+//  The shape forms a rounded upper region that tapers smoothly into a
+//  pointed lower tip, creating a symbolic marker silhouette commonly
+//  associated with location or points of interest. Its proportions,
+//  size, and visual appearance are fully controlled by input parameters
+//  and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for map markers,
+//  UI indicators, icons, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

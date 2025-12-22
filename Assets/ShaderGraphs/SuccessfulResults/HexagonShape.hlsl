@@ -47,3 +47,18 @@ void HexagonShape_float(float2 UV, float Size, float Rotation, float2 Center, fl
     // Combine RGB with the mask applied to the alpha channel
     outColor = float4(Color.rgb, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D regular hexagon primitive** using
+//  a Signed Distance Function (SDF).
+//
+//  The shape consists of six straight edges forming a symmetric
+//  six-sided polygon. Its size, orientation, placement, and visual
+//  appearance are fully controlled by input parameters and are not
+//  fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for geometric
+//  icons, tiles, symbolic shapes, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

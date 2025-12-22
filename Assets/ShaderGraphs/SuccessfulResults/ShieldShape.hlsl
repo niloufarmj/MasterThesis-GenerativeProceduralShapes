@@ -61,3 +61,20 @@ void ShieldShape_float(float2 UV, float Width, float Height, float4 FillColor, f
 
     outColor = float4(outRGB, outA);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D shield-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape forms a vertically symmetric emblem silhouette with a flat
+//  upper edge and a smoothly tapering lower point, resembling a classic
+//  shield or badge form. The overall proportions, scale, fill, outline,
+//  and visual appearance are fully controlled by input parameters and are
+//  not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  status indicators, badges, game UI elements, and analytic procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

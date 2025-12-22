@@ -75,3 +75,19 @@ void ExclamationMarkShape_float(float2 UV, float2 Center, float Size, float Thic
     // Apply mask to color (Premultiplied alpha-like behavior for clean blending)
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D exclamation-mark-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is composed of two distinct elements: a rounded vertical
+//  segment and a separate rounded dot, combined into a single symbolic
+//  silhouette. The relative proportions, spacing, orientation, placement,
+//  and visual appearance are fully controlled by input parameters and are
+//  not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  UI indicators, symbolic markers, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

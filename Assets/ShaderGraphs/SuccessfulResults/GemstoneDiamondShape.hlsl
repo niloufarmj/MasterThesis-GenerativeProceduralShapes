@@ -86,3 +86,19 @@ void GemstoneDiamondShape_float(float2 UV, float Width, float Height, float Tabl
     // 6. Output
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D gemstone-like diamond primitive**
+//  using a convex-polygon Signed Distance formulation.
+//
+//  The shape resembles a faceted jewel silhouette composed of straight
+//  edges and a pointed lower tip, with a flattened upper region. The exact
+//  proportions, facet layout, orientation, scale, and placement are fully
+//  controlled by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  symbolic rewards, decorative UI elements, and analytic procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

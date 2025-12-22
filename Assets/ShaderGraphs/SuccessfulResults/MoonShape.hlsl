@@ -48,3 +48,20 @@ void MoonShape_float(float2 UV, float OuterRadius, float InnerRadius, float Offs
     // 7) Final Output
     outColor = float4(Color.rgb * mask, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D crescent-moon-like primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape is formed by subtracting one circular region from another,
+//  producing a curved crescent silhouette. The thickness, curvature,
+//  orientation, placement, and overall appearance of the crescent are
+//  fully controlled by input parameters and are not fixed by the function
+//  itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  symbolic UI elements, decorative graphics, and expressive procedural
+//  2D visuals.
+// ------------------------------------------------------------------------

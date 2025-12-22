@@ -99,3 +99,20 @@ void KiteShape_float(float2 UV, float Width, float HeightTop, float HeightBottom
     // 6. Composite Layers
     outColor = composite_over_Kite(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D kite-shaped quadrilateral primitive**
+//  using a convex-polygon Signed Distance formulation.
+//
+//  The shape is a four-sided form with two pairs of adjacent equal-length
+//  edges, producing a symmetric silhouette with a pointed region and a
+//  broader opposing region. The exact proportions, orientation, placement,
+//  fill, and outline appearance are fully controlled by input parameters
+//  and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for geometric icons,
+//  symbolic shapes, decorative UI elements, and analytic procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

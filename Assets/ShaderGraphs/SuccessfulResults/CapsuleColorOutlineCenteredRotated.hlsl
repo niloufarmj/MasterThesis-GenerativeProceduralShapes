@@ -72,3 +72,18 @@ void CapsuleColorOutlineCenteredRotated_float(
     // 8) Composition
     Out = capsule_over(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D capsule (stadium) primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape consists of a rectangular body with two semicircular ends,
+//  forming a smooth, rounded silhouette. The exact dimensions, orientation,
+//  position, and visual styling are fully controlled by input parameters
+//  and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for procedural UI
+//  elements, buttons, indicators, and analytic 2D graphics.
+// ------------------------------------------------------------------------

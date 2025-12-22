@@ -119,3 +119,19 @@ void LightningBoltIcon_float(float2 UV, float Size, float2 Center, float Rotatio
     // Stroke on top of Fill
     outColor = CompositeLayers(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D lightning-bolt primitive**
+//  using a polygon-based Signed Distance Function (SDF).
+//
+//  The shape forms a sharp, angular zigzag silhouette commonly associated
+//  with electricity or energy symbols. Its proportions, orientation,
+//  placement, fill, and outline appearance are fully controlled by input
+//  parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  warning symbols, energy indicators, and expressive procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

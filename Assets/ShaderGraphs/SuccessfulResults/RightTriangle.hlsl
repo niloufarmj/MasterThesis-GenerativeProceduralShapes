@@ -86,3 +86,20 @@ void RightTriangle_float(float2 UV, float Width, float Height, float2 Center, fl
     // 6. Composite (Stroke Over Fill)
     outColor = blendColors_Helper(stroke, fill);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D right-triangle primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is a three-sided polygon with one right angle and two
+//  perpendicular edges, forming a simple triangular silhouette.
+//  The triangle’s size, orientation, placement, fill, and outline
+//  appearance are fully controlled by input parameters and are not
+//  fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for geometric
+//  icons, directional indicators, UI elements, and analytic procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

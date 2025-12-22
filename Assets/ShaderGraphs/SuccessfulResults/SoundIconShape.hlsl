@@ -121,3 +121,19 @@ void SoundIconShape_float(float2 UV, float Size, float WaveStrength, float4 Colo
 
     outColor = float4(Color.rgb * alpha, Color.a * alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D sound / speaker icon primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape is composed of a simple speaker body combined with multiple
+//  curved wave elements radiating outward, forming a symbolic sound or
+//  audio-emission silhouette. The size, proportions, number and visibility
+//  of wave elements, and overall visual appearance are fully controlled by
+//  input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for audio controls,
+//  volume indicators, UI icons, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

@@ -91,3 +91,20 @@ void YinYangShape_float(float2 UV, float Size, float Rotation, float2 Center, fl
     // Standard is usually straight RGB with Alpha, but let's apply mask to RGB for clean edges on black background too
     outColor = float4(finalColor.rgb * outerAlpha, finalColor.a * outerAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D yin–yang (taijitu) symbol**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape consists of a circular boundary containing two interlocking,
+//  curved regions of opposing color, each with a contrasting circular dot.
+//  The overall size, rotation, color assignment, dot scale, placement,
+//  and visual balance are fully controlled by input parameters and are
+//  not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  symbolic graphics, decorative UI elements, and expressive procedural
+//  2D visuals.
+// ------------------------------------------------------------------------

@@ -53,3 +53,18 @@ void RectangleRounded_float(float2 UV, float Width, float Height, float Radius, 
     // 6) Output
     outColor = float4(Color.rgb, Color.a * alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D rounded-rectangle primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape consists of a rectangular form with smoothly rounded corners,
+//  producing a soft-edged rectangular silhouette. The rectangle’s width,
+//  height, corner radius, orientation, placement, and color are fully
+//  controlled by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for UI elements,
+//  buttons, panels, cards, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

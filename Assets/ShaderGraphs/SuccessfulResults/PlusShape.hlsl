@@ -46,3 +46,18 @@ void PlusShape_float(float2 UV, float Size, float Thickness, float Rotation, flo
     // Output color with alpha mask
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D plus / cross-shaped primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is formed by the union of two perpendicular rectangular
+//  elements, creating a symmetric cross silhouette. The overall size,
+//  bar thickness, orientation, placement, and visual appearance are fully
+//  controlled by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for UI icons,
+//  control symbols, indicators, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

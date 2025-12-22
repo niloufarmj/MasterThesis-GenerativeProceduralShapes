@@ -50,3 +50,20 @@ void SunShape_float(float2 UV, float2 Center, float CoreRadius, float RayLength,
     // Final Color Output with Pre-multiplied Alpha logic
     outColor = float4(Color.rgb * alpha, alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D sun-like primitive**
+//  using Signed Distance Functions (SDFs) and polar-coordinate math.
+//
+//  The shape consists of a circular core combined with multiple
+//  radially distributed spike-like rays, forming a classic sun
+//  silhouette. The core size, ray length, ray count, ray sharpness,
+//  rotation, placement, and color are fully controlled by input
+//  parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  decorative graphics, weather symbols, and expressive procedural
+//  2D visuals.
+// ------------------------------------------------------------------------

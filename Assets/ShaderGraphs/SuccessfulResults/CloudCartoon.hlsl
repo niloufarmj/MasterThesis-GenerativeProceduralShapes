@@ -79,3 +79,18 @@ void CloudCartoon_float(float2 UV, float Scale, float PuffCount, float PuffRadiu
     // 5) Composite
     outColor = cloud_over(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cloud-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is formed by smoothly blending multiple rounded elements into
+//  a single soft silhouette, producing an organic, cloud-inspired form.
+//  The exact structure, smoothness, proportions, and visual styling are
+//  controlled by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  decorative graphics, and expressive procedural 2D visuals.
+// ------------------------------------------------------------------------

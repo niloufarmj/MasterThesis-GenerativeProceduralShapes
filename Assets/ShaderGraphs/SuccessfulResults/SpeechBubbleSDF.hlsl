@@ -123,3 +123,20 @@ void SpeechBubbleSDF_float(float2 UV, float2 Center, float2 Size, float CornerRa
     // Composite: Stroke Over Fill
     outColor = sb_blend(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D speech-bubble-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape consists of a rounded rectangular body combined with a
+//  triangular pointer element, forming a classic speech or dialogue
+//  bubble silhouette. The size, corner curvature, pointer direction,
+//  pointer dimensions, fill, outline, and overall visual appearance are
+//  fully controlled by input parameters and are not fixed by the
+//  function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for chat bubbles,
+//  dialogue UI elements, tooltips, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

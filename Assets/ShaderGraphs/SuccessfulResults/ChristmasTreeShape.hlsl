@@ -113,3 +113,18 @@ void ChristmasTreeShape_float(float2 UV, float Size, float4 TreeColor, float4 Tr
 
     outColor = float4(outRGB, outAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D tree-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is composed of multiple triangular elements combined with
+//  a rectangular element, forming a symbolic tree silhouette. The number,
+//  proportions, placement, and visual appearance of these components are
+//  defined by the function logic and modulated by input parameters.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  decorative graphics, and expressive procedural 2D visuals.
+// ------------------------------------------------------------------------

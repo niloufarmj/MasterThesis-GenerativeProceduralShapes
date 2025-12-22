@@ -49,3 +49,18 @@ void TriangleEquilateral_float(float2 UV, float Size, float Rotation, float4 Col
     // Apply mask to both RGB (premultiplied) and Alpha
     outColor = float4(Color.rgb * mask, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D equilateral triangle primitive**
+//  using a Signed Distance Function (SDF).
+//
+//  The shape is a three-sided polygon with all sides and internal angles
+//  equal, forming a symmetric equilateral triangle silhouette. The size,
+//  rotation, placement, fill, and outline appearance are fully controlled
+//  by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for geometric icons,
+//  directional indicators, UI elements, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

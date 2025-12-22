@@ -126,3 +126,19 @@ void PentagonRounded_float(float2 UV, float Radius, float CornerRadius, float2 C
     // 8) Composite: Draw stroke OVER fill
     outColor = nm_over(strokeOut, fillOut);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D rounded pentagon primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape consists of a five-sided polygon with smoothly rounded
+//  corners, forming a soft-edged pentagonal silhouette. The size,
+//  corner curvature, orientation, placement, fill, and outline appearance
+//  are fully controlled by input parameters and are not fixed by the
+//  function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for geometric icons,
+//  UI elements, badges, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

@@ -88,3 +88,20 @@ void HourglassShape_float(float2 UV, float Size, float Height, float EndWidth, f
     // Output color (rgb * mask, alpha = mask)
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D hourglass-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is composed of two opposing trapezoidal forms joined at a
+//  narrow central region, creating a symmetric silhouette reminiscent
+//  of an hourglass or bow-tie shape. The proportions of the upper and
+//  lower regions, the waist width, overall size, and visual appearance
+//  are fully controlled by input parameters and are not fixed by the
+//  function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for symbolic icons,
+//  UI elements, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

@@ -116,3 +116,23 @@ void ArrowShape_float(float2 UV, float2 Center, float RotationRad,
     // 7) Composite Stroke Over Fill
     outColor = arrow_over(stroke, fill);
 }
+
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function produces a **2D arrow-shaped primitive** constructed from
+//  analytic Signed Distance Functions (SDFs).
+//
+//  The resulting shape is composed of:
+//  - A rectangular segment (shaft)
+//  - A triangular segment (head)
+//
+//  These parts are combined into a single continuous silhouette that
+//  visually represents an arrow symbol. The final appearance (orientation,
+//  proportions, placement, and styling) is fully controlled by input
+//  parameters and is not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for procedural UI,
+//  icons, and symbolic 2D graphics.
+// ------------------------------------------------------------------------

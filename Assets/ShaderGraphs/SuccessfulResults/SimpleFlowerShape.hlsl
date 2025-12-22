@@ -56,3 +56,20 @@ void SimpleFlowerShape_float(float2 UV, float PetalCount, float PetalSize, float
     // Draw Center OVER Petals
     outColor = nm_over(layerCenter, layerPetal);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **simple stylized 2D flower-like primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape consists of multiple elongated petal forms arranged radially
+//  around a central circular region, creating a symbolic floral silhouette.
+//  The number of petals, their size, the center size, rotation, and color
+//  composition are fully controlled by input parameters and are not fixed
+//  by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for decorative icons,
+//  playful UI elements, symbolic graphics, and expressive procedural
+//  2D visuals.
+// ------------------------------------------------------------------------

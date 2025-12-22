@@ -82,3 +82,18 @@ void QuestionMarkShape_float(float2 UV, float Size, float Thickness, float4 Colo
     float edge = smoothstep(0.01, -0.01, dist);
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D question-mark-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape is composed of a curved upper hook, a short vertical segment,
+//  and a separate rounded dot, forming a symbolic question-mark silhouette.
+//  The size, stroke thickness, and visual appearance are fully controlled
+//  by input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  help indicators, UI symbols, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

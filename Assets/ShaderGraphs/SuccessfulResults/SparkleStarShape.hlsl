@@ -64,3 +64,21 @@ void SparkleStarShape_float(float2 UV, float2 Center, float2 Size, float Angle, 
     // 6. Output
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D sparkle / star-like primitive**
+//  using a continuous analytic Signed Distance formulation.
+//
+//  The shape forms a four-pointed star with inward-curving edges,
+//  producing a soft, concave diamond-like silhouette often used to
+//  represent sparkles, highlights, or magical effects. The overall
+//  size, aspect ratio, rotation, placement, and visual appearance are
+//  fully controlled by input parameters and are not fixed by the
+//  function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for decorative
+//  accents, visual highlights, icons, and expressive procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

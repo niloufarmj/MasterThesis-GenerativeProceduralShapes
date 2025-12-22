@@ -100,3 +100,20 @@ void StylizedLeaf_float(float2 UV, float Size, float Width, float Bend, float St
     // Apply Color (Pre-multiplied alpha or split, here we output straight alpha in .a)
     outColor = float4(Color.rgb * mask, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D leaf-like primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape forms an organic, elongated leaf silhouette with a smooth
+//  curved body and an optional thin stem extending from one end. The
+//  overall size, width, curvature (bend), stem length, stem thickness,
+//  rotation, placement, and color are fully controlled by input
+//  parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for nature-themed
+//  icons, decorative UI elements, environmental graphics, and expressive
+//  procedural 2D visuals.
+// ------------------------------------------------------------------------

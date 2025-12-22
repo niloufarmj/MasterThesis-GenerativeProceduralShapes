@@ -43,3 +43,20 @@ void SpiralPolar_float(float2 UV, float Density, float Rotation, float Size, flo
     // Output
     outColor = float4(Color.rgb * finalAlpha, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D spiral-based procedural pattern**
+//  using polar-coordinate math.
+//
+//  The visual result is a smooth, continuous spiral structure radiating
+//  from a central point, with repeating wave-like intensity along the
+//  spiral path. The tightness of the spiral, rotational offset, radial
+//  extent, edge falloff, and color intensity are fully controlled by
+//  input parameters and are not fixed by the function itself.
+//
+//  The output is an RGBA color suitable for abstract graphics, visual
+//  effects, decorative UI elements, and expressive procedural 2D visuals.
+// ------------------------------------------------------------------------
+aL

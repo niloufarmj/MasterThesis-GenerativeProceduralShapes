@@ -56,3 +56,19 @@ void Flower8Petal_float(float2 UV, float2 Center, float Radius, float PetalLengt
     // 8. Output
     outColor = float4(Color.rgb * mask, mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **radial, flower-like 2D primitive** using
+//  a polar-coordinate Signed Distance formulation.
+//
+//  The shape consists of multiple elongated lobes (petals) distributed
+//  evenly around a central region, forming a symmetric floral silhouette.
+//  The number, length, width, orientation, scale, and placement of the
+//  petals are fully controlled by input parameters and are not fixed by
+//  the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for decorative,
+//  symbolic, and expressive procedural 2D graphics.
+// ------------------------------------------------------------------------

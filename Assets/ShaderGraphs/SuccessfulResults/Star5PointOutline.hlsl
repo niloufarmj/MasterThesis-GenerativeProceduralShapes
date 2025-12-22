@@ -78,3 +78,20 @@ void Star5PointOutline_float(float2 UV, float Radius, float InnerRadius, float2 
     // 7) Composite Stroke over Fill
     outColor = nm_over(strokeOut, fillOut);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D five-pointed star primitive with optional
+//  outline (stroke)** using Signed Distance Functions (SDFs).
+//
+//  The shape forms a classic five-point star silhouette with alternating
+//  outer and inner vertices. It supports both a filled interior and a
+//  surrounding outline, creating either a solid or outlined star appearance.
+//  The radii, rotation, placement, fill color, outline color, and outline
+//  thickness are fully controlled by input parameters and are not fixed by
+//  the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons, ratings,
+//  decorative UI elements, badges, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

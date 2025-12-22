@@ -78,3 +78,19 @@ void HeartShape_float(float2 UV, float2 Center, float Size, float Rotation, floa
     // 7) Composite: Stroke OVER Fill
     outColor = over(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D heart-shaped primitive** using
+//  a Signed Distance Function (SDF).
+//
+//  The shape forms a smooth, symmetric heart-like silhouette composed of
+//  curved lobes and a pointed lower region. Its proportions, orientation,
+//  placement, fill, and outline appearance are fully controlled by input
+//  parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  symbolic UI elements, decorative graphics, and expressive procedural
+//  2D visuals.
+// ------------------------------------------------------------------------

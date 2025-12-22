@@ -90,3 +90,19 @@ void GearShape_float(float2 UV, float Size, float Teeth, float ToothLength, floa
     // Standard transparent output:
     outColor = float4(Color.rgb, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D gear- or cog-like primitive** using
+//  Signed Distance Functions (SDFs).
+//
+//  The shape consists of a circular base with multiple evenly distributed
+//  protruding elements around its perimeter, and an optional circular
+//  cutout at the center. The number, size, spacing, orientation, and
+//  proportions of these elements are fully controlled by input parameters
+//  and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  technical symbols, and analytic procedural 2D graphics.
+// ------------------------------------------------------------------------

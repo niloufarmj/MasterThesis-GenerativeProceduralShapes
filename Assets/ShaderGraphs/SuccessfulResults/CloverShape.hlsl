@@ -40,3 +40,18 @@ void CloverShape_float(float2 UV, float Size, float NumLeaves, float Amplitude, 
     // Output final color with alpha mask
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **radial, lobe-based 2D organic primitive**
+//  using a polar-coordinate Signed Distance formulation.
+//
+//  The shape is defined by a circular form whose radius is periodically
+//  modulated, producing multiple rounded lobes arranged around a center.
+//  The number of lobes, their depth, orientation, size, and placement are
+//  fully controlled by input parameters and are not fixed by the function.
+//
+//  The output is an anti-aliased RGBA color suitable for symbolic,
+//  decorative, and expressive procedural 2D graphics.
+// ------------------------------------------------------------------------

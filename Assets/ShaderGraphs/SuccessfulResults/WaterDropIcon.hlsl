@@ -67,3 +67,19 @@ void WaterDropIcon_float(float2 UV, float Height, float Radius, float2 Center, f
     // Premultiplied alpha approach: multiply both RGB and Alpha by the mask
     outColor = float4(Color.rgb * edge, Color.a * edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D water-drop (teardrop) primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape forms a smooth droplet silhouette with a rounded lower body
+//  that tapers continuously into a pointed upper tip. The overall height,
+//  width, rotation, placement, and color are fully controlled by input
+//  parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  environmental symbols, UI indicators, and expressive procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

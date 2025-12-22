@@ -80,3 +80,19 @@ void MouseArrowShape_float(float2 UV, float Size, float Angle, float4 Color, out
     // Apply mask to RGB and Alpha (premultiplied-like behavior for blending)
     outColor = float4(Color.rgb * edge, edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D mouse-cursor-style arrow primitive**
+//  using a polygon-based Signed Distance Function (SDF).
+//
+//  The shape forms a sharp, angular pointer silhouette with a pointed tip
+//  and a notched base, characteristic of a standard computer mouse cursor.
+//  Its size, orientation, and visual appearance are fully controlled by
+//  input parameters and are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for UI cursors,
+//  pointer icons, interaction indicators, and analytic procedural
+//  2D graphics.
+// ------------------------------------------------------------------------

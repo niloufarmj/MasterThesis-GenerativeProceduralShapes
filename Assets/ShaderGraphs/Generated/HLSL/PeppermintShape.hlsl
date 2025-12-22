@@ -1,0 +1,52 @@
+#ifndef PI
+#define PI 3.14159265359
+#endif
+
+void PeppermintShape_float(float2 UV, float2 Center, float Size, float SwirlTightness, float StripeCount, float4 BaseColor, float4 StripeColor, out float4 outColor) {
+    // PLAN:
+    // 1) Center UV coordinates based on input Center.
+    // 2) Convert to polar coordinates (radius r, angle phi).
+    // 3) Calculate a twisted angle by adding a radius-dependent offset to phi.
+    // 4) Generate alternating stripe pattern using sin(twistedAngle).
+    // 5) Mix BaseColor and StripeColor using the pattern with analytic AA.
+    // 6) Calculate Circle SDF to define the round candy shape.
+    // 7) Mask the result with the circle shape, applying anti-aliasing to edges.
+
+    // 1) Center UV
+    float2 p = UV - Center;
+
+    // 2) Polar Coordinates
+    float r = length(p);
+    float phi = atan2(p.y, p.x);
+
+    // 3) Twist Calculation
+    // SwirlTightness controls how much the angle twists as we move outward
+    float twistedPhi = phi + r * SwirlTightness;
+
+    // 4) Pattern Generation
+    // Sine wave oscillates between -1 and 1 to create stripes
+    float signal = sin(twistedPhi * StripeCount);
+
+    // 5) Pattern Mask with AA
+    // fwidth gives the rate of change in screen space for pixel-perfect smoothing
+    float signalWidth = fwidth(signal);
+    // Smoothstep creates a soft transition at the stripe edges
+    float t = smoothstep(-signalWidth, signalWidth, signal);
+
+    // 6) Color Mixing
+    // t goes from 0 to 1, interpolating between the two colors
+    float4 candyColor = lerp(BaseColor, StripeColor, t);
+
+    // 7) Circle SDF
+    // Standard circle distance: distance from center minus radius (Size)
+    float dist = r - Size;
+
+    // 8) Shape Mask with AA
+    // Anti-alias the outer edge of the candy
+    float edgeWidth = fwidth(dist);
+    float alphaMask = 1.0 - smoothstep(-edgeWidth, edgeWidth, dist);
+
+    // Output
+    // Apply mask to both RGB and Alpha for correct composition
+    outColor = float4(candyColor.rgb * alphaMask, candyColor.a * alphaMask);
+}

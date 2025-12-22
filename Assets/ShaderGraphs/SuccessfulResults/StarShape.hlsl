@@ -104,3 +104,20 @@ void StarShape_float(float2 UV, float Size, float Points, float InnerRatio, floa
     // 5) Composite
     outColor = star_blend_over(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **generic 2D star-shaped primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape forms a radially symmetric star silhouette composed of
+//  alternating outer points and inner valleys. The number of points,
+//  inner-to-outer proportion, rotation, size, placement, fill, and
+//  outline appearance are fully controlled by input parameters and
+//  are not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for icons,
+//  decorative graphics, ratings, symbols, and analytic procedural
+//  2D visuals.
+// ------------------------------------------------------------------------

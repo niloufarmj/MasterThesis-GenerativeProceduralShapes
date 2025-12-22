@@ -64,3 +64,18 @@ void BeveledSquare_float(float2 UV, float Size, float BevelSize, float Rotation,
     
     outColor = beveled_square_over(stroke, fill);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **2D beveled (chamfered) square primitive**
+//  using Signed Distance Functions (SDFs).
+//
+//  The shape is a square-like form whose corners are cut by flat diagonal
+//  edges (bevels), producing an octagonal silhouette. The exact size,
+//  bevel amount, rotation, placement, and visual styling are entirely
+//  controlled by input parameters and are not fixed by the function.
+//
+//  The output is an anti-aliased RGBA color suitable for procedural UI
+//  elements, icons, and analytic 2D graphics.
+// ------------------------------------------------------------------------
