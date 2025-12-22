@@ -194,6 +194,7 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("- Return hlsl_code as normal multi-line HLSL code.");
             sb.AppendLine("- Do NOT manually insert literal \"\\n\" sequences; just use real line breaks.");
             sb.AppendLine("- The API will handle JSON escaping; you only need to output valid JSON structure.");
+            sb.AppendLine("- Add one line of comment in the hlsl code that says what was the exact user request (the described shape).");
 
             sb.AppendLine("\n=== IMPLEMENTATION STRATEGY (MANDATORY) ===");
             sb.AppendLine("- Before writing the final SDF math, write a short step-by-step plan as HLSL comments");

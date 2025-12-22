@@ -110,8 +110,13 @@ namespace ShaderGraphGenerator.Editor
                 MessageType.Info);
 
             EditorGUILayout.EndScrollView();
-;
+        }
 
+        [MenuItem("Tools/ShaderGraph Generator/Generate Shape Library")]
+        public static void GenerateShapeLibrary()
+        {
+            var window = GetWindow<ShaderGraphGeneratorWindow>();
+            window.RunLibraryGeneration();
         }
 
         private void GenerateFromFile()
@@ -621,7 +626,103 @@ namespace ShaderGraphGenerator.Editor
             return File.Exists(path);
         }
 
-    
+        public async void RunLibraryGeneration()
+        {
+            string filePath = "Assets/ShaderGraphs/ShapeLibrary.txt";
+
+            if (!File.Exists(filePath))
+            {
+                EditorUtility.DisplayDialog("Error", "ShapeLibrary.txt not found!", "OK");
+                return;
+            }
+
+            string[] lines = File.ReadAllLines(filePath);
+            List<string> shapeRequests = new List<string>();
+
+            foreach (string line in lines)
+            {
+                string trimmed = line.Trim();
+                if (!string.IsNullOrEmpty(trimmed))
+                    shapeRequests.Add(trimmed);
+            }
+
+            Debug.Log($"Loaded {shapeRequests.Count} shape definitions.");
+
+            foreach (string request in shapeRequests)
+            {
+                Debug.Log($"=== Processing shape: {request} ===");
+
+                await ProcessSingleShapeRequest(request);
+
+                // Disable all existing preview quads
+                DisableAllPreviewQuads();
+            }
+
+            Debug.Log("✓ Library generation completed.");
+        }
+
+        private async Task ProcessSingleShapeRequest(string request)
+        {
+            const int maxIterations = 4;
+
+            string firstPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(request, true);
+            string currentPrompt = firstPrompt;
+
+            LLMShaderResponse llmResponse = null;
+
+            for (int iteration = 1; iteration <= maxIterations; iteration++)
+            {
+                Debug.Log($"[{request}] Iteration {iteration}");
+
+                // 1. Call Gemini
+                string jsonResponse = await CallGeminiAsync(currentPrompt, config.geminiKey);
+                llmResponse = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
+
+                // 2. Build pipeline (HLSL → Graph → Material → Screenshot)
+                string previewPath = await BuildPipelineOnce(llmResponse);
+
+                // 3. Evaluate using OpenAI
+                var evalJson = await CallOpenAIEvalAsync(
+                    request,
+                    llmResponse.hlsl_code,
+                    llmResponse.properties,
+                    previewPath,
+                    config.openAIKey
+                );
+
+                var eval = JsonConvert.DeserializeObject<LLMMatchScoreResponse>(evalJson);
+
+                Debug.Log($"[{request}] Score: {eval.score}. Reason: {eval.explanation}");
+
+                if (eval.score >= 7)
+                {
+                    SaveSuccessfulResult(llmResponse);
+                    Debug.Log($"[{request}] SUCCESS (score {eval.score}). Saved!");
+                    return;
+                }
+
+                // 4. Refinement prompt
+                currentPrompt = ShaderGraphGeneratorEditorUtility.BuildRefinementPrompt(
+                    firstPrompt,
+                    llmResponse,
+                    eval.explanation
+                );
+            }
+
+            Debug.LogWarning($"[{request}] FAILED after {maxIterations} iterations.");
+        }
+
+
+        private void DisableAllPreviewQuads()
+        {
+            foreach (var quad in GameObject.FindObjectsOfType<MeshRenderer>())
+            {
+                if (quad.name.Contains("Preview Quad"))
+                    quad.gameObject.SetActive(false);
+            }
+        }
+
+
     }
 
 
