@@ -1,146 +1,174 @@
-#ifndef PI
-#define PI 3.14159265359
-#endif
-
-// --- Helper Functions ---
-// Standard 2D rotation around the origin
-float2 rotate(float2 p, float angle) {
-    float c = cos(angle);
-    float s = sin(angle);
-    return float2(c * p.x - s * p.y, s * p.x + c * p.y);
-}
-
-// Smooth Minimum for merging shapes organically
-float smin(float a, float b, float k) {
-    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
-    return lerp(b, a, h) - k * h * (1.0 - h);
-}
-
-// Signed Distance to a Box
-float sdBox(float2 p, float2 b) {
-    float2 d = abs(p) - b;
-    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
-}
-
-// Signed Distance to an Ellipse (IQ's approximation)
-float sdEllipse(float2 p, float2 r) {
-    float k0 = length(p / r);
-    float k1 = length(p / (r * r));
-    return k0 * (k0 - 1.0) / k1;
-}
-
-// --- Main Function ---
-// Draws a cartoon tulip with adjustable blossom shape, stem, and leaves
-void CartoonTulip_float(
-    float2 UV,
-    float2 BlossomSize,
-    float OpeningAngle,
-    float4 BlossomColor,
-    float StemThickness,
-    float4 StemColor,
-    float2 LeafSize,
-    float LeafHeight,
-    float LeafCurvature,
-    out float4 outColor)
-{
+void CartoonTulip_float(float2 UV, float Size, float BloomWidth, float BloomHeight, float4 BloomColor, float StemLength, float StemThickness, float4 StemColor, float LeafSize, float LeafAngle, float LeafCurvature, float4 LeafColor, float OutlineThickness, float4 OutlineColor, out float4 outColor) {
     // PLAN:
-    // 1) Normalize UVs to center the flower base.
-    // 2) Create Stem SDF (vertical box).
-    // 3) Create Leaf SDF (two symmetrical, bent ellipses attached to stem).
-    // 4) Create Blossom SDF (Union of 3 petals: 1 center, 2 rotated/shifted sides).
-    // 5) Composite colors with anti-aliasing (Blossom over Leaves over Stem).
+    // 1) Center UVs and scale coordinate space.
+    // 2) Define SDFs for:
+    //    - Stem: Vertical capped segment extending down from origin.
+    //    - Leaves: Symmetric distorted ellipses attached to the stem.
+    //    - Bloom: U-shape (Circle + Box) + 3 Circle lobes on top.
+    // 3) Combine shapes using min() (union).
+    // 4) Compute color masks (Vegetation vs Bloom).
+    // 5) Apply anti-aliasing and outline stroke.
+    // 6) Output final composited color.
+
+    // --- Constants & Setup ---
+    #ifndef PI
+    #define PI 3.14159265359
+    #endif
 
     // 1. Coordinate Setup
-    float2 p = UV - 0.5;
-    // Shift y so (0,0) is roughly the base of the flower head
-    // This makes the flower center screen relative to the blossom
-    p.y += 0.1; 
+    float2 p = (UV - 0.5) / Size;
+    // Fix aspect ratio if needed, but usually UV is square in preview or handled by user.
+    // We assume isotropic scaling.
 
-    // 2. Stem Generation
-    // Stem extends downwards from y=0
-    float stemLen = 0.6;
-    // Center the stem box vertically relative to its length
-    float2 pStem = p - float2(0.0, -stemLen * 0.5);
-    float dStem = sdBox(pStem, float2(StemThickness * 0.5, stemLen * 0.5));
-
-    // 3. Leaf Generation
-    // Determine attachment point on stem (0.0 = bottom of stem, 1.0 = top)
-    float attachY = -stemLen * (1.0 - clamp(LeafHeight, 0.0, 1.0));
+    // --- Helper Functions (Inline) ---
+    // Rotation matrix
+    float c = cos(LeafAngle);
+    float s = sin(LeafAngle);
+    float2x2 rotMat = float2x2(c, -s, s, c);
     
-    // Transform for leaves
-    float2 pLeaf = p - float2(0.0, attachY);
-    pLeaf.x = abs(pLeaf.x); // Symmetry for two leaves
+    // 2. SDF: Stem
+    // Stem starts at (0,0) (bloom base) and goes down to (0, -StemLength)
+    // Using a vertical box logic for clean connection or segment.
+    float2 stemP = p;
+    stemP.y += StemLength * 0.5; // Center the segment vertically relative to its length
+    float2 stemSize = float2(StemThickness * 0.5, StemLength * 0.5);
+    float2 dStemBox = abs(stemP) - stemSize;
+    float dStem = length(max(dStemBox, 0.0)) + min(max(dStemBox.x, dStemBox.y), 0.0);
     
-    // Rotate leaves outward (approx 45 degrees + curvature influence)
-    float leafBaseAngle = 0.6; // ~35 degrees
-    pLeaf = rotate(pLeaf, -leafBaseAngle);
+    // 3. SDF: Leaves
+    // Attached at 60% down the stem
+    float2 leafAnchor = float2(0.0, -StemLength * 0.6);
+    float2 pLeaf = p - leafAnchor;
+    pLeaf.x = abs(pLeaf.x); // Symmetry for left/right leaves
     
-    // Apply bending (parabolic distortion)
-    // p.x represents width, p.y represents length after rotation
-    pLeaf.x -= LeafCurvature * 2.0 * (pLeaf.y * pLeaf.y);
+    // Apply Rotation (rotate the point in reverse -> -Angle)
+    // But since we mirrored x, we rotate outward
+    float ca = cos(-LeafAngle);
+    float sa = sin(-LeafAngle);
+    pLeaf = float2(ca*pLeaf.x - sa*pLeaf.y, sa*pLeaf.x + ca*pLeaf.y);
     
-    // Offset ellipse so the pivot (0,0) is at the bottom tip
-    float2 actualLeafSize = max(LeafSize, float2(0.01, 0.01));
-    pLeaf.y -= actualLeafSize.y; // Shift center up by half length
+    // Curvature: Bend y based on x
+    pLeaf.y -= LeafCurvature * pLeaf.x * pLeaf.x * 2.0;
     
-    // Leaf SDF
-    float dLeaf = sdEllipse(pLeaf, float2(actualLeafSize.x * 0.5, actualLeafSize.y));
-
-    // Union Stem and Leaves (Greenery)
-    // Use smin for a smooth joint where leaf meets stem
-    float dGreenery = smin(dStem, dLeaf, 0.03);
-
-    // 4. Blossom Generation
-    // Base of blossom is at p=(0,0). 
-    float2 pBlossom = p;
-    float2 bSize = max(BlossomSize, float2(0.01, 0.01));
-
-    // Center Petal (Main body)
-    // Shift up slightly so the ellipse center is proper
-    float2 pCenterPetal = pBlossom - float2(0.0, bSize.y * 0.5);
-    float dCenter = sdEllipse(pCenterPetal, float2(bSize.x * 0.5, bSize.y * 0.6));
-
-    // Side Petals (The "Cup" shape)
-    // Mirror X, Rotate, and shift outwards to create the tulip opening
-    float2 pSide = pBlossom;
-    pSide.x = abs(pSide.x);
-    // Pivot is near bottom, rotate outward by OpeningAngle
-    pSide.y -= bSize.y * 0.2; // Move pivot up slightly
-    pSide = rotate(pSide, -OpeningAngle);
-    pSide.y += bSize.y * 0.2; // Restore pivot
+    // Leaf Shape: Ellipsoid centered at (LeafSize/2, 0) to attach at origin
+    // Use sdEllipse logic: length((p-c)/r) - 1.0
+    float2 leafCenter = float2(LeafSize * 0.5, 0.0);
+    float2 leafRadii = float2(LeafSize * 0.5, LeafSize * 0.25);
+    float2 qLeaf = (pLeaf - leafCenter) / leafRadii;
+    float dLeaf = (length(qLeaf) - 1.0) * min(leafRadii.x, leafRadii.y);
     
-    // Shift side petals outward to widen the cup
-    pSide.x -= bSize.x * 0.25;
-    pSide.y -= bSize.y * 0.5; // Center vertically like main petal
+    // 4. SDF: Bloom
+    // Base U-Shape: A box with a rounded bottom.
+    // Dimensions: Width = BloomWidth, Height = BloomHeight.
+    // We construct it from a Circle (bottom) and a Box (middle).
+    float bloomRadius = BloomWidth * 0.5;
+    // The circular bottom cup centered at (0, bloomRadius)
+    // Actually let's place the bloom sitting on y=0.
+    // Cup center at (0, bloomRadius).
+    float dCup = length(p - float2(0.0, bloomRadius)) - bloomRadius;
     
-    float dSide = sdEllipse(pSide, float2(bSize.x * 0.35, bSize.y * 0.6));
-
-    // Smooth union of petals to form a single cup
-    // A slightly larger k gives a smoother, more organic blossom shape
-    float dBlossom = smin(dCenter, dSide, 0.08);
-
-    // 5. Compositing
-    float aa = fwidth(p.y); // Analytic anti-aliasing width
-    aa = max(aa, 0.001);
-
-    // Masks (1.0 = opaque, 0.0 = transparent)
-    float maskGreen = smoothstep(aa, -aa, dGreenery);
-    float maskBlossom = smoothstep(aa, -aa, dBlossom);
-
-    // Layering: Start with transparent
-    float4 result = float4(0,0,0,0);
+    // The vertical sides box: from y=bloomRadius to y=BloomHeight
+    // Center Y of box part: (BloomHeight + bloomRadius) / 2
+    // Height of box part: (BloomHeight - bloomRadius)
+    float boxH = max(0.0, BloomHeight - bloomRadius);
+    float2 boxCenter = float2(0.0, bloomRadius + boxH * 0.5);
+    float2 boxSize = float2(bloomRadius, boxH * 0.5);
+    float2 dBoxVec = abs(p - boxCenter) - boxSize;
+    float dBody = length(max(dBoxVec, 0.0)) + min(max(dBoxVec.x, dBoxVec.y), 0.0);
     
-    // Draw Greenery
-    result = lerp(result, StemColor, maskGreen * StemColor.a);
-    
-    // Draw Blossom (on top of stem)
-    // We do a standard alpha blend over the existing color
-    float4 bCol = BlossomColor;
-    float alphaB = maskBlossom * bCol.a;
-    
-    // Simple alpha compositing: Color = Source*Alpha + Dest*(1-Alpha)
-    result.rgb = bCol.rgb * alphaB + result.rgb * (1.0 - alphaB);
-    result.a = max(result.a, alphaB); // Keep max alpha
+    // Combine Cup and Body
+    float dBloomBase = min(dCup, dBody);
+    // Clip the bottom of the cup if it goes below 0? No, full U shape is fine.
+    // But strictly, dCup goes below 0. If we want a flat bottom we'd intersect, but U-shape is round bottom.
+    // Let's assume U-shape means round bottom.
 
-    outColor = result;
+    // Petal Lobes: 3 Circles on top edge (y = BloomHeight)
+    float lobeRadius = BloomWidth * 0.25;
+    float lobeY = BloomHeight;
+    // Center lobe
+    float dLobeC = length(p - float2(0.0, lobeY)) - lobeRadius;
+    // Side lobes
+    float lobeOffset = BloomWidth * 0.35;
+    float dLobeL = length(p - float2(-lobeOffset, lobeY)) - lobeRadius;
+    float dLobeR = length(p - float2(lobeOffset, lobeY)) - lobeRadius;
+    
+    float dLobes = min(dLobeC, min(dLobeL, dLobeR));
+    float dBloom = min(dBloomBase, dLobes);
+
+    // 5. Composition & Colors
+    // Group Vegetation (Stem + Leaves)
+    float dVeg = min(dStem, dLeaf);
+    
+    // Total Shape
+    float dShape = min(dBloom, dVeg);
+    
+    // 6. Rendering
+    // Anti-aliasing width
+    float aa = fwidth(dShape);
+    // Soften AA slightly for cartoon look
+    aa = max(aa, 0.005);
+    
+    // Alpha Mask
+    float alpha = 1.0 - smoothstep(0.0, aa, dShape);
+    
+    // Outline Mask
+    float outline = 1.0 - smoothstep(0.0, aa, abs(dShape) - OutlineThickness);
+    // Determine fill mask (interior)
+    float fillMask = 1.0 - smoothstep(0.0, aa, dShape + OutlineThickness);
+    
+    // Resolve Colors
+    // Decide priority: Bloom on top of Stem/Leaves
+    // We use the SDFs to determine which part we are in.
+    // To avoid artifacts at seams, we compare the distances.
+    // If dBloom < dVeg, we are closer to bloom.
+    float isBloom = step(dBloom, dVeg);
+    float isLeaf = step(dLeaf, dStem); // Leaves over stem?
+    
+    float4 vegColor = lerp(StemColor, LeafColor, 1.0 - step(dStem, dLeaf)); // Simple mix
+    float4 fillColor = lerp(vegColor, BloomColor, isBloom);
+    
+    // Combine Outline and Fill
+    // We overlay outline on top of fill to ensure clean edges.
+    // Actually, standard cartoon: Outline is the border, Fill is inside.
+    // Using 'over' operator logic: 
+    // Color = OutlineColor * OutlineAlpha + FillColor * (1-OutlineAlpha)
+    float3 finalRGB = lerp(fillColor.rgb, OutlineColor.rgb, outline);
+    
+    // Final Alpha: The shape coverage
+    // If outline is opaque, result is opaque. 
+    // Using premultiplied alpha logic or standard blending.
+    // Here we assume standard blending.
+    float finalAlpha = max(alpha, outline * OutlineColor.a); 
+    // But wait, outline is centered on edge. 
+    // The outer half of outline contributes to alpha.
+    // The inner half covers the fill.
+    
+    // Robust approach:
+    // 1. Calculate main shape silhouette alpha.
+    float silhouette = 1.0 - smoothstep(0.0, aa, dShape - OutlineThickness * 0.5);
+    // 2. Calculate fill alpha (shrunk shape).
+    float fillAlpha = 1.0 - smoothstep(0.0, aa, dShape + OutlineThickness * 0.5);
+    
+    // 3. Composite
+    // Background is transparent.
+    // Draw Outline
+    float4 col = OutlineColor;
+    col.a *= silhouette;
+    
+    // Draw Fill over Outline? No, Fill is inside.
+    // Draw Outline, then Fill inside? 
+    // Usually: Fill area is dShape < 0. Outline is |dShape| < th.
+    // Let's use clean lerp.
+    float outlineFactor = smoothstep(0.0, aa, abs(dShape) - OutlineThickness * 0.5);
+    // outlineFactor = 0 inside the stroke, 1 outside/inside far.
+    // We want 1 on stroke, 0 elsewhere? No.
+    // Let's use the 'outline' variable calculated earlier (centered on 0).
+    // outline variable is 1 on edge, 0 elsewhere.
+    
+    // Composite: Start with Fill
+    float3 rgb = fillColor.rgb;
+    // Blend Outline on top
+    rgb = lerp(rgb, OutlineColor.rgb, outline);
+    
+    outColor = float4(rgb * alpha, alpha);
 }
