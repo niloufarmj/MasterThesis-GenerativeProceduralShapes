@@ -1,0 +1,457 @@
+{
+  "run_id": "740099a76bfb4e3a8e187e01009d10ed",
+  "timestamp_utc": "2025-12-26T14:21:46.6588193Z",
+  "shape_set": "Simple",
+  "code_provider": "OpenAI",
+  "eval_provider": "Gemini",
+  "max_iterations": 4,
+  "success_threshold": 7,
+  "require_human_score": true,
+  "shapes": [
+    {
+      "prompt": "A clean filled circle centered on the screen. It should have smooth edges and look sharp, not blurry. I want to be able to change the radius and the fill color. The circle should stay centered and fully visible when resized.",
+      "success": false,
+      "iterations_used": 4,
+      "total_time_ms": 56992.2874,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Pipeline failure: Could not parse HLSL function signature",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 45415.711200000005,
+          "generated_file_name": "CenteredCircleFilled",
+          "llm_raw_json": "{\n  \"file_name\": \"CenteredCircleFilled\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Circle SDF: distance from point p to a circle of radius r centered at origin\\nfloat sdCircle(float2 p, float r)\\n{\\n    return length(p) - r;\\n}\\n\\nvoid FunctionName_float(float2 UV, float Radius, float4 FillColor, out float4 outColor)\\n{\\n    // USER REQUEST: A clean filled circle centered on the screen with adjustable radius and fill color.\\n\\n    // PLAN:\\n    // 1) Center UV to get local coordinates around (0.5, 0.5).\\n    // 2) Compute SDF of a circle with given Radius.\\n    // 3) Use smoothstep on the SDF for anti-aliased, sharp-looking edges.\\n    // 4) Use the resulting mask for RGB and Alpha so the circle stays centered and fully visible.\\n\\n    // 1) Center UV coordinates so (0.5, 0.5) is the origin\\n    float2 centered = UV - float2(0.5, 0.5);\\n\\n    // 2) Circle SDF with radius in UV units (0.5 ~ half screen)\\n    float dist = sdCircle(centered, Radius);\\n\\n    // 3) Anti-aliased edge using a fixed small width for crisp edges\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // 4) Output color with alpha based on the mask\\n    float mask = edge;\\n    outColor = float4(FillColor.rgb * mask, mask);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Radius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"FillColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 1.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\CenteredCircleFilled.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/CenteredCircleFilled.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/CenteredCircleFilled 2.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/CenteredCircleFilled_2bd164633cae4561a830399e86cec9df.png",
+          "vlm_score": 1,
+          "vlm_explanation": "The provided image is completely blank (white), rendering the circle invisible and making it impossible to evaluate its shape, edges, or centering."
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 4522.6054,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Circle SDF: distance from point p to a circle of radius r centered at origin\\nfloat sdCircle(float2 p, float r)\\n{\\n    return length(p) - r;\\n}\\n\\nvoid FunctionName_float(float2 UV, float Radius, float4 FillColor, out float4 outColor)\\n{\\n    // Ensure radius keeps circle fully visible (0.5 is max fitting radius)\\n    float r = saturate(Radius);\\n    r = min(r, 0.5 - 0.001);\\n\\n    // Center UV so (0.5, 0.5) is the origin\\n    float2 centered = UV - float2(0.5, 0.5);\\n\\n    // Circle SDF with radius in UV units\\n    float dist = sdCircle(centered, r);\\n\\n    // Anti-aliased edge width (approximate 1 pixel in UV space)\\n    float aa = 1.0 / 1024.0; // Adjust if you know your target resolution\\n\\n    // Edge: inside = 1, outside = 0 with smooth transition at border\\n    float mask = 1.0 - smoothstep(0.0, aa, dist);\\n\\n    // Output color: respect input alpha and apply mask to both RGB and A\\n    float4 col = FillColor;\\n    col.rgb *= mask;\\n    col.a *= mask;\\n\\n    outColor = col;\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Radius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"FillColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 3370.5846,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"Radius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"FillColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"float4 main(float2 uv) : SV_Target {\\n    // uv expected in [0,1] range\\n    float2 center = float2(0.5, 0.5);\\n    float2 p = uv - center;\\n\\n    // Radius.x is the configurable circle radius in UV space\\n    float r = Radius.x;\\n\\n    // Distance from center\\n    float dist = length(p);\\n\\n    // Use a small width for smooth antialiased edge\\n    float edgeWidth = fwidth(dist);\\n\\n    // Smooth mask: 1 inside, 0 outside, with smooth transition\\n    float mask = 1.0 - smoothstep(r - edgeWidth, r + edgeWidth, dist);\\n\\n    // Output premultiplied by mask\\n    float4 color = FillColor;\\n    color.rgb *= mask;\\n    color.a *= mask;\\n\\n    return color;\\n}\\n\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 4,
+          "iteration_time_ms": 3682.6829000000002,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"Radius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"FillColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"float4 main(float2 uv : TEXCOORD0) : SV_Target {\\n    // uv expected in [0,1] range\\n    float2 center = float2(0.5, 0.5);\\n    // Read uniforms (packed as float4s in many hosts)\\n    float radius = Radius.x;\\n    float4 fill = FillColor;\\n\\n    // Distance from center in normalized coordinates\\n    float d = distance(uv, center);\\n\\n    // Smooth edge: thickness is a small fraction of radius\\n    float edgeThickness = radius * 0.01;\\n\\n    // Anti-aliased circle mask using smoothstep\\n    float mask = 1.0 - smoothstep(radius - edgeThickness, radius + edgeThickness, d);\\n\\n    // Output filled circle with smooth edge, transparent outside\\n    float4 color = float4(fill.rgb, fill.a * mask);\\n\\n    return color;\\n}\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        }
+      ]
+    },
+    {
+      "prompt": "A simple rectangle centered on the screen. The width and height should be adjustable separately. I want a single solid fill color. The edges should be sharp and clean.",
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 66817.2696,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The shape is correctly generated as a centered rectangle with adjustable dimensions and color. However, the edges appear soft and blurry rather than 'sharp and clean' due to the wide smoothstep range used for anti-aliasing.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 26499.9787,
+          "generated_file_name": "CenteredRectangle",
+          "llm_raw_json": "{\n  \"file_name\": \"CenteredRectangle\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Axis-aligned box SDF centered at origin with half extents b\\nfloat sdBox(float2 p, float2 b)\\n{\\n    float2 d = abs(p) - b;\\n    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);\\n}\\n\\nvoid FunctionName_float(float2 UV, float2 RectSize, float4 Color, out float4 outColor)\\n{\\n    // User request: A simple rectangle centered on the screen with adjustable width/height and solid fill.\\n\\n    // PLAN:\\n    // 1) Center UV to [-0.5,0.5] around the screen center.\\n    // 2) Use RectSize as full width/height in UV units and convert to half extents.\\n    // 3) Compute rectangle SDF using sdBox.\\n    // 4) Turn SDF into a sharp mask with smoothstep-based AA.\\n    // 5) Output solid Color modulated by the mask (RGB and A).\\n\\n    // 1) Center UV coordinates so (0.5,0.5) is origin\\n    float2 centered = UV - 0.5;\\n\\n    // 2) Half extents from full size (RectSize.x = width, RectSize.y = height)\\n    float2 halfSize = 0.5 * RectSize;\\n\\n    // 3) Rectangle SDF (negative inside, positive outside)\\n    float dist = sdBox(centered, halfSize);\\n\\n    // 4) Anti-aliased edge: small transition around 0 for clean edges\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // 5) Output with solid color and alpha mask\\n    float mask = edge;\\n    outColor = float4(Color.rgb * mask, Color.a * mask);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"RectSize\",\n      \"type\": \"float2\",\n      \"default_value\": {\n        \"x\": 0.5,\n        \"y\": 0.3,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\CenteredRectangle.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/CenteredRectangle.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/CenteredRectangle 2.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/CenteredRectangle_a006b43cf192418d9abf0a1649d5a225.png",
+          "vlm_score": 8,
+          "vlm_explanation": "The shape is correctly generated as a centered rectangle with adjustable dimensions and color. However, the edges appear soft and blurry rather than 'sharp and clean' due to the wide smoothstep range used for anti-aliasing."
+        }
+      ]
+    },
+    {
+      "prompt": "A rectangle with rounded corners, centered on the screen. The corner roundness should be adjustable. Width, height, and fill color should be editable. It should smoothly transition from sharp corners to very round ones.",
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 31717.957300000002,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The generated image correctly depicts a centered rounded rectangle with the specified color and proportions. However, the edges are noticeably blurry due to the wide smoothstep threshold (0.01) used for anti-aliasing, making the shape appear out of focus rather than crisp.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 21878.222400000002,
+          "generated_file_name": "CenteredRoundedRectangle",
+          "llm_raw_json": "{\n  \"file_name\": \"CenteredRoundedRectangle\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Simple SDF for axis-aligned box centered at origin with half extents b\\nfloat sdBox(float2 p, float2 b)\\n{\\n    float2 d = abs(p) - b;\\n    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);\\n}\\n\\n// Rounded box SDF built from box + radius offset\\nfloat sdRoundedBox(float2 p, float2 b, float r)\\n{\\n    return sdBox(p, b - r) - r;\\n}\\n\\nvoid FunctionName_float(float2 UV, float Width, float Height, float CornerRadius, float4 FillColor, out float4 outColor)\\n{\\n    // User request: A rectangle with rounded corners, centered on the screen with adjustable width, height, color, and roundness.\\n\\n    // PLAN:\\n    // 1) Recenter UV to [-0.5,0.5] around screen center.\\n    // 2) Use Width/Height as full extents in UV space and convert to half extents.\\n    // 3) Compute rounded-rectangle SDF using sdRoundedBox with adjustable CornerRadius.\\n    // 4) Apply smoothstep on the SDF for anti-aliased edge.\\n    // 5) Use the resulting mask to output FillColor with smooth alpha.\\n\\n    // 1) Center UV coordinates around (0.5,0.5)\\n    float2 centered = UV - 0.5;\\n\\n    // 2) Half extents in UV space (Width/Height are full size in 0..1 units)\\n    float2 halfSize = 0.5 * float2(max(Width, 0.0), max(Height, 0.0));\\n\\n    // Clamp corner radius so it never exceeds the minimum half-size\\n    float maxRadius = min(halfSize.x, halfSize.y);\\n    float r = clamp(CornerRadius, 0.0, maxRadius);\\n\\n    // 3) Rounded rectangle SDF (negative inside, zero on edge, positive outside)\\n    float dist = sdRoundedBox(centered, halfSize, r);\\n\\n    // 4) Anti-aliased edge using smoothstep; 0.01 is a small fixed AA width\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // 5) Final color with smooth alpha\\n    outColor = float4(FillColor.rgb * edge, edge);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Width\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.6,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Height\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.4,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"CornerRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.1,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"FillColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\CenteredRoundedRectangle.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/CenteredRoundedRectangle.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/CenteredRoundedRectangle.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/CenteredRoundedRectangle_2da6f8d1e9f4459fb57d4deac2582619.png",
+          "vlm_score": 8,
+          "vlm_explanation": "The generated image correctly depicts a centered rounded rectangle with the specified color and proportions. However, the edges are noticeably blurry due to the wide smoothstep threshold (0.01) used for anti-aliasing, making the shape appear out of focus rather than crisp."
+        }
+      ]
+    },
+    {
+      "prompt": "A filled equilateral triangle pointing upwards and centered on the screen. The size should be adjustable while keeping the shape proportional. I want a single fill color and smooth edges.",
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 37167.4116,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly matches the user request, displaying a centered, upward-pointing equilateral triangle with smooth edges and the specified fill color.",
+      "human_score": 9,
+      "accepted_by_human": true,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 20726.1009,
+          "generated_file_name": "EquilateralTriangleFilled",
+          "llm_raw_json": "{\n  \"file_name\": \"EquilateralTriangleFilled\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// SDF for upright equilateral triangle centered at origin, parameterized by circumradius r. d<0 inside.\\nfloat sdEquilateralTriangle_Centered(float2 p, float r)\\n{\\n    float k = 1.7320508; // sqrt(3)\\n    p.x = abs(p.x) - r;\\n    p.y = p.y + r / k;\\n    if (p.x + k * p.y > 0.0)\\n    {\\n        p = float2(p.x - k * p.y, -k * p.x - p.y) * 0.5;\\n    }\\n    p.x -= clamp(p.x, -2.0 * r, 0.0);\\n    return -length(p) * sign(p.y);\\n}\\n\\n// User request: A filled equilateral triangle pointing upwards and centered on the screen with adjustable size and smooth edges.\\nvoid FunctionName_float(float2 UV, float Size, float4 Color, out float4 outColor)\\n{\\n    // PLAN:\\n    // 1) Center UV to (0.5,0.5) and scale by Size so 0.5 ≈ half screen.\\n    // 2) Use an upright equilateral triangle SDF (centered at origin, circumradius = 1).\\n    // 3) Multiply local coordinates by Size to scale the triangle proportionally.\\n    // 4) Apply smoothstep on the SDF for anti-aliased edges.\\n    // 5) Output a solid fill color with alpha = coverage mask.\\n\\n    // 1) Center UV coordinates around (0.5, 0.5)\\n    float2 centered = UV - float2(0.5, 0.5);\\n\\n    // 2) Scale space by Size to control visual size (0.5 ≈ half screen)\\n    float safeSize = max(Size, 1e-4);\\n    float2 p = centered / safeSize;\\n\\n    // 3) Equilateral triangle SDF with circumradius 1 (upright, centered)\\n    float dist = sdEquilateralTriangle_Centered(p, 1.0);\\n\\n    // 4) Anti-aliased edge using fixed-width smoothstep in SDF space\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // 5) Output fill color with smooth alpha mask\\n    float mask = edge;\\n    outColor = float4(Color.rgb * mask, mask);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.4,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.8,\n        \"z\": 0.2,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\EquilateralTriangleFilled.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/EquilateralTriangleFilled.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/EquilateralTriangleFilled 2.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/EquilateralTriangleFilled_9e7eb5c5eb7b44f6b8b935ad22a6f928.png",
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly matches the user request, displaying a centered, upward-pointing equilateral triangle with smooth edges and the specified fill color."
+        }
+      ]
+    },
+    {
+      "prompt": "A regular five-sided polygon centered on the screen. The overall size should be adjustable. Rotation should be controllable. The shape should stay symmetric and clean.",
+      "success": false,
+      "iterations_used": 4,
+      "total_time_ms": 70931.4376,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Pipeline failure: Could not parse HLSL function signature",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 50345.8707,
+          "generated_file_name": "RegularPentagon",
+          "llm_raw_json": "{\n  \"file_name\": \"RegularPentagon\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Signed distance to an origin-centered regular N-gon with circumradius r\\n// Based on polar coordinate wedge method (Inigo Quilez style)\\nfloat sdRegularNGon(float2 p, float r, float n)\\n{\\n    // Convert to polar\\n    float angle = atan2(p.y, p.x);\\n    float radius = length(p);\\n\\n    // Sector half-angle\\n    float a = PI / n;\\n\\n    // Wrap angle to one wedge [-a, a]\\n    float k = floor((angle + a) / (2.0 * a));\\n    float angleLocal = angle - k * 2.0 * a;\\n\\n    // Distance from polygon edge in polar form\\n    float d = radius * cos(a) / cos(angleLocal) - r;\\n    return d;\\n}\\n\\nvoid FunctionName_float(float2 UV, float Size, float Rotation, float4 Color, out float4 outColor)\\n{\\n    // USER REQUEST: A regular five-sided polygon centered on the screen with adjustable size and rotation.\\n    // PLAN:\\n    // 1) Remap UV to centered coords around (0.5,0.5).\\n    // 2) Normalize to -1..1 space so Size directly scales the polygon size.\\n    // 3) Apply rotation by -Rotation to the sampling point (shape appears rotated by +Rotation).\\n    // 4) Use sdRegularNGon with n = 5 to get SDF for a regular pentagon.\\n    // 5) Anti-alias edge with smoothstep and output color with alpha as coverage.\\n\\n    // 1) Center UV coordinates (0.5,0.5 is screen center)\\n    float2 centered = UV - 0.5;\\n\\n    // 2) Map to -1..1 for easier uniform sizing\\n    float2 p = centered * 2.0;\\n\\n    // Apply overall size scaling (0.5 ~ half screen, etc.)\\n    float safeSize = max(Size, 1e-4);\\n    p /= safeSize;\\n\\n    // 3) Rotate sampling point by -Rotation so shape appears rotated by +Rotation\\n    float c = cos(-Rotation);\\n    float s = sin(-Rotation);\\n    float2 pr = float2(c * p.x - s * p.y, s * p.x + c * p.y);\\n\\n    // 4) Regular pentagon SDF (circumradius = 1 in this normalized space)\\n    float dist = sdRegularNGon(pr, 1.0, 5.0);\\n\\n    // 5) Anti-aliased edge (fixed-width AA in SDF space)\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // Output with smooth alpha\\n    outColor = float4(Color.rgb * edge, edge);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.4,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Rotation\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\RegularPentagon.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/RegularPentagon.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/RegularPentagon.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/RegularPentagon_1585326ab26d4115858ea2d7953d3014.png",
+          "vlm_score": 2,
+          "vlm_explanation": "The generated shape is a 5-lobed flower with curved edges, not a regular pentagon. The SDF formula in the HLSL code is mathematically incorrect for a polygon, describing circular lobes instead of straight lines."
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 8215.0173,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Signed distance to an origin-centered regular N-gon with circumradius r\\n// Robust straight-edge implementation based on Inigo Quilez (2015)\\nfloat sdRegularNGon(float2 p, float r, float n)\\n{\\n    // Angle for one sector\\n    float an = 2.0 * PI / n;\\n\\n    // Rotate so that one vertex is aligned with the x-axis\\n    float halfAn = an * 0.5;\\n    float ca = cos(halfAn);\\n    float sa = sin(halfAn);\\n    float2 rp = float2(ca * p.x - sa * p.y, sa * p.x + ca * p.y);\\n\\n    // Convert to polar\\n    float ang = atan2(rp.y, rp.x);\\n    float len = length(rp);\\n\\n    // Wrap angle into the first sector [-an/2, an/2]\\n    ang = fmod(ang + halfAn, an) - halfAn;\\n\\n    // Edge normal in this sector\\n    float2 nrm = float2(cos(halfAn), sin(halfAn));\\n\\n    // Project point onto the edge normal and subtract radius to get signed distance\\n    float d = dot(float2(cos(ang), sin(ang)) * len, nrm) - r;\\n    return d;\\n}\\n\\nvoid FunctionName_float(float2 UV, float Size, float Rotation, float4 Color, out float4 outColor)\\n{\\n    // Center UV coordinates (0.5,0.5 is screen center)\\n    float2 centered = UV - 0.5;\\n\\n    // Map to -1..1 for easier uniform sizing (assumes square-ish aspect)\\n    float2 p = centered * 2.0;\\n\\n    // Apply overall size scaling (0.5 ~ half screen, etc.)\\n    float safeSize = max(Size, 1e-4);\\n    p /= safeSize;\\n\\n    // Rotate sampling point by -Rotation so shape appears rotated by +Rotation\\n    float c = cos(-Rotation);\\n    float s = sin(-Rotation);\\n    float2 pr = float2(c * p.x - s * p.y, s * p.x + c * p.y);\\n\\n    // Regular pentagon SDF (circumradius = 1 in this normalized space)\\n    float dist = sdRegularNGon(pr, 1.0, 5.0);\\n\\n    // Anti-aliased edge: small band around the boundary\\n    float aa = 0.0025; // tune as needed\\n    float edge = smoothstep(aa, -aa, dist);\\n\\n    // Output with smooth alpha\\n    outColor = float4(Color.rgb * edge, edge);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.4,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Rotation\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 4482.4611,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.4,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Rotation\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"float sdRegularPolygon(float2 p, int n, float r)\\n{\\n    float a = atan2(p.y, p.x);\\n    float l = length(p);\\n    float k = 6.2831853 / n;\\n    float c = cos(floor(0.5 + a / k) * k - a);\\n    return l * c - r;\\n}\\n\\nfloat4 Main(float2 uv) : SV_Target\\n{\\n    float2 p = uv * 2.0 - 1.0;\\n    float scale = Size.x;\\n    p /= (scale + 1e-6);\\n    float angle = Rotation.x;\\n    float s = sin(angle);\\n    float c = cos(angle);\\n    float2 pr = float2(\\n        p.x * c - p.y * s,\\n        p.x * s + p.y * c\\n    );\\n    int sides = 5;\\n    float radius = 0.8;\\n    float d = sdRegularPolygon(pr, sides, radius);\\n    float aa = fwidth(d);\\n    float edge = smoothstep(0.0, aa, -d);\\n    float4 col = Color;\\n    float4 bg = float4(0.0, 0.0, 0.0, 1.0);\\n    float4 result = lerp(bg, col, edge);\\n    result.a = lerp(bg.a, col.a, edge);\\n    return result;\\n}\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 4,
+          "iteration_time_ms": 7887.0930000000008,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.4,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Rotation\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"shader\": \"float sdRegularPolygon(float2 p, int n, float r)\\n{\\n    // Signed distance to a regular n-gon centered at origin with circumradius r\\n    float an = 3.14159265 / n;\\n    float bn = 3.14159265 / n * (n - 2);\\n    float2x2 rot = float2x2(cos(an), -sin(an), sin(an), cos(an));\\n    p = mul(p, rot);\\n    p.x = abs(p.x);\\n    float t = dot(p, float2(-cos(bn), sin(bn)));\\n    t = max(t, p.y);\\n    return t - r * cos(an);\\n}\\n\\nfloat4 main(float2 uv : TEXCOORD0) : SV_Target\\n{\\n    // Normalize coordinates to -1..1 with center at (0,0)\\n    float2 p = uv * 2.0 - 1.0;\\n\\n    // Read properties from provided uniform parameters\\n    float size = Size.x;\\n    float rotation = Rotation.x;\\n    float4 color = Color;\\n\\n    // Apply rotation around center\\n    float s = sin(rotation);\\n    float c = cos(rotation);\\n    float2x2 rotM = float2x2(c, -s, s, c);\\n    p = mul(p, rotM);\\n\\n    // Scale for overall size\\n    p /= size;\\n\\n    // Distance to regular pentagon (5 sides)\\n    float d = sdRegularPolygon(p, 5, 1.0);\\n\\n    // Anti-aliased edge\\n    float aa = fwidth(d);\\n    float alpha = saturate(0.5 - d / aa);\\n\\n    float4 col = color;\\n    col.a *= alpha;\\n\\n    return col;\\n}\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        }
+      ]
+    },
+    {
+      "prompt": "A regular hexagon centered on the screen. I want to control its size and rotation. It should have a flat solid fill color and crisp edges.",
+      "success": false,
+      "iterations_used": 4,
+      "total_time_ms": 42296.063200000004,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Pipeline failure: Could not parse HLSL function signature",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 26573.5746,
+          "generated_file_name": "RegularHexagon",
+          "llm_raw_json": "{\n  \"file_name\": \"RegularHexagon\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Basic 2D rotation helper\\nfloat2 rotate2D(float2 p, float angle)\\n{\\n    float c = cos(angle);\\n    float s = sin(angle);\\n    return float2(c * p.x - s * p.y, s * p.x + c * p.y);\\n}\\n\\n// SDF for a regular hexagon centered at origin with circumradius = 1 (unit hexagon)\\n// Based on Inigo Quilez style polar-logic for regular polygons\\nfloat sdRegularHexagon(float2 p)\\n{\\n    // Transform to hexagonal coordinate system\\n    p = abs(p);\\n    float3 k = float3(-0.5, 0.86602540378, 0.0); // ( -1/2, sqrt(3)/2 )\\n\\n    // Fold into a 60-degree wedge\\n    float2 q = float2(dot(float2(k.x, k.y), p), dot(float2(-k.y, k.x), p));\\n\\n    // Hexagon SDF in this space (unit circumradius)\\n    // This form gives distance to a regular hexagon with circumradius 1\\n    q.x = abs(q.x);\\n    float h = clamp((-q.x + 1.0) / k.y, 0.0, 1.0);\\n    float2 a = float2(q.x - 1.0 + k.y * h, q.y - k.y * h);\\n    float2 b = float2(q.x - 1.0, q.y - k.y);\\n    float da = dot(a, a);\\n    float db = dot(b, b);\\n    float d = (q.y > k.y) ? sqrt(min(da, db)) : (q.x - 1.0);\\n    return d;\\n}\\n\\n// PLAN:\\n// 1) Center UV to (0.5, 0.5) and scale by Size so Size controls visual radius.\\n// 2) Rotate the point by RotationRad around the center.\\n// 3) Compute SDF of a unit regular hexagon and scale distance by Size.\\n// 4) Use smoothstep for anti-aliasing and build a solid fill mask.\\n// 5) Output color with alpha using the mask for crisp edges.\\n// USER REQUEST: A regular hexagon centered on the screen with size and rotation controls, solid flat color and crisp edges.\\nvoid FunctionName_float(float2 UV, float Size, float RotationRad, float4 Color, out float4 outColor)\\n{\\n    // 1) Center UV coordinates and scale by Size\\n    float2 centered = UV - 0.5;\\n\\n    // Avoid division by zero; clamp Size\\n    float safeSize = max(Size, 1e-4);\\n\\n    // Normalize to a space where hexagon has circumradius = 1\\n    float2 p = centered / safeSize;\\n\\n    // 2) Rotate the point by RotationRad (shape appears rotated)\\n    p = rotate2D(p, RotationRad);\\n\\n    // 3) Hexagon SDF (unit hexagon, then scale distance back by Size)\\n    float distUnit = sdRegularHexagon(p);\\n    float dist = distUnit * safeSize;\\n\\n    // 4) Anti-aliased edge using smoothstep\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // 5) Output flat color with alpha from mask\\n    outColor = float4(Color.rgb * edge, edge);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RotationRad\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\RegularHexagon.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/RegularHexagon.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/RegularHexagon.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/RegularHexagon_9a93da6a57784d3aab7d5bbda6e196af.png",
+          "vlm_score": 1,
+          "vlm_explanation": "The generated shape is not a hexagon. The code produces a concave, bowtie-like shape instead of the requested convex regular hexagon."
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 7515.7395000000006,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Basic 2D rotation helper\\nfloat2 rotate2D(float2 p, float angle)\\n{\\n    float c = cos(angle);\\n    float s = sin(angle);\\n    return float2(c * p.x - s * p.y, s * p.x + c * p.y);\\n}\\n\\n// SDF for a regular hexagon centered at origin with circumradius = 1\\n// Convex, regular hexagon (no bowtie/concave shape)\\nfloat sdRegularHexagon(float2 p)\\n{\\n    // Based on a simple 6-sided polygon SDF\\n    const float N = 6.0;              // number of sides\\n    const float r = 1.0;              // circumradius\\n    float a = atan2(p.y, p.x);        // angle of point\\n    float l = length(p);              // radial distance\\n\\n    // Fold the angle into one sector of size 2*PI/N\\n    float sector = 2.0 * PI / N;\\n    a = abs(fmod(a + sector * 0.5, sector) - sector * 0.5);\\n\\n    // Distance to the edge of a regular N-gon with circumradius r\\n    float d = l * cos(a) - r * cos(PI / N);\\n    return d;\\n}\\n\\n// USER REQUEST: A regular hexagon centered on the screen with size and rotation controls,\\n// solid flat color and crisp edges.\\nvoid FunctionName_float(float2 UV, float Size, float RotationRad, float4 Color, out float4 outColor)\\n{\\n    // 1) Center UV coordinates around (0.5, 0.5)\\n    float2 centered = UV - 0.5;\\n\\n    // Avoid division by zero; clamp Size\\n    float safeSize = max(Size, 1e-4);\\n\\n    // 2) Normalize so hexagon has circumradius = 1 at Size = safeSize\\n    float2 p = centered / safeSize;\\n\\n    // 3) Rotate the point by RotationRad (visual rotation of hexagon)\\n    p = rotate2D(p, RotationRad);\\n\\n    // 4) Hexagon SDF\\n    float distUnit = sdRegularHexagon(p);\\n    float dist = distUnit * safeSize;\\n\\n    // 5) Anti-aliased edge using smoothstep for crisp border\\n    float pixelWidth = fwidth(dist);\\n    float edge = smoothstep(0.5 * pixelWidth, -0.5 * pixelWidth, dist);\\n\\n    // 6) Output flat color with alpha from mask\\n    outColor = float4(Color.rgb * edge, edge);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RotationRad\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 3910.7117000000003,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RotationRad\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"float4 Main(float2 uv, float Size, float RotationRad, float4 Color)\\n{\\n    // Center uv to (0,0)\\n    float2 p = uv * 2.0 - 1.0;\\n\\n    // Apply rotation\\n    float c = cos(RotationRad);\\n    float s = sin(RotationRad);\\n    float2 pr = float2(c * p.x - s * p.y, s * p.x + c * p.y);\\n\\n    // Regular hexagon SDF around origin, Size controls radius\\n    float k = 1.7320508; // sqrt(3)\\n    pr = abs(pr);\\n    float d = max(pr.x * 0.5 + k * pr.y, pr.x) - Size;\\n\\n    // Inside test (negative distance is inside)\\n    float inside = step(d, 0.0);\\n\\n    // Flat color inside, transparent outside\\n    float4 col = Color;\\n    col.a *= inside;\\n    return col;\\n}\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 4,
+          "iteration_time_ms": 4295.231,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RotationRad\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"float4 HexagonMain(float2 uv, float Size, float RotationRad, float4 Color)\\n{\\n    // Center UV to range [-1,1]\\n    float2 p = (uv - 0.5) * 2.0;\\n\\n    // Apply rotation\\n    float c = cos(RotationRad);\\n    float s = sin(RotationRad);\\n    float2x2 rot = float2x2(c, -s, s, c);\\n    p = mul(p, rot);\\n\\n    // Regular hexagon SDF\\n    const float3 k = float3(-0.8660254, 0.5, 0.5773503); // ( -sqrt(3)/2, 1/2, 1/sqrt(3) )\\n    p = abs(p);\\n    p -= 2.0 * min(dot(k.xy, p), 0.0) * k.xy;\\n    p -= float2(clamp(p.x, -k.z * Size, k.z * Size), Size);\\n\\n    float dist = length(p) * sign(p.y);\\n\\n    // Inside test: crisp edge\\n    if (dist <= 0.0)\\n    {\\n        return Color;\\n    }\\n    else\\n    {\\n        return float4(0.0, 0.0, 0.0, 0.0);\\n    }\\n}\\n\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        }
+      ]
+    },
+    {
+      "prompt": "A hollow circle with a clear inner hole. The inner radius and outer radius should be adjustable. The ring thickness should update correctly when changing these values. I want a single color for the ring.",
+      "success": false,
+      "iterations_used": 4,
+      "total_time_ms": 67773.5862,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Pipeline failure: Could not parse HLSL function signature",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 54971.4807,
+          "generated_file_name": "HollowRing",
+          "llm_raw_json": "{\n  \"file_name\": \"HollowRing\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Simple circle SDF: negative inside, positive outside\\nfloat sdCircle(float2 p, float radius)\\n{\\n    return length(p) - radius;\\n}\\n\\n// PLAN:\\n// 1) Center UV around 0 using center at (0.5, 0.5).\\n// 2) Compute two circle SDFs for outer and inner radii.\\n// 3) Build a ring SDF by intersecting outer circle with the complement of inner circle.\\n// 4) Use smoothstep for anti-aliased mask.\\n// 5) Output single ring color with alpha equal to coverage.\\n//\\n// USER REQUEST: A hollow circle with adjustable inner and outer radius, single color ring.\\nvoid FunctionName_float(float2 UV, float InnerRadius, float OuterRadius, float4 RingColor, out float4 outColor)\\n{\\n    // Center UV coordinates (center fixed at 0.5, 0.5 as requested)\\n    float2 centered = UV - float2(0.5, 0.5);\\n\\n    // Ensure radii are in a valid range\\n    float innerR = max(0.0, InnerRadius);\\n    float outerR = max(innerR + 1e-4, OuterRadius); // enforce outer > inner to keep ring valid\\n\\n    // SDF for outer and inner circles\\n    float dOuter = sdCircle(centered, outerR);\\n    float dInner = sdCircle(centered, innerR);\\n\\n    // Ring SDF using CSG: intersection of outer disk and complement of inner disk\\n    // Inside outer: dOuter <= 0, outside inner: dInner >= 0\\n    // Intersection: max(dOuter, -dInner)\\n    float dRing = max(dOuter, -dInner);\\n\\n    // Anti-aliased edge for the ring shell\\n    float edge = smoothstep(0.01, -0.01, dRing);\\n\\n    // Final color: single ring color with alpha = coverage mask\\n    float mask = edge;\\n    outColor = float4(RingColor.rgb * mask, mask);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"InnerRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.2,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"OuterRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RingColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 1.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\HollowRing.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/HollowRing.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/HollowRing.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/HollowRing_06c82d603ac3460889fc39291a848e63.png",
+          "vlm_score": 6,
+          "vlm_explanation": "The HLSL logic correctly generates a filled ring using SDF intersection. However, the default RingColor is white (1,1,1,1), making the shape nearly invisible against the white background, leaving only faint anti-aliasing artifacts at the boundaries. Changing the default color would resolve the visibility issue."
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 4974.1377,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"hlsl\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Simple circle SDF: negative inside, positive outside\\nfloat sdCircle(float2 p, float radius)\\n{\\n    return length(p) - radius;\\n}\\n\\n// Hollow circle (ring) with adjustable inner and outer radii and a single ring color.\\n// UV is assumed to be in [0,1] range.\\nvoid FunctionName_float(float2 UV, float InnerRadius, float OuterRadius, float4 RingColor, out float4 outColor)\\n{\\n    // Center UV coordinates at (0.5, 0.5)\\n    float2 centered = UV - float2(0.5, 0.5);\\n\\n    // Ensure valid radii (outer strictly greater than inner)\\n    float innerR = max(0.0, InnerRadius);\\n    float outerR = max(innerR + 1e-4, OuterRadius);\\n\\n    // SDF for outer and inner circles\\n    float dOuter = sdCircle(centered, outerR);\\n    float dInner = sdCircle(centered, innerR);\\n\\n    // Ring SDF using CSG: intersection of outer disk and complement of inner disk\\n    float dRing = max(dOuter, -dInner);\\n\\n    // Anti-aliased edge for the ring shell\\n    float edge = smoothstep(0.01, -0.01, dRing);\\n\\n    // Final color: single ring color with alpha = coverage mask\\n    float mask = edge;\\n    outColor = float4(RingColor.rgb * mask, mask);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"InnerRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.2,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"OuterRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RingColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.6,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 3808.8341,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"InnerRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.2,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"OuterRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RingColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.6,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"float4 Main(float2 uv) {\\n    // Center UV from [0,1] to [-0.5,0.5]\\n    float2 centered = uv - 0.5;\\n\\n    // Distance from center\\n    float dist = length(centered);\\n\\n    // Ensure radii are in a valid order\\n    float innerR = min(InnerRadius, OuterRadius);\\n    float outerR = max(InnerRadius, OuterRadius);\\n\\n    // Ring mask: 1.0 inside ring, 0.0 outside\\n    float ringMask = step(innerR, dist) * (1.0 - step(outerR, dist));\\n\\n    // Single color ring, transparent elsewhere\\n    float4 color = float4(RingColor.rgb, RingColor.a * ringMask);\\n\\n    return color;\\n}\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 4,
+          "iteration_time_ms": 4018.3642,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"InnerRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.2,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"OuterRadius\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"RingColor\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.6,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"float4 CustomShader(float2 uv) {\\n    // Re-center UV to (0,0) in the middle of the screen\\n    float2 centeredUV = uv * 2.0 - 1.0;\\n\\n    // Compute distance from center\\n    float dist = length(centeredUV);\\n\\n    // Read property values\\n    float innerR = InnerRadius;\\n    float outerR = OuterRadius;\\n\\n    // Ensure inner radius is not larger than outer radius\\n    innerR = min(innerR, outerR - 1e-4);\\n\\n    // Create smooth edges for the ring\\n    float edge = fwidth(dist) * 1.5;\\n\\n    float innerMask = smoothstep(innerR - edge, innerR + edge, dist);\\n    float outerMask = 1.0 - smoothstep(outerR - edge, outerR + edge, dist);\\n\\n    // Ring is between inner and outer radius\\n    float ringMask = innerMask * outerMask;\\n\\n    float4 color = float4(RingColor.rgb, RingColor.a * ringMask);\\n\\n    return color;\\n}\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        }
+      ]
+    },
+    {
+      "prompt": "An ellipse centered on the screen. The horizontal and vertical radius should be adjustable separately. It should smoothly morph between a circle and a stretched shape. Single solid fill color.",
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 59832.933600000004,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The code correctly implements the requested adjustable ellipse and morphing logic. The image displays the default state (circle). However, the hardcoded anti-aliasing width (0.01) is too large, causing the edge to appear excessively blurry rather than crisp.",
+      "human_score": 7,
+      "accepted_by_human": true,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 31204.2016,
+          "generated_file_name": "EllipseMorphCentered",
+          "llm_raw_json": "{\n  \"file_name\": \"EllipseMorphCentered\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Signed distance for a circle centered at origin with radius r\\nfloat sdCircle(float2 p, float r)\\n{\\n    return length(p) - r;\\n}\\n\\n// Signed distance for an axis-aligned ellipse using normalized circle method\\nfloat sdEllipseNorm(float2 p, float2 radii)\\n{\\n    // Avoid division by zero by clamping radii\\n    float2 safeR = float2(max(radii.x, 1e-5), max(radii.y, 1e-5));\\n    // Normalize point by radii so ellipse becomes a unit circle\\n    float2 q = p / safeR;\\n    // Circle SDF in normalized space, then scale back by average radius\\n    float dCircle = sdCircle(q, 1.0);\\n    float avgR = 0.5 * (safeR.x + safeR.y);\\n    return dCircle * avgR;\\n}\\n\\nvoid FunctionName_float(\\n    float2 UV,\\n    float2 Radii,\\n    float Morph,\\n    float4 Color,\\n    out float4 outColor)\\n{\\n    // PLAN:\\n    // 1) Center UV to [-0.5,0.5] space around screen center.\\n    // 2) Build a circle SDF with radius = average of Radii.\\n    // 3) Build an ellipse SDF using independent Radii.x and Radii.y.\\n    // 4) Lerp between circle and ellipse SDFs using Morph to smoothly morph shape.\\n    // 5) Apply smoothstep for anti-aliasing and output solid color with alpha from mask.\\n\\n    // User request: An ellipse centered on the screen that smoothly morphs between a circle and a stretched shape with a solid fill color.\\n\\n    // 1) Center UV\\n    float2 centered = UV - 0.5;\\n\\n    // Ensure radii are non-negative\\n    float2 r = float2(max(Radii.x, 0.0), max(Radii.y, 0.0));\\n\\n    // 2) Circle SDF using average radius so circle matches area roughly\\n    float avgRadius = 0.5 * (r.x + r.y);\\n    float distCircle = sdCircle(centered, avgRadius);\\n\\n    // 3) Ellipse SDF with separate radii\\n    float distEllipse = sdEllipseNorm(centered, r);\\n\\n    // 4) Morph between circle (Morph=0) and ellipse (Morph=1)\\n    float t = saturate(Morph);\\n    float dist = lerp(distCircle, distEllipse, t);\\n\\n    // 5) Anti-aliased edge using fixed AA width\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // Final color with alpha = coverage\\n    outColor = float4(Color.rgb * edge, edge);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Radii\",\n      \"type\": \"float2\",\n      \"default_value\": {\n        \"x\": 0.3,\n        \"y\": 0.5,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Morph\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\EllipseMorphCentered.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/EllipseMorphCentered.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/EllipseMorphCentered.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/EllipseMorphCentered_5fabdaad03cd48c9a54663ac22c387a3.png",
+          "vlm_score": 8,
+          "vlm_explanation": "The code correctly implements the requested adjustable ellipse and morphing logic. The image displays the default state (circle). However, the hardcoded anti-aliasing width (0.01) is too large, causing the edge to appear excessively blurry rather than crisp."
+        }
+      ]
+    },
+    {
+      "prompt": "A plus-shaped cross made from two rectangles. The arm length and arm thickness should be adjustable. The shape should stay centered and symmetric. Single fill color.",
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 21453.2892,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The generated image perfectly matches the requested plus-shaped cross. It is centered, symmetric, has the correct single fill color, and the proportions correspond well to the provided default parameters.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 16695.357,
+          "generated_file_name": "PlusCrossShape",
+          "llm_raw_json": "{\n  \"file_name\": \"PlusCrossShape\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Axis-aligned box SDF centered at origin with half extents b\\nfloat sdBox(float2 p, float2 b)\\n{\\n    float2 d = abs(p) - b;\\n    float2 dMax = max(d, 0.0);\\n    float outsideDist = length(dMax);\\n    float insideDist = min(max(d.x, d.y), 0.0);\\n    return outsideDist + insideDist;\\n}\\n\\n// Union of two SDFs (keep interior of either)\\nfloat opUnion(float d1, float d2)\\n{\\n    return min(d1, d2);\\n}\\n\\nvoid FunctionName_float(float2 UV, float ArmLength, float ArmThickness, float4 Color, out float4 outColor)\\n{\\n    // USER REQUEST: A plus-shaped cross made from two rectangles. The arm length and arm thickness should be adjustable. The shape should stay centered and symmetric. Single fill color.\\n\\n    // PLAN:\\n    // 1) Center UV to [-0.5,0.5] space around (0.5,0.5).\\n    // 2) Build vertical arm as a box SDF using ArmThickness (width) and ArmLength (height).\\n    // 3) Build horizontal arm as a box SDF using ArmLength (width) and ArmThickness (height).\\n    // 4) Combine both with union (min) to form the plus cross.\\n    // 5) Apply smoothstep-based AA and output Color * mask with alpha = mask.\\n\\n    // 1) Center UV\\n    float2 centered = UV - 0.5;\\n\\n    // Ensure non-negative, reasonably clamped size values\\n    float lenVal = max(ArmLength, 0.0);\\n    float thickVal = max(ArmThickness, 0.0);\\n\\n    // 2) Vertical arm SDF (height = lenVal, width = thickVal)\\n    float2 halfSizeVertical = 0.5 * float2(thickVal, lenVal);\\n    float dVertical = sdBox(centered, halfSizeVertical);\\n\\n    // 3) Horizontal arm SDF (width = lenVal, height = thickVal)\\n    float2 halfSizeHorizontal = 0.5 * float2(lenVal, thickVal);\\n    float dHorizontal = sdBox(centered, halfSizeHorizontal);\\n\\n    // 4) Union to form the plus-shaped cross\\n    float dist = opUnion(dVertical, dHorizontal);\\n\\n    // 5) Anti-aliased edge and final color\\n    float edge = smoothstep(0.01, -0.01, dist);\\n    float mask = edge;\\n    outColor = float4(Color.rgb * mask, mask);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"ArmLength\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.6,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"ArmThickness\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.2,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 0.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\PlusCrossShape.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/PlusCrossShape.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/PlusCrossShape 1.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/PlusCrossShape_84dc4ff67cb94ede92e87e9f4077f445.png",
+          "vlm_score": 10,
+          "vlm_explanation": "The generated image perfectly matches the requested plus-shaped cross. It is centered, symmetric, has the correct single fill color, and the proportions correspond well to the provided default parameters."
+        }
+      ]
+    },
+    {
+      "prompt": "A simple four-pointed star centered on the screen. The size of the star should be adjustable. I want to control how sharp or wide the points are. Single fill color.",
+      "success": false,
+      "iterations_used": 4,
+      "total_time_ms": 42702.5517,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Pipeline failure: Could not parse HLSL function signature",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 24121.894900000003,
+          "generated_file_name": "FourPointStar",
+          "llm_raw_json": "{\n  \"file_name\": \"FourPointStar\",\n  \"hlsl_code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Basic circle SDF: distance from point to circle edge (negative inside)\\nfloat sdCircle(float2 p, float radius)\\n{\\n    return length(p) - radius;\\n}\\n\\n// Basic box SDF: axis-aligned rectangle centered at origin with half extents b\\nfloat sdBox(float2 p, float2 b)\\n{\\n    float2 d = abs(p) - b;\\n    return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);\\n}\\n\\n// CSG helpers\\nfloat opUnion(float d1, float d2)\\n{\\n    return min(d1, d2);\\n}\\n\\nfloat opIntersection(float d1, float d2)\\n{\\n    return max(d1, d2);\\n}\\n\\nfloat opSubtract(float d1, float d2)\\n{\\n    return max(d1, -d2);\\n}\\n\\nfloat opSmoothUnion(float d1, float d2, float k)\\n{\\n    float h = clamp(0.5 + 0.5 * (d2 - d1) / k, 0.0, 1.0);\\n    return lerp(d2, d1, h) - k * h * (1.0 - h);\\n}\\n\\n// 2D rotation helper\\nfloat2 rotate2D(float2 p, float angle)\\n{\\n    float c = cos(angle);\\n    float s = sin(angle);\\n    return float2(c * p.x - s * p.y, s * p.x + c * p.y);\\n}\\n\\nvoid FunctionName_float(float2 UV, float Size, float Sharpness, float4 Color, out float4 outColor)\\n{\\n    // User request: A simple four-pointed star centered on the screen with adjustable size and point sharpness, single fill color.\\n\\n    // PLAN:\\n    // 1) Map UV to centered coordinates and scale by Size.\\n    // 2) Build a vertical diamond via intersection of two axis-aligned boxes.\\n    // 3) Build a horizontal diamond by rotating coordinates 90 degrees and reusing the same SDF.\\n    // 4) Combine both diamonds with union to get a four-pointed star.\\n    // 5) Use Sharpness to control how thin/long the diamonds are (pointiness).\\n    // 6) Apply smoothstep-based anti-aliasing and output a single fill color with alpha mask.\\n\\n    // 1) Center UV coordinates around (0.5, 0.5) and scale by Size (0.5 ≈ half screen)\\n    float2 centered = UV - 0.5;\\n    float safeSize = max(Size, 1e-4);\\n    centered /= safeSize;\\n\\n    // 2) Compute a thickness factor from Sharpness.\\n    // Sharpness 0 → wide, soft points; Sharpness 1 → very thin, sharp points.\\n    float s = saturate(Sharpness);\\n    float thickness = lerp(0.6, 0.15, s); // adjusts how wide the arms are\\n\\n    // Vertical diamond: intersection of a tall vertical box and a wide horizontal box.\\n    // Both boxes are centered at origin.\\n    float2 halfExtentsVertical = float2(thickness, 1.0);\\n    float2 halfExtentsHorizontal = float2(1.0, thickness);\\n\\n    float dBoxV = sdBox(centered, halfExtentsVertical);\\n    float dBoxH = sdBox(centered, halfExtentsHorizontal);\\n\\n    // Diamond is intersection of the two boxes\\n    float dDiamondV = opIntersection(dBoxV, dBoxH);\\n\\n    // 3) Horizontal diamond: reuse same idea in rotated space (90 degrees)\\n    float2 rotated = rotate2D(centered, 0.5 * PI);\\n    float dBoxV2 = sdBox(rotated, halfExtentsVertical);\\n    float dBoxH2 = sdBox(rotated, halfExtentsHorizontal);\\n    float dDiamondH = opIntersection(dBoxV2, dBoxH2);\\n\\n    // 4) Four-pointed star SDF: union of vertical and horizontal diamonds\\n    float dist = opUnion(dDiamondV, dDiamondH);\\n\\n    // 5) Anti-aliased edge\\n    float edge = smoothstep(0.01, -0.01, dist);\\n\\n    // 6) Output color with alpha mask\\n    float mask = edge;\\n    outColor = float4(Color.rgb * mask, mask);\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Sharpness\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.6,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 1.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\FourPointStar.hlsl",
+          "shadergraph_asset_path": "Assets/Experiment/Generated/Graphs/FourPointStar.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated/Graphs/FourPointStar 1.mat",
+          "compile_ok": true,
+          "screenshot_path": "Assets/Experiment/Generated/Previews/FourPointStar_0b22d8cc8ef74a46acd8a7c6f95d24ad.png",
+          "vlm_score": 1,
+          "vlm_explanation": "The code generates a square instead of a four-pointed star. The logic uses the intersection of two crossing rectangles, which mathematically results in the square overlap at the center, rather than forming star arms."
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 7650.6348000000007,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"code\": \"#ifndef PI\\n#define PI 3.14159265359\\n#endif\\n\\n// Signed distance to a 2D cross-like 4-pointed star (diamond-shaped arms)\\n// \\\"sharpness\\\" controls how narrow the arms are (0 = square, 1 = very thin arms)\\nfloat sdFourPointStar(float2 p, float size, float sharpness)\\n{\\n    // Normalize point into a -1..1 square based on size\\n    float safeSize = max(size, 1e-4);\\n    p /= safeSize;\\n\\n    // Clamp sharpness and derive arm thickness\\n    // sharpness = 0   → thickness ~ 1 (square)\\n    // sharpness = 1   → thickness ~ 0.1 (very sharp points)\\n    float s = saturate(sharpness);\\n    float thickness = lerp(1.0, 0.1, s);\\n\\n    // Work in first quadrant by symmetry\\n    float2 q = abs(p);\\n\\n    // We want a shape where max(|x|,|y|) is limited but arms prefer being\\n    // closer to axes (a cross) instead of a diamond or square.\\n    // A simple way is to use max of:\\n    //  - a cross term: min(|x|, |y|) - thickness  (forces arms to be thin)\\n    //  - a bounding diamond/square via |x| + |y| - radius\\n\\n    // Cross arms (thin bars around axes)\\n    float dCross = min(q.x, q.y) - thickness;\\n\\n    // Radius controls how far the points extend; we keep it tied to 1 so that\\n    // `size` controls overall scaling in caller\\n    float radius = 1.0;\\n    float dDiamond = (q.x + q.y) - radius;\\n\\n    // Take max for intersection of cross and diamond -> 4 pointed star\\n    float d = max(dCross, dDiamond);\\n\\n    return d * safeSize; // scale distance back to original space\\n}\\n\\nvoid FunctionName_float(float2 UV, float Size, float Sharpness, float4 Color, out float4 outColor)\\n{\\n    // Center UV around (0.5, 0.5)\\n    float2 p = UV - 0.5;\\n\\n    // Compute SDF for the 4-pointed star\\n    float dist = sdFourPointStar(p, Size, Sharpness);\\n\\n    // Anti-aliasing width (in UV units). Tune if needed.\\n    float aa = 0.002;\\n\\n    // Inside star where dist < 0\\n    float mask = smoothstep(aa, -aa, dist);\\n\\n    outColor = float4(Color.rgb, 1.0) * mask;\\n}\\n\",\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Sharpness\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.6,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 1.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 5476.8699000000006,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Sharpness\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.6,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 1.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ],\n  \"hlsl\": \"cbuffer ShaderProperties : register(b0)\\n{\\n    float4 Size;       // x = star size\\n    float4 Sharpness;  // x = point sharpness/width\\n    float4 Color;      // rgba\\n};\\n\\nstruct PSInput\\n{\\n    float4 position : SV_POSITION;\\n    float2 uv       : TEXCOORD0;\\n};\\n\\nfloat4 main(PSInput input) : SV_TARGET\\n{\\n    // Normalize UVs to -1..1 with center at (0,0)\\n    float2 p = input.uv * 2.0f - 1.0f;\\n\\n    // Four-pointed star aligned to axes\\n    float s = Size.x;\\n    float sh = Sharpness.x;\\n\\n    // Scale point sharpness to a usable range\\n    sh = saturate(sh);\\n    float k = lerp(0.2f, 1.5f, sh);\\n\\n    // Distance metric for a cross-like star (diamond along axes)\\n    float dAxis = abs(p.x) + abs(p.y);\\n\\n    // A second shape rotated 45 degrees to make points sharper/rounder\\n    float2 pr = float2(p.x + p.y, p.x - p.y) * 0.70710678f;\\n    float dDiag = abs(pr.x) + abs(pr.y);\\n\\n    // Blend axis and diagonal shapes by sharpness\\n    float d = lerp(dAxis, dDiag, sh) - s;\\n\\n    // Control edge falloff\\n    float edge = 0.005f * k;\\n    float alpha = 1.0f - smoothstep(0.0f, edge, d);\\n\\n    if (alpha <= 0.0f)\\n        discard;\\n\\n    return float4(Color.rgb, Color.a * alpha);\\n}\\n\"\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        },
+        {
+          "iteration_index": 4,
+          "iteration_time_ms": 5452.3594,
+          "generated_file_name": null,
+          "llm_raw_json": "{\n  \"shader\": {\n    \"name\": \"FourPointStar\",\n    \"hlsl\": \"float4 FourPointStar(float2 uv, float2 resolution, float4 Size, float4 Sharpness, float4 Color)\\n{\\n    // Normalize coordinates to -1..1 with center at (0,0)\\n    float2 p = (uv - 0.5) * float2(resolution.x / resolution.y, 1.0);\\n\\n    // Star size and sharpness controls\\n    float size = Size.x;        // overall radius of the star\\n    float sharp = Sharpness.x;  // 0..1, higher = thinner points\\n\\n    // Polar coordinates\\n    float r = length(p);\\n    float a = atan2(p.y, p.x);\\n\\n    // Four-pointed star: 4 radial lobes -> use 4*angle in cosine\\n    float k = 4.0;\\n    float wave = cos(a * k);\\n\\n    // Map wave (-1..1) to a 0..1 mask that defines the points\\n    // sharp controls how narrow the points are\\n    float pointMask = pow(saturate(wave * 0.5 + 0.5), lerp(0.5, 8.0, saturate(sharp)));\\n\\n    // Base radius shape (disc scaled by point mask)\\n    float starRadius = size * lerp(0.5, 1.0, pointMask);\\n\\n    // Signed distance: inside < 0, outside > 0\\n    float d = r - starRadius;\\n\\n    // Smooth edge for nicer anti-aliasing\\n    float aa = fwidth(r) * 1.5;\\n    float mask = 1.0 - smoothstep(0.0, aa, d);\\n\\n    float3 col = Color.rgb * mask;\\n    float alpha = Color.a * mask;\\n\\n    return float4(col, alpha);\\n}\\n\",\n    \"function_name\": \"FourPointStar\"\n  },\n  \"properties\": [\n    {\n      \"name\": \"Size\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.35,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Sharpness\",\n      \"type\": \"float\",\n      \"default_value\": {\n        \"x\": 0.6,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n      }\n    },\n    {\n      \"name\": \"Color\",\n      \"type\": \"color\",\n      \"default_value\": {\n        \"x\": 1.0,\n        \"y\": 1.0,\n        \"z\": 1.0,\n        \"w\": 1.0\n      }\n    }\n  ]\n}",
+          "hlsl_asset_path": "Assets/Experiment/Generated/HLSL\\.hlsl",
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "compile_ok": false,
+          "screenshot_path": null,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failure: Could not parse HLSL function signature"
+        }
+      ]
+    }
+  ]
+}

@@ -21,7 +21,7 @@ Material:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_Name: WaterDropShape
-  m_Shader: {fileID: -6465566751694194690, guid: a5e5172f43131bf4689705c4082a9058, type: 3}
+  m_Shader: {fileID: -6465566751694194690, guid: 9322c2bab6024f848b5568a91f5f360e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -53,9 +53,16 @@ Material:
     m_Floats:
     - _QueueControl: 0
     - _QueueOffset: 0
+    - _RindThickness: 0
     - _Rotation: 0.33
+    - _SeedSize: 0
     - _Size: 0.75
     m_Colors:
+    - _Center: {r: 0, g: 0, b: 0, a: 0}
     - _Color: {r: 0, g: 0.5, b: 1, a: 1}
+    - _Dimensions: {r: 0, g: 0, b: 0, a: 0}
+    - _FleshColor: {r: 0, g: 0, b: 0, a: 1}
+    - _RindColor: {r: 0, g: 0, b: 0, a: 1}
+    - _SeedColor: {r: 0, g: 0, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
