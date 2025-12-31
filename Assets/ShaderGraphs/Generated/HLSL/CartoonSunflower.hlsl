@@ -1,102 +1,140 @@
-/* 
-  Cartoon Sunflower Generator
-  Renders a 2D sunflower with adjustable central disk, radial petals, stem, and leaves.
-*/
+#ifndef PI
+#define PI 3.14159265359
+#endif
 
-// Helper: Box Signed Distance Field
-float sdBox_Sunflower(float2 p, float2 b) {
+// --- Helpers ---
+
+// Signed distance to a box
+float sdBox(float2 p, float2 b) {
     float2 d = abs(p) - b;
     return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-// Helper: 2D Rotation
-float2 rotate_Sunflower(float2 p, float angle) {
+// 2D Rotation
+float2 rotate(float2 p, float angle) {
     float c = cos(angle);
     float s = sin(angle);
-    return float2(c*p.x - s*p.y, s*p.x + c*p.y);
+    return float2(c * p.x - s * p.y, s * p.x + c * p.y);
 }
 
-void CartoonSunflower_float(float2 UV, float DiskRadius, float4 DiskColor, float PetalCount, float2 PetalSize, float4 PetalColor, float StemThickness, float4 StemColor, float2 LeafSize, float LeafVerticalPos, float4 LeafColor, out float4 outColor) {
-    // PLAN:
-    // 1. Center UV coordinates (0.5, 0.5).
-    // 2. Compute SDF for the Stem (vertical box extending down).
-    // 3. Compute SDF for Leaves (symmetric, rotated ellipses attached to stem).
-    // 4. Compute SDF for Petals (polar domain repetition, rotated ellipses).
-    // 5. Compute SDF for Central Disk (circle).
-    // 6. Use fwidth() for adaptive anti-aliasing on all shapes.
-    // 7. Layer colors: Stem -> Leaves -> Petals -> Disk.
+// Lens SDF (Intersection of two circles)
+// Creates a shape with length L (along X) and width W (along Y)
+float sdLens(float2 p, float L, float W) {
+    // Clamp dimensions to prevent math errors
+    L = max(L, 0.001);
+    W = max(W, 0.001);
+    
+    // Derive circle parameters
+    // The lens is formed by the intersection of two circles centered on the Y-axis
+    // k is the Y-offset of the circle centers
+    float k = (L * L - W * W) / (4.0 * W);
+    float R = W * 0.5 + k;
+    
+    // Intersection of circle at (0, -k) and circle at (0, k)
+    float d1 = length(p - float2(0.0, -k)) - R;
+    float d2 = length(p - float2(0.0, k)) - R;
+    
+    // Intersection = max
+    return max(d1, d2);
+}
 
-    #ifndef PI
-    #define PI 3.14159265359
-    #endif
+// --- Main Function ---
+// User Request: A cartoon sunflower with adjustable disk, pointed petals, stem, and leaves.
+// PLAN:
+// 1. Center UVs at (0,0).
+// 2. Define shapes: Stem, Leaves, Petals, Center.
+// 3. Stem: Box SDF extending downwards.
+// 4. Leaves: Lens SDFs attached to stem, rotated.
+// 5. Petals: Lens SDFs repeated radially around center.
+// 6. Center: Circle SDF.
+// 7. Composite colors using smoothstep masks and painter's algorithm (back-to-front).
 
+void CartoonSunflower_float(
+    float2 UV,
+    float DiskRadius,
+    float4 DiskColor,
+    float PetalCount,
+    float PetalLength,
+    float PetalWidth,
+    float4 PetalColor,
+    float StemThickness,
+    float4 StemColor,
+    float LeafSize,
+    float LeafAngle,
+    float4 LeafColor,
+    out float4 outColor)
+{
+    // 1. Coordinates
     float2 p = UV - 0.5;
+    float aa = 0.005; // Anti-aliasing softness
 
-    // --- 1. Stem ---
-    // Vertical box centered at y=-0.5 with height 0.5 (spanning y=0 to y=-1)
-    float2 stemSize = float2(StemThickness * 0.5, 0.5);
-    float2 stemPos = p - float2(0.0, -0.5);
-    float dStem = sdBox_Sunflower(stemPos, stemSize);
+    // 2. Stem SDF
+    // Vertical box extending downwards from slightly below the center
+    float stemHeight = 1.0;
+    float2 stemOffset = float2(0.0, -stemHeight * 0.5 - DiskRadius * 0.5);
+    float dStem = sdBox(p - stemOffset, float2(StemThickness * 0.5, stemHeight * 0.5));
+    float maskStem = smoothstep(aa, -aa, dStem);
 
-    // --- 2. Leaves ---
-    // Symmetry across Y axis to draw two leaves
-    float2 q = p;
-    q.x = abs(q.x);
-    // Offset leaf attachment point relative to stem surface and vertical pos
-    float2 leafAnchor = float2(StemThickness * 0.5, LeafVerticalPos);
-    q -= leafAnchor;
-    // Rotate leaf outwards (approx 35 degrees)
-    q = rotate_Sunflower(q, -0.6);
-    // Ellipse shape approximation
-    // LeafSize.x = Width, LeafSize.y = Length
-    // Radii: x corresponds to Length (local x axis), y to Width
-    float2 leafRadii = float2(LeafSize.y, LeafSize.x) * 0.5;
-    // Shift center so leaf starts at anchor
-    float2 leafCenter = float2(leafRadii.x, 0.0);
-    // Scaled distance field (using length/radius - 1)
-    float dLeaf = length((q - leafCenter) / max(leafRadii, 0.001)) - 1.0;
+    // 3. Leaves SDF
+    // Two leaves attached to the stem
+    // Leaf 1 (Right side)
+    float2 attachPoint = float2(0.0, -DiskRadius - 0.2);
+    float2 pLeaf1 = rotate(p - attachPoint, -LeafAngle);
+    pLeaf1.x -= LeafSize * 0.5; // Offset so leaf starts at stem
+    float dLeaf1 = sdLens(pLeaf1, LeafSize, LeafSize * 0.4);
+    
+    // Leaf 2 (Left side)
+    float2 pLeaf2 = rotate(p - attachPoint, LeafAngle);
+    pLeaf2.x += LeafSize * 0.5; // Mirror offset
+    float dLeaf2 = sdLens(pLeaf2, LeafSize, LeafSize * 0.4);
+    
+    float dLeaves = min(dLeaf1, dLeaf2);
+    float maskLeaves = smoothstep(aa, -aa, dLeaves);
 
-    // --- 3. Petals ---
+    // 4. Petals SDF
+    // Radial repetition
     float n = max(3.0, floor(PetalCount));
-    float angleStep = 2.0 * PI / n;
-    float currentAngle = atan2(p.y, p.x);
-    // Determine which angular sector we are in
-    float sector = floor(currentAngle / angleStep + 0.5);
-    float sectorAngle = sector * angleStep;
-    // Rotate p into the local coordinate system of the petal
-    float2 pPetal = rotate_Sunflower(p, -sectorAngle);
-    // Petal shape: Ellipse
-    // PetalSize.x = Width, PetalSize.y = Length
-    float2 petalRadii = float2(PetalSize.y, PetalSize.x) * 0.5;
-    // Position petal at the edge of the disk, slightly sunken in for connection
-    float2 petalPos = float2(DiskRadius + petalRadii.x * 0.7, 0.0);
-    float dPetal = length((pPetal - petalPos) / max(petalRadii, 0.001)) - 1.0;
+    float angle = atan2(p.y, p.x);
+    float sectorAngle = 2.0 * PI / n;
+    // Find nearest sector index
+    float sector = floor(angle / sectorAngle + 0.5);
+    // Rotate p to the local coordinate system of the petal
+    float rotAngle = sector * sectorAngle;
+    float2 pPetal = rotate(p, -rotAngle);
+    
+    // Position the petal: start at disk radius, extend outward
+    pPetal.x -= DiskRadius + PetalLength * 0.5;
+    float dPetals = sdLens(pPetal, PetalLength, PetalWidth);
+    float maskPetals = smoothstep(aa, -aa, dPetals);
 
-    // --- 4. Central Disk ---
+    // 5. Center Disk SDF
     float dDisk = length(p) - DiskRadius;
+    float maskDisk = smoothstep(aa, -aa, dDisk);
 
-    // --- 5. Compositing & Anti-Aliasing ---
-    // Use fwidth to determine edge softness based on screen-space derivatives
-    // This handles the non-uniform scaling of the ellipse SDFs correctly
-    float maskStem  = smoothstep(0.0, -max(fwidth(dStem), 0.001), dStem);
-    float maskLeaf  = smoothstep(0.0, -max(fwidth(dLeaf), 0.001), dLeaf);
-    float maskPetal = smoothstep(0.0, -max(fwidth(dPetal), 0.001), dPetal);
-    float maskDisk  = smoothstep(0.0, -max(fwidth(dDisk), 0.001), dDisk);
+    // 6. Composition (Painter's Algorithm)
+    // Layer order: Stem -> Leaves -> Petals -> Disk
+    
+    // Start with transparent background
+    float4 col = float4(0.0, 0.0, 0.0, 0.0);
+    
+    // Layer Stem
+    col = lerp(col, float4(StemColor.rgb, 1.0), maskStem * StemColor.a);
+    
+    // Layer Leaves
+    col = lerp(col, float4(LeafColor.rgb, 1.0), maskLeaves * LeafColor.a);
+    
+    // Layer Petals
+    col = lerp(col, float4(PetalColor.rgb, 1.0), maskPetals * PetalColor.a);
+    
+    // Layer Disk
+    col = lerp(col, float4(DiskColor.rgb, 1.0), maskDisk * DiskColor.a);
 
-    // Initialize color (transparent background)
-    float4 col = float4(0, 0, 0, 0);
-
-    // Layer 1: Stem (Back)
-    col = lerp(col, StemColor, maskStem);
-
-    // Layer 2: Leaves (On top of stem)
-    col = lerp(col, LeafColor, maskLeaf);
-
-    // Layer 3: Petals (Behind disk, but cover background/stem)
-    col = lerp(col, PetalColor, maskPetal);
-
-    // Layer 4: Disk (Front)
-    col = lerp(col, DiskColor, maskDisk);
-
+    // Output final color (pre-multiplied alpha logic handled by lerp above implicitly for visual comp)
+    // Ensure output alpha is correct for blending
+    float combinedAlpha = saturate(maskStem * StemColor.a + maskLeaves * LeafColor.a + maskPetals * PetalColor.a + maskDisk * DiskColor.a);
+    
+    // Final assignment
     outColor = col;
+    // Fix alpha channel for proper transparency usage in shader graph
+    outColor.a = combinedAlpha;
 }
