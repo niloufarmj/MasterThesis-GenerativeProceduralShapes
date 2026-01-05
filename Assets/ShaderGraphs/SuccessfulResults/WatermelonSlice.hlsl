@@ -107,3 +107,24 @@ void WatermelonSlice_float(float2 UV, float2 Center, float Size, float2 Dimensio
     // Apply shape alpha
     outColor = float4(finalRGB.rgb * alpha, alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D watermelon slice** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A **semi-elliptical wedge** representing the fruit slice.
+//  - Distinct **concentric layers**: a thick outer rind (green), a thin 
+//    inner pith (white), and the main flesh (red/pink).
+//  - A curved array of **teardrop-shaped seeds** distributed along the
+//    flesh's lower arc.
+//
+//  The geometry features adjustable **rind thickness**, **seed size**, and 
+//  overall **dimensions** (width/height ratio), allowing for variations 
+//  from perfect semicircles to elongated wedges.
+//
+//  The output is an anti-aliased RGBA color suitable for food items,
+//  summer event graphics, and match-3 game assets.
+// ------------------------------------------------------------------------

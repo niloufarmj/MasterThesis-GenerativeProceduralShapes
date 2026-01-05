@@ -133,3 +133,24 @@ void PawPrintShape_float(
     // Composite Stroke OVER Fill
     OutColor = composite(strokeOut, fillOut);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon paw print** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A large **central pad** created by the smooth union of three circles 
+//    (one base, two lobes), resulting in a soft, organic, heart-like shape.
+//  - An arc of smaller, separate circular **toe pads** hovering above the 
+//    main pad.
+//
+//  The shape features extensive parameter controls for the number, size, 
+//  spacing, and spread angle of the toes, as well as the smoothness (metaball
+//  blending) of the main pad lobes.
+//
+//  The output is a flat-shaded graphic with a thick, continuous outline 
+//  surrounding each individual pad, suitable for animal tracks, pet shop 
+//  logos, or game decals.
+// ------------------------------------------------------------------------

@@ -69,3 +69,22 @@ void StarOutline_float(float2 UV, float Radius, float InnerRatio, float Rotation
     // Pre-multiplied alpha or standard blending pattern
     outColor = float4(StrokeColor.rgb * alpha, alpha * StrokeColor.a);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **hollow 5-pointed star outline** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A **continuous star-shaped stroke** with 5 vertices.
+//  - A **transparent interior**, creating a wireframe or sticker-like appearance.
+//  - Rounded outer corners resulting from the uniform stroke expansion.
+//
+//  The geometry features an adjustable **InnerRatio** (controlling the sharpness
+//  or "fatness" of the star points) and **StrokeWidth**, allowing for variations
+//  from thin wireframes to thick, bold symbols.
+//
+//  The output is an anti-aliased RGBA color suitable for rating systems,
+//  favorite icons, and decorative celestial patterns.
+// ------------------------------------------------------------------------

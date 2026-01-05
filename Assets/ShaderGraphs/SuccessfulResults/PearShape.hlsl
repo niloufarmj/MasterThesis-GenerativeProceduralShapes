@@ -83,3 +83,23 @@ void PearShape_float(float2 UV, float Size, float Height, float TopScale, float 
     // Output straight alpha color (standard for ShaderGraph Unlit nodes)
     outColor = float4(finalRGB, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon pear** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A main body formed by the smooth union of two circles: a larger, bulbous
+//    base and a smaller, tapered top (neck), creating the organic fruit shape.
+//  - A curved **stem** extending from the top, created by bending a capsule
+//    using domain distortion.
+//
+//  The shape features adjustable parameters for the overall height (elongation),
+//  the width of the top neck section, and the size of the stem. The body and
+//  stem can be colored independently.
+//
+//  The output is a simple, flat-shaded graphic without an outline, suitable
+//  for fruit icons, nutrition apps, or slot machine symbols.
+// ------------------------------------------------------------------------

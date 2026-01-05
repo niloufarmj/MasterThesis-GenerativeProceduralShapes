@@ -81,3 +81,25 @@ void DNAHelixShape_float(float2 UV, float Amplitude, float LoopHeight, float Str
     // Apply total opacity based on the outline mask
     outColor = float4(finalRGB * maskOutline, maskOutline);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon DNA helix** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - Two sinusoidal **backbone strands** that weave back and forth vertically,
+//    forming the classic double-helix structure.
+//  - A series of horizontal **rungs** (base pairs) connecting the two strands.
+//    The width of each rung dynamically adjusts to match the distance 
+//    between the strands at that specific height.
+//
+//  The shape features adjustable parameters for the wave amplitude and 
+//  frequency (loop height), the thickness of the strands and rungs, and the 
+//  vertical spacing between rungs.
+//
+//  The output is a flat-shaded graphic with a thick, cohesive outline. The
+//  rendering layers the strands visually on top of the rungs, making it 
+//  ideal for biology icons, educational games, or medical UI elements.
+// ------------------------------------------------------------------------

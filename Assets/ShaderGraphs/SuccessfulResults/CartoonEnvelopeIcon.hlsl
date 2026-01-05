@@ -110,3 +110,23 @@ void CartoonEnvelopeIcon_float(float2 UV, float Width, float Height, float Corne
 
     outColor = col;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon envelope icon**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A rectangular body with rounded corners representing the envelope packet.
+//  - A triangular flap folding down from the top edge, with adjustable height.
+//  - Two diagonal crease lines extending from the bottom corners to the center,
+//    forming the pocket detail.
+//
+//  The rendering layers these elements (Body Fill -> Creases -> Outlines -> Flap)
+//  to create a clean vector-like icon. All dimensions, corner roundness,
+//  flap size, and colors are fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for mail icons,
+//  notification badges, and contact forms.
+// ------------------------------------------------------------------------

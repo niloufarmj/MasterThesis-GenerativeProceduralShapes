@@ -88,3 +88,24 @@ void CartoonStrawberry_float(float2 UV, float Size, float FruitWidth, float Frui
 
     outColor = result;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon strawberry** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A tapered, heart-shaped fruit body (wider at the top, pointed at the 
+//    bottom).
+//  - A regular, staggered pattern of small oval seeds embedded in the surface.
+//  - A star-shaped leafy cap (calyx) sitting on the top edge.
+//
+//  The shape features adjustable parameters for the fruit's aspect ratio,
+//  the density and size of the seeds, and the size and lobe count of the 
+//  leafy cap.
+//
+//  The output is a flat-shaded, sticker-style graphic without an external 
+//  outline, suitable for slot machine symbols, farming game assets, or 
+//  food-themed UI.
+// ------------------------------------------------------------------------

@@ -77,3 +77,22 @@ void TicketShape_float(float2 UV, float Width, float Height, float CutoutRadius,
     // Draw Outline OVER Fill
     OutColor = nm_over(outlineLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **classic cinema ticket or voucher shape**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A **rectangular body** defined by width and height.
+//  - Four **inverted rounded corners** (circular cutouts) punched out 
+//    of the rectangle's vertices.
+//
+//  The geometry features adjustable **cutout radius** and **outline thickness**,
+//  allowing the shape to look like a raffle ticket, coupon, or retro tag.
+//  The outline follows the concave curvature of the corners perfectly.
+//
+//  The output is an anti-aliased RGBA color suitable for UI labels,
+//  event tokens, coupons, and inventory tags.
+// ------------------------------------------------------------------------

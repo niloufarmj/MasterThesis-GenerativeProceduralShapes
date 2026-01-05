@@ -81,3 +81,21 @@ void ProgressBarShape_float(float2 UV, float Width, float Height, float Fill, fl
     // 6. Composite Layers (Inner over Outer)
     outColor = blend_over(innerLayer, outerLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **customizable UI progress bar** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - An **Outer Container**: A rounded rectangle serving as the background track.
+//  - An **Inner Fill**: A smaller rounded rectangle that expands horizontally 
+//    from left to right based on a "Fill" percentage.
+//
+//  The geometry features adjustable dimensions, corner radii (independent for 
+//  inner/outer), and padding between the fill and the container. 
+//
+//  The output is an anti-aliased RGBA color suitable for HUDs (health/mana bars),
+//  loading screens, and interface sliders.
+// ------------------------------------------------------------------------

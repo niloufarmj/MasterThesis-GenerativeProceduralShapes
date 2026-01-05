@@ -111,3 +111,24 @@ void EyeglassesShape_float(float2 UV, float LensWidth, float LensHeight, float L
 
     outColor = col;
 }
+
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a pair of **stylized cartoon eyeglasses** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - Two symmetrical **lenses** (rounded rectangles) separated by a gap.
+//  - A thick **frame** surrounding each lens, created by expanding the lens 
+//    geometry.
+//  - A central **bridge** connecting the two sides of the frame.
+//
+//  The shape features adjustable parameters for the lens dimensions and 
+//  roundness, the width and height of the bridge, and the thickness of the frame.
+//
+//  The output renders with distinct outlines around both the outer edge of 
+//  the frame and the inner rim of the lenses, creating a clear, readable 
+//  graphic suitable for avatar accessories, reading mode icons, or optometry UI.
+// ------------------------------------------------------------------------

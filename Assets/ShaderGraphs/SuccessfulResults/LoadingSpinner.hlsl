@@ -71,3 +71,24 @@ void LoadingSpinner_float(float2 UV, float Loading, float Radius, float DotSize,
     // Apply mask to RGB and Alpha
     outColor = float4(color.rgb * edge, color.a * edge);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized radial loading spinner** using 
+//  procedural Signed Distance Fields (SDFs).
+//
+//  The visual result is composed of:
+//  - A circular arrangement of discrete **dots** (circles) distributed evenly
+//    around a central point.
+//  - A dynamic **color trail** that rotates around the ring, simulating a 
+//    standard loading animation. The dots interpolate between an "Empty" 
+//    color and a "Filled" color based on their angular distance from the 
+//    current loading head position.
+//
+//  The shape features adjustable parameters for the circle radius, the size
+//  and count of the dots, and the length of the fading trail.
+//
+//  The output renders with soft, anti-aliased edges, making it a scalable,
+//  resolution-independent alternative to sprite sheet loaders for UI.
+// ------------------------------------------------------------------------

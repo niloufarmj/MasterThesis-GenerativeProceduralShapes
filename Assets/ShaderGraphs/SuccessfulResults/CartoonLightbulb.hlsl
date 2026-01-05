@@ -171,3 +171,25 @@ void CartoonLightbulb_float(
     // Final clamping to ensure valid color
     outColor = saturate(outColor);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon lightbulb** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A pear-shaped glass bulb created by smoothly blending a circle (top)
+//    and a rectangle (neck).
+//  - A threaded metal base characterized by sine-wave "ribs" along its edges.
+//  - A curved, wiggling internal filament wire.
+//  - A customizable array of radial "light rays" emitting from the center,
+//    indicating illumination.
+//
+//  The shape features comprehensive parameter controls for the bulb dimensions,
+//  base threading frequency, and the count, length, and position of the light rays.
+//
+//  The rendering applies a consistent, high-contrast stroke to the bulb and base
+//  independently, creating a clean sticker-like aesthetic suitable for
+//  "idea" icons, UI indicators, or power-up sprites.
+// ------------------------------------------------------------------------

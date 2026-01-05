@@ -113,3 +113,24 @@ void SnowflakeShape_float(float2 UV, float Size, float NumArms, float Detail, fl
     // RGB masked by shape, Alpha channel contains the opacity
     outColor = float4(Color.rgb * mask, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **procedural geometric snowflake** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A **radial array of symmetric arms** (typically 6) radiating from the center.
+//  - A **branching skeletal structure** where each arm features a central stem
+//    with angled primary offshoots.
+//  - Detailed **lattice spurs** (secondary branches) that appear at higher
+//    detail levels, creating a complex crystalline look.
+//
+//  The geometry features adjustable **arm count**, **detail level** (branch density),
+//  and **size**, allowing for variations from simple stars to intricate
+//  fractal-like ice crystals.
+//
+//  The output is an anti-aliased RGBA color suitable for winter-themed UI,
+//  weather widgets, and holiday decorations.
+// ------------------------------------------------------------------------

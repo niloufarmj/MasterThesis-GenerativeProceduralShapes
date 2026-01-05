@@ -144,3 +144,25 @@ void CartoonRobotIcon_float(float2 UV, float Size, float LimbLength, float LimbT
 
     outColor = float4(finalRGB, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon robot icon** (resembling the
+//  classic "bugdroid" mascot) using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A semi-circular **head** containing two circular eyes and topped with 
+//    two angled, antenna-like sensors.
+//  - A rounded rectangular **body** with a flat top and deeply rounded bottom corners.
+//  - Symmetrical **limbs**, including floating capsule arms on the sides and 
+//    short stubby legs at the base.
+//  - A distinct horizontal gap separating the head from the body.
+//
+//  The shape features adjustable parameters for the limb length and thickness,
+//  overall size, and outline width. The main body, outline, and eyes can be
+//  colored independently.
+//
+//  The output is a clean, flat-shaded graphic with a thick contiguous outline,
+//  ideal for operating system logos, technology avatars, or sci-fi UI elements.
+// ------------------------------------------------------------------------

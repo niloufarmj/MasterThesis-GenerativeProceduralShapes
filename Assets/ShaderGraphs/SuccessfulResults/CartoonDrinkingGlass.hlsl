@@ -196,3 +196,25 @@ void CartoonDrinkingGlass_float(
 
     outColor = float4(finalRGB, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon drinking glass**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A trapezoidal container body with adjustable top/bottom widths and
+//    rounded corners.
+//  - A C-shaped handle attached to the side (optional, scaleable).
+//  - An internal liquid fill level with a flat surface and meniscus effect.
+//  - A distinct rim ellipse at the top opening.
+//
+//  The glass features semi-transparent tinting, while the liquid has a
+//  solid opaque color. A consistent outline surrounds the entire silhouette.
+//  All dimensions (height, width, wall thickness, fill amount) are
+//  fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for beverage icons,
+//  potion bottles, and kitchen items.
+// ------------------------------------------------------------------------

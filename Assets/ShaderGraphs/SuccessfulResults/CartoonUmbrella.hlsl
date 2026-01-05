@@ -140,3 +140,24 @@ void CartoonUmbrella_float(float2 UV, float Width, float Height, float DomePower
     
     outColor = final;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon umbrella** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of three main parts:
+//  - A large, domed **canopy** with a scalloped (wavy) bottom edge. The canopy
+//    surface is divided into radial "panels" that alternate between two colors,
+//    simulating 3D curvature.
+//  - A central **shaft** ending in a classic J-shaped curved **handle**.
+//  - A small **ferrule** (tip) cap sitting at the very top of the dome.
+//
+//  The shape features adjustable parameters for the dome's curvature ("puffiness"),
+//  the number of segments/scallops, the amplitude of the edge wave, and the
+//  dimensions of the handle and shaft.
+//
+//  The output is a flat-shaded graphic with a thick, cohesive outline around
+//  each component, suitable for weather apps, beach themes, or inventory icons.
+// ------------------------------------------------------------------------

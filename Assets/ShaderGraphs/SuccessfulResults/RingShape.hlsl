@@ -28,3 +28,21 @@ void RingShape_float(float2 UV, float2 Center, float Radius, float Thickness, fl
     // This works best with Unity ShaderGraph's "Transparent" surface type
     outColor = float4(Color.rgb, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **minimalist 2D ring (annulus)** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A circular band defined by a central spine and a set width.
+//  - A completely hollow, transparent center.
+//
+//  The geometry features adjustable **Radius** (overall size) and 
+//  **Thickness** (width of the band), allowing for variations ranging 
+//  from thin wireframe circles to thick washer-like shapes.
+//
+//  The output is an anti-aliased RGBA color suitable for selection cursors,
+//  target reticles, and decorative circular UI elements.
+// ------------------------------------------------------------------------

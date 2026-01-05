@@ -104,3 +104,25 @@ void FedoraHat_float(float2 UV, float Size, float CrownWidth, float CrownHeight,
     // 7. Composite Stroke over Fill
     outColor = compositeOver(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon fedora** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A central **crown** featuring a characteristic concave indentation 
+//    (pinch) at the top.
+//  - A wide, curved **brim** extending outward from the base of the crown.
+//  - A decorative **hat band** (ribbon) wrapping around the bottom of the 
+//    crown, distinct from the main hat color.
+//
+//  The shape features adjustable parameters for the crown dimensions and 
+//  indent depth, the width and curvature of the brim, and the thickness of 
+//  the hat band.
+//
+//  The output is a flat-shaded graphic with a cohesive outline that creates
+//  a smooth, organic union between the brim and the crown, suitable for 
+//  detective icons, noir themes, or character accessories.
+// ------------------------------------------------------------------------

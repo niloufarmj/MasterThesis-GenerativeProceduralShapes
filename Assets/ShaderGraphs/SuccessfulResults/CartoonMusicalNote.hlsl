@@ -105,3 +105,25 @@ void MusicalNote_float(float2 UV, float2 Center, float Size, float HeadRadius, f
     // Output
     outColor = float4(Color.rgb * mask, Color.a * mask);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized musical note** (resembling an 
+//  eighth note or quaver) using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A circular **note head** at the bottom.
+//  - A vertical rectangular **stem** attached tangentially to the right 
+//    side of the head.
+//  - A curved **flag** (tail) extending from the top of the stem, created 
+//    using a quadratic Bezier curve for smooth, organic flow.
+//
+//  The shape features granular control over the geometry, allowing adjustment
+//  of the head radius, stem height and thickness, and the length and 
+//  curvature of the flag. Setting the flag length to zero produces a 
+//  quarter note (crotchet).
+//
+//  The output is a solid, flat-colored silhouette with anti-aliased edges,
+//  perfect for rhythm games, audio players, or music notation interfaces.
+// ------------------------------------------------------------------------

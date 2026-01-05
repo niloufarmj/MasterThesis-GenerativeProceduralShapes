@@ -60,3 +60,23 @@ void CartoonLensShape_float(float2 UV, float Radius, float Separation, float Rot
     // 7. Composite (Stroke OVER Fill)
     outColor = lens_over(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon lens shape** (also known as
+//  a Vesica Piscis) using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - The intersection of two overlapping circles, creating a symmetrical,
+//    almond-like geometry.
+//  - Two sharp vertices at opposite ends where the circle perimeters meet.
+//  - A smooth, curved body resembling a leaf, an eye, or a seed.
+//
+//  The shape features adjustable parameters for the circle radius and the
+//  separation distance between centers, allowing the shape to range from
+//  a nearly circular oval to a thin, sharp sliver.
+//
+//  A consistent, anti-aliased outline surrounds the shape, making it versatile
+//  for use as organic foliage sprites, character eyes, or abstract UI elements.
+// ------------------------------------------------------------------------

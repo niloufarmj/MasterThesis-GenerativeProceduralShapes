@@ -204,3 +204,23 @@ void CartoonFishShape_float(
     // Ensure alpha is correct for transparency
     outColor.a = clamp(outlineMask + alphaShape, 0.0, 1.0);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon fish** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A streamlined oval body that bends organically using domain distortion.
+//  - A forked tail fin attached to the posterior.
+//  - Triangular dorsal (top) and ventral (bottom) fins.
+//  - A circular eye and a curved gill line detail on the head.
+//
+//  The rendering blends the body and fins into a single continuous silhouette
+//  with a consistent outline. The eye and gill are layered on top.
+//  All dimensions, curvature, and colors are fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for aquatic themes,
+//  animal icons, and underwater scenery.
+// ------------------------------------------------------------------------

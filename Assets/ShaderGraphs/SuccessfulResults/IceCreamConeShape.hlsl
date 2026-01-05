@@ -124,3 +124,25 @@ void IceCreamConeShape_float(float2 UV, float2 Center, float ConeWidth, float Co
     // but here we just output the accumulated result.
     outColor = col;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon ice cream cone** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A triangular **cone** base (mathematically an inverted trapezoid).
+//  - Three circular **scoops** stacked in a classic pyramid arrangement:
+//    - Two scoops sit side-by-side at the base of the stack.
+//    - One scoop sits centered on top.
+//
+//  The shape features adjustable parameters for the cone dimensions and the
+//  uniform size of the scoops. Unlike other shapes in this library, this
+//  renders as a flat, multi-colored graphic without an external outline.
+//  Each scoop and the cone can be colored independently.
+//
+//  The output uses a painter's algorithm (back-to-front) to layer the top 
+//  scoop over the bottom ones, making it suitable for dessert icons, 
+//  summer-themed UI, or map markers.
+// ------------------------------------------------------------------------

@@ -102,3 +102,24 @@ void CartoonPartyHat_float(
     // Pom-pom sits on top of the hat
     outColor = layerBlend(pomLayer, hatLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon party hat** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A triangular body representing a conical paper hat.
+//  - A dynamic horizontal stripe pattern wrapped around the body.
+//  - A solid circular "pom-pom" decoration sitting at the apex of the cone.
+//
+//  The shape features adjustable parameters for the hat's dimensions, the
+//  frequency and thickness of the decorative stripes, and the size of the
+//  pom-pom. It also supports rotation and custom coloring for the base, 
+//  stripes, and pom-pom independently.
+//
+//  The output is a flat-shaded graphic with anti-aliased edges (without an
+//  external outline), suitable for celebration icons, character accessories,
+//  or festive UI elements.
+// ------------------------------------------------------------------------

@@ -132,3 +132,24 @@ void ChickenLegShape_float(float2 UV, float2 Center, float Rotation, float2 Meat
     // Final Output
     outColor = float4(finalColor.rgb * shapeAlpha, shapeAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon chicken leg** (drumstick)
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - An elliptical **meat** section serving as the main body.
+//  - A protruding **bone** handle extending from the bottom, ending in a
+//    characteristic dual-knob joint (condyles).
+//  - A glossy **highlight** reflection on the upper curve of the meat.
+//
+//  The shape features adjustable parameters for the meat dimensions, bone
+//  length, joint prominence, and highlight size. The meat and bone colors
+//  can be customized independently.
+//
+//  The output renders with a thick, high-contrast outline surrounding the
+//  entire silhouette, making it suitable for food icons, RPG inventory items,
+//  or cooking game assets.
+// ------------------------------------------------------------------------

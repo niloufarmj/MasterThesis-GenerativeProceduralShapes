@@ -154,3 +154,26 @@ void MapleLeafShape_float(
 
     outColor = float4(finalRGB, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon maple leaf** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A central main lobe flanked by three pairs of symmetrical side lobes,
+//    creating a classic 7-point maple leaf silhouette.
+//  - A smooth, organic union between the lobes using a blending factor to
+//    soften the intersections.
+//  - A tapered **stem** extending downwards from the base.
+//  - Thin internal **vein** lines running through the center of each lobe
+//    for added detail.
+//
+//  The shape features adjustable parameters for the lobe spread angle, length,
+//  and width. It supports a 2-color radial gradient (Inner to Outer) for the
+//  leaf body, with independent coloring for the stem, veins, and outline.
+//
+//  The output is a flat-shaded graphic with a high-contrast outline, suitable
+//  for autumn decorations, nature icons, or flag emblems.
+// ------------------------------------------------------------------------

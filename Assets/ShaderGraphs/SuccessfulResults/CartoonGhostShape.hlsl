@@ -129,3 +129,26 @@ void CartoonGhostShape_float(
     // Composite Stroke OVER (Eyes + Body)
     outColor = ghost_over(layerStroke, compositeBody);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon ghost** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A main body formed by a rounded box, featuring a smooth, semi-circular
+//    head and straight vertical sides.
+//  - A distinctive ruffled bottom edge ("hem") created by subtracting a 
+//    sine wave from the body's base.
+//  - Two symmetrical, elliptical eyes positioned on the upper face.
+//  - Soft vertical shading (folds) that extends upwards from the wave valleys
+//    to simulate draped cloth.
+//
+//  The shape features adjustable parameters for the wave frequency and amplitude
+//  (controlling the "ruffle"), eye placement, and the length of the cloth folds.
+//
+//  A uniform, high-contrast stroke surrounds the body silhouette.
+//  The rendering includes anti-aliased edges and alpha blending, making it
+//  ideal for Halloween-themed icons, 2D arcade enemies, or spooky UI sprites.
+// ------------------------------------------------------------------------

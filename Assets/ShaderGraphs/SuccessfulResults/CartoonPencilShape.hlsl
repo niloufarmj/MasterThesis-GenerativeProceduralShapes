@@ -189,3 +189,24 @@ void CartoonPencilShape_float(float2 UV, float Size, float Rotation,
     
     outColor = float4(combinedColor.rgb * totalAlpha, totalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon pencil** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of four distinct vertical sections:
+//  - A rounded **eraser** at the top.
+//  - A rectangular metal **ferrule** connecting the eraser to the body.
+//  - The main **body** shaft, featuring optional longitudinal shading stripes
+//    to simulate a hexagonal profile.
+//  - A sharpened **tip**, split into a wooden cone and a colored lead point.
+//
+//  The shape features comprehensive parameter controls for the length and
+//  color of each section, the body width, and the stripe frequency. It also
+//  supports global rotation and scaling.
+//
+//  The output is a flat-shaded graphic with a thick, high-contrast outline,
+//  suitable for education icons, editing tools, or creative UI elements.
+// ------------------------------------------------------------------------

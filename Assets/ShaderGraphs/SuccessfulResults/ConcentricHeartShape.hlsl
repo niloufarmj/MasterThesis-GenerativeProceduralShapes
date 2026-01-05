@@ -105,3 +105,23 @@ void ConcentricHeartShape_float(
     // Here we output (RGB * Alpha, Alpha) pattern just in case.
     outColor = float4(finalRGB.rgb * finalAlpha, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized concentric heart** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A distinct heart silhouette derived from a mathematical curve.
+//  - A series of repeating concentric bands (rings) that radiate inward from
+//    the edge, separated by transparent gaps.
+//  - A smooth radial gradient that interpolates between an inner and outer
+//    color based on the distance from the center.
+//
+//  The shape features adjustable parameters for the number and thickness of
+//  the bands, the shape's aspect ratio (width/height), rotation, and colors.
+//
+//  The output is a segmented, anti-aliased graphic ideal for "lives" or 
+//  health indicators in games, valentine's day themes, or retro-style UI.
+// ------------------------------------------------------------------------

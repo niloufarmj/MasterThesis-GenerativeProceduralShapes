@@ -115,3 +115,23 @@ void ShareIconCurved_float(float2 UV, float Size, float Spacing, float DotRadius
     
     outColor = float4(Color.rgb * alpha, Color.a * alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized curved share icon** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - Three **circular nodes** arranged in a branching formation (one source on the left,
+//    two destinations on the right).
+//  - Two **curved connecting lines** (Bezier strokes) linking the source node
+//    to the destination nodes.
+//
+//  The geometry features adjustable **node spacing**, **curvature**, and 
+//  **line thickness**, allowing the shape to range from rigid mechanical 
+//  linkages to organic, flowy network graphs.
+//
+//  The output is an anti-aliased RGBA color suitable for social media buttons,
+//  UI sharing actions, and network node visualizations.
+// ------------------------------------------------------------------------

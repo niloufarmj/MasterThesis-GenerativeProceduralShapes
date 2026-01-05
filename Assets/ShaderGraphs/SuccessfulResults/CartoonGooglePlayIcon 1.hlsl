@@ -111,3 +111,26 @@ void CartoonPlayIcon_float(float2 UV, float Size, float Width, float Height, flo
     
     outColor = result;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized multi-colored play icon** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A right-pointing isosceles triangle, commonly associated with "Play" 
+//    media controls.
+//  - A distinctive 4-zone coloring scheme where the interior is split 
+//    diagonally into Top, Bottom, Left, and Right segments.
+//  - Configurable rounded corners that soften the triangle's vertices.
+//
+//  The shape features adjustable width and height (aspect ratio), corner 
+//  roundness, and independent colors for each of the four internal zones.
+//
+//  A thick, solid outline surrounds the shape, rendered with high-quality
+//  anti-aliasing and alpha blending.
+//
+//  Suitable for use as a media player button, app store icon, or interactive
+//  UI element.
+// ------------------------------------------------------------------------

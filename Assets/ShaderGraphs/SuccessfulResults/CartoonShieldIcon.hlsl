@@ -99,3 +99,25 @@ void CartoonShieldIcon_float(
     // Draw Border ON TOP of Fill
     outColor = shield_over(borderLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon shield icon** (specifically
+//  a "heater shield" shape) using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A classic defensive silhouette featuring a flat top edge and curved 
+//    sides that converge to a sharp point at the bottom.
+//  - A "quartered" internal coloring scheme, dividing the face of the shield
+//    into four distinct rectangular zones (Top-Left, Top-Right, Bottom-Left,
+//    Bottom-Right).
+//  - A thick, uniform border surrounding the entire shape.
+//
+//  The shape features parameters for the overall width and height, border
+//  thickness, and independent color controls for the border and each of the
+//  four internal quadrants.
+//
+//  The output is a crisp, vector-like graphic suitable for RPG defense stats,
+//  faction heraldry, or achievement badges.
+// ------------------------------------------------------------------------

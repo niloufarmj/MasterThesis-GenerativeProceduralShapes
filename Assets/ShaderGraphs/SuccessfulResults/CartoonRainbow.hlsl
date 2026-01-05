@@ -108,3 +108,23 @@ void CartoonRainbow_float(
     // Apply clip and output
     outColor = totalColor * clipMask;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon rainbow** using 
+//  Signed Distance Functions (SDFs) logic (concentric rings).
+//
+//  The visual result is composed of:
+//  - A series of stacked, concentric semi-circular arcs.
+//  - A flat bottom edge created by a vertical cutoff plane, forming a 
+//    classic arch shape.
+//
+//  The shape features granular control for up to 7 distinct color bands.
+//  Each band has an independent width and color input, allowing for
+//  non-uniform rainbows (e.g., a thick outer band) or simplified 3-band
+//  versions.
+//
+//  The output is a flat, anti-aliased graphic suitable for weather icons,
+//  magical effects, or cheerful UI decorations.
+// ------------------------------------------------------------------------

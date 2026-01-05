@@ -111,3 +111,24 @@ void CartoonHat_float(float2 UV, float2 Center, float Size, float Rotation, floa
     // Stroke goes OVER fill
     outColor = shape_over(strokeLayer, fillLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon top hat** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A tall "crown" (the main body) formed by a rounded rectangle.
+//  - A wide, flat "brim" at the bottom, which blends smoothly into the crown
+//    to avoid harsh seams.
+//  - A distinct horizontal "hat band" (ribbon) near the base of the crown,
+//    which automatically takes on the stroke color.
+//
+//  The shape supports rotation, scaling, and adjustable outline thickness.
+//  The geometry combines simple primitives with a smooth union operation to
+//  create an organic, manufactured look.
+//
+//  The output is a flat-shaded graphic with a high-contrast outline, suitable
+//  for magician icons, party props, or formal wear indicators in UI.
+// ------------------------------------------------------------------------

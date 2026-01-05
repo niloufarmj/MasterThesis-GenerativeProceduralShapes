@@ -70,3 +70,23 @@ void CartoonFireShape_float(float2 UV, float2 Center, float Size, float4 ColorCo
     // Final Output
     outColor = finalColor;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon envelope icon**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A rectangular body with rounded corners representing the packet.
+//  - A triangular flap folding down from the top edge, with adjustable height.
+//  - Two diagonal crease lines extending from the bottom corners to the center,
+//    forming the characteristic "V" pocket detail.
+//
+//  The rendering layers these elements (Body Fill -> Creases -> Outlines -> Flap)
+//  using a painter's algorithm to create a clean, vector-like icon.
+//  All dimensions, corner roundness, flap size, and colors are fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for mail icons,
+//  notification badges, and contact forms.
+// ------------------------------------------------------------------------

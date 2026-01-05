@@ -170,3 +170,22 @@ void SunflowerCartoon_float(
     // Final Output
     outColor = col;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon sunflower** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A large **central circular disk** representing the seed head.
+//  - A radial array of **pointed (vesica-shaped) petals** surrounding the center.
+//  - A vertical **stem** with two attached **leaves** extending from the bottom.
+//
+//  The geometry features adjustable **petal count/shape**, **leaf positioning**,
+//  and **outline thickness**, rendered in layers (Center over Petals over Stem)
+//  to create a clean, sticker-like aesthetic.
+//
+//  The output is an anti-aliased RGBA color suitable for farming games,
+//  nature icons, and decorative floral assets.
+// ------------------------------------------------------------------------

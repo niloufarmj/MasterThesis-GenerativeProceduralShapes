@@ -186,3 +186,24 @@ void GingerbreadMan_float(
     // Output premultiplied alpha or standard straight alpha with mask in A
     outColor = float4(finalRGB * finalAlpha, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon gingerbread man** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A main **body** formed by the smooth union of a circular head, a capsule 
+//    torso, and rounded capsule limbs (arms and legs), creating an organic, 
+//    "baked dough" silhouette.
+//  - A vertical row of circular **buttons** distributed along the chest.
+//  - Decorative **wavy icing bands** wrapped around the wrists and ankles.
+//
+//  The shape features adjustable parameters for body proportions, limb length 
+//  and thickness, button count, and the amplitude/frequency of the icing waves.
+//
+//  The output renders with a thick, cohesive outline. The internal decorations 
+//  (icing and buttons) are layered on top of the body fill but clipped to 
+//  remain strictly inside the border stroke.
+// ------------------------------------------------------------------------

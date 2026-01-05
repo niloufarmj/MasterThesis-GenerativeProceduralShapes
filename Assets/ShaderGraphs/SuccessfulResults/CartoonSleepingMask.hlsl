@@ -188,3 +188,25 @@ void CartoonSleepingMask_float(float2 UV, float Size, float2 BodySize, float Not
     // Output premultiplied-compatible alpha
     outColor = float4(colRGB * combinedAlpha, combinedAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized sleeping mask** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - An oblong, pill-shaped main body that covers the eyes.
+//  - A smooth circular **notch** cut into the bottom center for the nose.
+//  - Two rectangular **straps** extending horizontally from the sides.
+//  - A pair of closed, curved eyelids with adjustable **eyelashes**,
+//    symbolizing sleep.
+//
+//  The shape features extensive parameter controls, including the mask's
+//  aspect ratio, the depth of the nose notch, the length and thickness of
+//  the straps, and the curvature and lash count of the closed eyes.
+//
+//  The output is a flat-shaded graphic with a consistent outline that applies
+//  to both the mask silhouette and the facial features, suitable for 
+//  avatar accessories, sleep-tracking UI, or cosmetic items.
+// ------------------------------------------------------------------------

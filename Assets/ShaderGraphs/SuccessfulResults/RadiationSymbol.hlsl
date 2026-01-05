@@ -123,3 +123,23 @@ void RadiationSymbol_float(
     // Composite Symbol OVER Background
     outColor = nm_over(symLayer, bgLayer);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **standard radiation warning symbol (trefoil)**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A large circular **background field** (typically yellow).
+//  - A central **circular core** (dot).
+//  - Three equally spaced **wedge-shaped blades** radiating from the center,
+//    separated by 120 degrees.
+//
+//  The geometry features adjustable blade width (angle), inner/outer radii,
+//  and core size, allowing the symbol to be tuned to specific safety standards
+//  or stylized variations.
+//
+//  The output is an anti-aliased RGBA color suitable for hazard signage,
+//  sci-fi environment decals, and UI indicators for toxicity or danger.
+// ------------------------------------------------------------------------

@@ -169,3 +169,24 @@ void CartoonSword_float(float2 UV, float2 Center, float Rotation,
 
     outColor = current;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon sword** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of four distinct, layered parts:
+//  - A **blade** consisting of a straight shaft and a triangular tip, 
+//    featuring a central "ridge" line for added detail.
+//  - A curved **cross-guard** that visually sits on top of the blade and handle.
+//  - A rectangular **handle** (grip) which supports an optional wavy texture pattern.
+//  - A circular **pommel** attached to the base of the handle.
+//
+//  The shape features a specific depth ordering (Guard > Handle > Pommel > Blade)
+//  to ensure correct overlapping. Parameters allow for the adjustment of 
+//  length, width, color, and curvature of individual components.
+//
+//  The output is a flat-shaded weapon sprite with a thick, uniform outline,
+//  perfect for RPG inventory icons, attack cursors, or equipment slots.
+// ------------------------------------------------------------------------

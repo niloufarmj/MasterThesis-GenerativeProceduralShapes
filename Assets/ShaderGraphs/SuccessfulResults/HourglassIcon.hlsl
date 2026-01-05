@@ -155,3 +155,27 @@ void HourglassIcon_float(
 
     outColor = finalComp;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon hourglass icon** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A glass body formed by two symmetric, rounded **bulbs** connected by a
+//    thin vertical **neck**.
+//  - Two flat horizontal **caps** (plates) sealing the top and bottom of the glass.
+//  - Dynamic **sand** fills inside the bulbs:
+//      - The top level is cut horizontally.
+//      - The bottom pile forms a conical mound.
+//      - A vertical stream connects the two when sand is present in the top.
+//
+//  The shape features extensive parameter controls for the bulb size and 
+//  roundness, neck dimensions, cap size, and the specific levels of sand 
+//  in the top and bottom chambers.
+//
+//  The output is a flat-shaded graphic with a thick, cohesive outline around
+//  the glass and caps, suitable for loading screens, timer indicators, or 
+//  game UI.
+// ------------------------------------------------------------------------

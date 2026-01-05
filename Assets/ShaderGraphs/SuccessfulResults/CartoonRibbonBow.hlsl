@@ -168,3 +168,26 @@ void CartoonRibbonBow_float(
     // Output final color
     outColor = accumColor;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon ribbon bow** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of three layered sections:
+//  - Two angular **tails** extending downwards from the center, forming the 
+//    base layer.
+//  - Two rounded **loops** extending outwards and slightly upwards, creating
+//    the main body of the bow.
+//  - A central circular **knot** that sits on top of all other layers, 
+//    hiding the junction points.
+//
+//  The shape features adjustable parameters for the size and angle of the 
+//  loops, the length and spread of the tails, and the radius of the knot.
+//  The knot and the ribbon body can be colored independently.
+//
+//  The output renders with a thick, cohesive outline around each individual 
+//  part, creating a segmented "sticker" look suitable for gift wrap icons,
+//  character accessories, or UI decorations.
+// ------------------------------------------------------------------------

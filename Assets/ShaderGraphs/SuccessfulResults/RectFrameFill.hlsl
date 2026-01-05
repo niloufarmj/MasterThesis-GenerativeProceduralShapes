@@ -79,3 +79,22 @@ void RectFrameFill_float(float2 UV, float Width, float Height, float Thickness, 
     // Output premultiplied alpha (Standard for Unity transparent shaders)
     outColor = float4(Color.rgb * finalAlpha, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates an **animated rectangular progress border**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A hollow **rectangular frame** defined by width, height, and thickness.
+//  - A **clockwise fill animation** that traces the perimeter starting 
+//    from the top-left corner.
+//
+//  The geometry features a "Fill" parameter (0.0 to 1.0) which progressively 
+//  draws the border across the four sectors (Top, Right, Bottom, Left).
+//  The stroke has naturally rounded outer corners due to the SDF expansion.
+//
+//  The output is an anti-aliased RGBA color suitable for cooldown timers, 
+//  selection reticles, and loading UI elements.
+// ------------------------------------------------------------------------

@@ -172,3 +172,24 @@ void CartoonTulip_float(float2 UV, float Size, float BloomWidth, float BloomHeig
     
     outColor = float4(rgb * alpha, alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result
+// ------------------------------------------------------------------------
+//  This function generates a **stylized cartoon tulip** using 
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A cup-shaped **bloom** featuring a rounded base and three distinct 
+//    lobes on the upper edge.
+//  - A straight vertical **stem** descending from the center of the bloom.
+//  - Two symmetrical, curved **leaves** attached to the lower section of 
+//    the stem, angling outwards.
+//
+//  The shape features adjustable parameters for the bloom's dimensions,
+//  stem length and thickness, and the size, angle, and curvature of the leaves.
+//  Colors for the bloom, stem, and leaves can be customized independently.
+//
+//  The output is a flat-shaded floral graphic with a continuous, high-contrast
+//  outline, suitable for garden icons, spring-themed UI, or nature patterns.
+// ------------------------------------------------------------------------
