@@ -117,3 +117,22 @@ void CartoonBowTie_float(float2 UV, float Size, float WingWidth, float WingHeigh
     // 6. Final Composite: Knot over Wings
     outColor = blendOver(knotFinal, wingsFinal);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon bow tie**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - Two symmetric wing segments (loops) shaped as rounded trapezoids.
+//  - A central knot segment shaped as a rounded box.
+//  - A global curvature deformation that bends the tie (droopy or perky).
+//
+//  The rendering applies a "Painter's Algorithm" style, drawing the central
+//  knot outline *over* the wings to create depth. The overall proportions,
+//  roundness, bending, and colors are fully controlled by input parameters.
+//
+//  The output is an anti-aliased RGBA color suitable for clothing icons,
+//  character accessories, and decorative 2D graphics.
+// ------------------------------------------------------------------------

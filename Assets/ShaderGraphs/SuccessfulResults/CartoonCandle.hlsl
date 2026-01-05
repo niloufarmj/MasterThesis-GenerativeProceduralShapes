@@ -110,3 +110,23 @@ void CartoonCandle_float(float2 UV, float BodyWidth, float BodyHeight, float4 Bo
     // Final Output
     outColor = float4(colorAccum * alphaAccum, alphaAccum);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon candle**
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of three distinct stacked elements:
+//  - A vertical rectangular body with rounded corners (the wax).
+//  - A thin vertical segment sitting on top of the body (the wick).
+//  - A pointed oval "Vesica" shape hovering above the wick (the flame).
+//
+//  The elements are vertically aligned and composited using a "Painter's Algorithm"
+//  approach (Body -> Wick -> Flame) to ensure correct layering.
+//  The dimensions and colors of each component are fully adjustable, allowing
+//  for tall tapers, short votives, or distinct flame styles.
+//
+//  The output is an anti-aliased RGBA color suitable for game props,
+//  UI icons, and ambient lighting effects.
+// ------------------------------------------------------------------------

@@ -166,3 +166,22 @@ void CartoonCandyShape_float(
 
     outColor = color;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D wrapped candy** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A central circular body representing the hard candy.
+//  - Two symmetric fan-shaped wrapper twists extending from the sides.
+//  - The wrappers feature jagged (zigzag) cut edges and subtle crinkle details.
+//
+//  The styling includes a procedural stripe pattern on the central body
+//  and a consistent outline around the entire silhouette. All elements
+//  (stripe density, wrapper spread, colors, rotation) are fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for holiday themes,
+//  reward icons, and game items.
+// ------------------------------------------------------------------------

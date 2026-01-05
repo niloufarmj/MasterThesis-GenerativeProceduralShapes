@@ -136,3 +136,22 @@ void CartoonClover_float(float2 UV, float2 Center, float2 LeafSize, float4 LeafC
     
     outColor = blended;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D four-leaf clover** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A radial cluster of four heart-shaped leaves arranged at 90-degree intervals.
+//  - A curved stem extending downward from the central junction.
+//
+//  The leaves and stem are blended using a smooth union operation to create
+//  an organic, connected silhouette. A consistent outline surrounds the entire
+//  shape. The geometry (leaf size, stem curvature, length) and colors are
+//  fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for nature icons,
+//  Irish/St. Patrick's Day themes, and lucky charms.
+// ------------------------------------------------------------------------

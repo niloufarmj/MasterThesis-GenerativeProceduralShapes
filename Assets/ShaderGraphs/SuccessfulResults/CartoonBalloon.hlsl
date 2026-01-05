@@ -128,3 +128,23 @@ void CartoonBalloon_float(
     // We need the coverage-weighted alpha for blending: colBal.a is effectively 'src alpha'
     outColor = colBal + colStr * (1.0 - colBal.a);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function produces a **2D cartoon balloon** constructed from
+//  analytic Signed Distance Functions (SDFs).
+//
+//  The resulting shape is composed of:
+//  - An inflated elliptical body segment
+//  - A small trapezoidal knot segment at the bottom, smoothly blended into the body
+//  - A thin, wavy string segment extending downward from the knot
+//
+//  The geometry features a soft, organic connection between the balloon and
+//  the knot to simulate rubber material. The string includes adjustable sine-wave
+//  distortion to simulate slack. The final appearance (inflation, knot size,
+//  string waviness, and colors) is fully controlled by input parameters.
+//
+//  The output is an anti-aliased RGBA color suitable for procedural UI,
+//  party icons, and 2D game assets.
+// ------------------------------------------------------------------------

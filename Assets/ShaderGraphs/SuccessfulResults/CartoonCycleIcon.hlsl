@@ -158,3 +158,24 @@ void CartoonCycleIcon_float(float2 UV, float Size, float Radius, float Thickness
     // Apply total alpha
     outColor = float4(finalColor.rgb * shapeAlpha, finalColor.a * shapeAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cycle icon** (recycle/sync style)
+//  using Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - Two symmetric curved arrow segments arranged in a circular loop.
+//  - Each segment consists of an arc body terminating in a pointed triangular
+//    arrowhead.
+//  - The gap between the head of one arrow and the tail of the next is
+//    fully adjustable.
+//
+//  The shape features a consistent outline and optional glossy highlights
+//  on the arrow bodies. All geometric properties (radius, thickness,
+//  head size, gap distance) are parameterized.
+//
+//  The output is an anti-aliased RGBA color suitable for refresh buttons,
+//  recycling symbols, and loading indicators.
+// ------------------------------------------------------------------------

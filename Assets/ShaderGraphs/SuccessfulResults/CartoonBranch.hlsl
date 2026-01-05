@@ -129,3 +129,23 @@ void CartoonBranch_float(float2 UV, float StemHeight, float StemCurvature, float
     // Final Output (Premultiplied Alpha)
     outColor = float4(finalRGB * alpha, alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function produces a **2D cartoon plant branch** constructed from
+//  analytic Signed Distance Functions (SDFs).
+//
+//  The resulting shape is composed of:
+//  - A central vertical stem that can be bent using a curvature parameter.
+//  - Multiple rounded (elliptical) leaves attached along the stem in an
+//    alternating pattern.
+//  - Optional glossy highlights positioned on each leaf.
+//
+//  The geometry uses a coordinate distortion method to bend the entire
+//  arrangement naturally. The final appearance (leaf count, size, spacing,
+//  angle, and stem curvature) is fully controlled by input parameters.
+//
+//  The output is a flat-shaded (outline-free) RGBA color suitable for
+//  nature icons, background vegetation, and organic 2D assets.
+// ------------------------------------------------------------------------

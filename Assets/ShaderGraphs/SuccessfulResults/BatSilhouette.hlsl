@@ -155,3 +155,23 @@ void BatSilhouette_float(
     
     outColor = float4(finalColor.rgb * finalAlpha, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function produces a **2D bat silhouette** constructed from
+//  analytic Signed Distance Functions (SDFs).
+//
+//  The resulting shape is composed of:
+//  - A central elliptical segment (body)
+//  - Two triangular segments (ears) positioned on top
+//  - Two symmetric wing segments defined by arched upper curves and scalloped (wavy) bottom edges
+//
+//  These parts are combined using smooth unions to create a single continuous,
+//  organic silhouette that visually represents a flying bat. The final appearance 
+//  (wing span, scallop density, ear size, and styling) is fully controlled by 
+//  input parameters and is not fixed by the function itself.
+//
+//  The output is an anti-aliased RGBA color suitable for procedural UI,
+//  icons, and symbolic 2D graphics.
+// ------------------------------------------------------------------------

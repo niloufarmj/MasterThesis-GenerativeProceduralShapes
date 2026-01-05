@@ -120,3 +120,21 @@ void CartoonCracker_float(float2 UV, float Size, float WaveCount, float WaveDept
     
     outColor = float4(finalColor.rgb * shapeAlpha, shapeAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon cracker** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A square body with scalloped (wavy) edges, resembling a biscuit or saltine.
+//  - A regular grid of circular docking holes punched through the surface.
+//
+//  The geometry features adjustable wave frequency and depth for the edges,
+//  and an adjustable row/column count for the holes. A consistent outline
+//  surrounds the outer shape (but not the holes).
+//
+//  The output is an anti-aliased RGBA color suitable for food icons,
+//  puzzle game assets, and decorative UI elements.
+// ------------------------------------------------------------------------

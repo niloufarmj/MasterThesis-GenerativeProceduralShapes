@@ -165,3 +165,23 @@ void CartoonComb_float(float2 UV, float Size, float SpineLen, float SpineHeight,
     
     outColor = float4(finalRGB, finalA);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon comb** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A horizontal rounded rectangular spine.
+//  - A row of downward-projecting rounded teeth with adjustable count,
+//    length, and gap spacing.
+//  - A curved handle extending smoothly from one end of the spine.
+//
+//  The components are blended using a smooth union to create a single,
+//  unified silhouette resembling a plastic object. A consistent outline
+//  surrounds the entire shape. All dimensions and colors are fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for grooming icons,
+//  bathroom props, and salon themes.
+// ------------------------------------------------------------------------

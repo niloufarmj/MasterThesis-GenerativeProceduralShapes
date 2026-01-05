@@ -145,3 +145,23 @@ void CartoonCarrot_float(float2 UV, float Size, float BodyLength, float BodyTopW
     // Final Output with transparency
     outColor = float4(finalRGB.rgb * alpha, alpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon carrot** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - A vertical, tapered body segment (orange root) with a rounded top
+//    and a blunt or pointed tip.
+//  - A cluster of leaf segments (green tops) radiating from the center-top
+//    of the body, shaped as pointed "Vesica" lenses.
+//
+//  The surface of the body features procedural notch markings (horizontal
+//  bands) created by a sine-wave pattern. A consistent outline surrounds
+//  the entire union of the body and leaves.
+//
+//  The output is an anti-aliased RGBA color suitable for farming games,
+//  food icons, and vegetation assets.
+// ------------------------------------------------------------------------

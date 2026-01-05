@@ -133,3 +133,23 @@ void CandyCaneShape_float(
     // Output
     outColor = float4(rgb * finalAlpha, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function produces a **2D candy cane shape** constructed from
+//  analytic Signed Distance Functions (SDFs).
+//
+//  The resulting shape is composed of:
+//  - A vertical tubular segment (stem)
+//  - An upper semi-circular tubular segment (hook) connected to the stem
+//
+//  The geometry features perfectly rounded capsule-like ends. A diagonal
+//  stripe pattern is applied procedurally across the entire surface, where
+//  the stripe angle, width, and alternating colors are adjustable.
+//  The final appearance (hook radius, stem height, thickness, and styling)
+//  is fully controlled by input parameters.
+//
+//  The output is an anti-aliased RGBA color suitable for procedural UI,
+//  icons, and holiday-themed 2D graphics.
+// ------------------------------------------------------------------------

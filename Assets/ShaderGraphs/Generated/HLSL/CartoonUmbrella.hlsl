@@ -2,154 +2,141 @@
 #define PI 3.14159265359
 #endif
 
-// --- Helper Functions ---
+// --- Helpers ---
 
-// Signed Distance to a Box
-float ub_sdBox(float2 p, float2 b) {
+// Signed distance to a box
+float sdBox(float2 p, float2 b) {
     float2 d = abs(p) - b;
     return length(max(d, 0.0)) + min(max(d.x, d.y), 0.0);
 }
 
-// Signed Distance to a Segment
-float ub_sdSegment(float2 p, float2 a, float2 b) {
+// Signed distance to a line segment
+float sdSegment(float2 p, float2 a, float2 b) {
     float2 pa = p - a, ba = b - a;
     float h = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
     return length(pa - ba * h);
 }
 
-// Gradient-estimated Signed Distance to an Ellipse
-// p: point, r: radii (a, b)
-float ub_sdEllipse(float2 p, float2 r) {
-    float k0 = length(p/r);
-    float k1 = length(p/(r*r));
-    return k0 * (k0 - 1.0) / k1;
-}
-
-// Main Function: Cartoon Umbrella
-// Renders a 2D umbrella with a multi-colored canopy, scallops, and a curved handle
-void CartoonUmbrella_float(float2 UV, float CanopyWidth, float CanopyHeight, float HandleLength, float HandleThick, float HookRadius, float PanelCurveDepth, float4 Col1, float4 Col2, float4 Col3, float4 Col4, float4 Col5, float4 HandleCol, float4 OutlineCol, float OutlineWidth, out float4 outColor) {
+// --- Main Function ---
+// User Request: A cartoon umbrella with adjustable domed canopy, radial segments, scalloped edges, and J-shaped handle.
+void CartoonUmbrella_float(float2 UV, float Width, float Height, float DomePower, float Segments, float WaveAmp, float ShaftLength, float ShaftThick, float HandleRadius, float StrokeWidth, float FerruleSize, float4 Color1, float4 Color2, float4 HandleColor, float4 OutlineColor, out float4 outColor) {
     // PLAN:
-    // 1. Center UV coordinates at (0.5, 0.5) to define the object space.
-    // 2. Define Canopy SDF: Intersection of a semi-ellipse (top) and inverted circles (scallops) at the bottom.
-    // 3. Define Handle SDF: Union of a vertical shaft segment and a J-shaped arc (semicircle) at the bottom.
-    // 4. Compute Panel Colors based on horizontal position within the canopy.
-    // 5. Composite the layers (Handle, then Canopy on top) with anti-aliasing and outlines.
-
+    // 1) Center UVs. define SDF variables.
+    // 2) Build Shaft & Handle SDF (Vertical segment + Hook/J-curve).
+    // 3) Build Canopy SDF (Superellipse approximation + Scalloped Wave cut).
+    // 4) Calculate Panel Pattern based on pseudo-3D mapping (asin).
+    // 5) Build Ferrule SDF (Box on top).
+    // 6) Composite layers (Stem -> Canopy -> Ferrule) with outlines.
+    
     float2 p = UV - 0.5;
-    float aa = fwidth(length(p));
-    aa = max(aa, 0.0005);
+    float aa = fwidth(length(p)); // Anti-aliasing factor
+    if (aa == 0) aa = 0.001;
 
-    // --- Parameters Sanitization ---
-    float w = max(CanopyWidth, 0.01);
-    float h = max(CanopyHeight, 0.01);
-    float rDepth = max(PanelCurveDepth, 0.001);
-    float hLen = max(HandleLength, 0.0);
-    float hThick = max(HandleThick, 0.002);
-    float hkRad = max(HookRadius, hThick * 1.5);
-    float outW = max(OutlineWidth, 0.0);
-    float panelW = w / 5.0;
-
-    // --- Canopy Geometry ---
-    // Base Y position where canopy meets handle
-    float yBase = 0.1;
-    float2 pCanopy = p - float2(0.0, yBase);
-
-    // 1. Top Shape: Semi-Ellipse
-    // We use a full ellipse SDF, but the scallop subtraction effectively cuts the bottom.
-    // Radii: width/2, height
-    float dEllipse = ub_sdEllipse(pCanopy, float2(w * 0.5, h));
-
-    // 2. Bottom Shape: Scallop Cutouts
-    // We subtract 5 circles centered along the bottom edge.
-    // Scallop radius calculation based on chord (panelW) and sag (rDepth)
-    float scallopR = (panelW * panelW * 0.25 + rDepth * rDepth) / (2.0 * rDepth);
-    // Center Y is shifted down so the top of the circle touches y=rDepth (relative to base line)
-    // Actually, we want the "points" to be at y=0. The arc goes UP to y=rDepth.
-    // So the circle passes through (+/- pw/2, 0) and (0, rDepth).
-    float scallopCenterY = -(scallopR - rDepth);
-
-    float dScallops = 100.0;
-    // 5 Panels -> 5 Scallops. Centers at -2pw, -pw, 0, pw, 2pw
-    for(int i = -2; i <= 2; i++) {
-        float2 center = float2(float(i) * panelW, scallopCenterY);
-        float dCircle = length(pCanopy - center) - scallopR;
-        dScallops = min(dScallops, dCircle);
+    // --- 1. SHAFT & HANDLE ---
+    // Shaft starts inside canopy (y > 0) and goes down
+    float shaftTopY = Height * 0.5;
+    float shaftBottomY = -ShaftLength;
+    
+    // Vertical part of shaft
+    float dShaft = sdSegment(p, float2(0.0, shaftTopY), float2(0.0, shaftBottomY)) - ShaftThick;
+    
+    // Handle (J-Curve) attached at the bottom of the shaft
+    // Logic: A semi-circle arc curving to the left, plus a small tip.
+    // Center of curve is offset to the left by HandleRadius
+    float2 hCenter = float2(-HandleRadius, shaftBottomY);
+    float2 hp = p - hCenter;
+    
+    // Basic ring distance
+    float dRing = abs(length(hp) - HandleRadius) - ShaftThick;
+    
+    // Clip the ring to form a J (bottom half, 180 degrees)
+    // We want the arc where local y < 0. For y > 0, we cap the ends.
+    // One end connects to shaft (x=HandleRadius, y=0), the other is the tip (x=-HandleRadius, y=0).
+    float dHandle;
+    if (hp.y < 0.0) {
+        dHandle = dRing;
+    } else {
+        // Distance to the tip endpoint (the shaft endpoint is covered by dShaft)
+        // We only calculate distance to the free tip (-HandleRadius, 0)
+        dHandle = length(hp - float2(-HandleRadius, 0.0)) - ShaftThick;
     }
-
-    // Final Canopy SDF: Intersection of Ellipse and NOT Scallops (Holes)
-    // Intersection(A, -B) -> max(A, -B)
-    // Also ensure we are above the scallop line generally? 
-    // The ellipse naturally bounds the top. The scallops bound the bottom.
-    float dCanopy = max(dEllipse, -dScallops);
-
-    // --- Handle Geometry ---
-    // Shaft: Vertical segment from yBase down to yBase - hLen
-    float yShaftBot = yBase - hLen;
-    float dShaft = ub_sdSegment(p, float2(0.0, yBase), float2(0.0, yShaftBot)) - hThick * 0.5;
-
-    // Hook: J-shape (Semicircle) at bottom
-    // Connects at (0, yShaftBot). Tangent is vertical.
-    // Center is (-hkRad, yShaftBot). Arc goes from 0 to -PI (down and left).
-    float2 hookCenter = float2(-hkRad, yShaftBot);
-    float2 pHook = p - hookCenter;
     
-    // Ring distance
-    float dRing = abs(length(pHook) - hkRad) - hThick * 0.5;
-    // Cap for the left tip of the hook
-    float2 leftTip = hookCenter + float2(-hkRad, 0.0);
-    float dLeftCap = length(p - leftTip) - hThick * 0.5;
+    // Combine Shaft and Handle
+    float dStem = min(dShaft, dHandle);
+
+    // --- 2. CANOPY ---
+    // Coordinate mapping for panels (Simulate 3D dome curvature)
+    // Map linear x to angular phi using asin
+    float xNorm = clamp(p.x / Width, -1.0, 1.0);
+    float phi = asin(xNorm); // Returns -PI/2 to PI/2
+    float t = (phi / PI) + 0.5; // 0 to 1 mapping across width
     
-    // Cut the ring to keep only the bottom half
-    // We use pHook.y > 0 to identify top half. 
-    // max(dRing, pHook.y) effectively clips the top half (making it positive/outside).
-    float dArc = max(dRing, pHook.y);
-    // Union with the left cap (to round it off)
-    float dHook = min(dArc, dLeftCap);
-
-    // Combine Shaft and Hook
-    float dHandle = min(dShaft, dHook);
-
-    // --- Rendering ---
+    // Panel Pattern
+    float effectiveSegments = max(1.0, Segments);
+    float panelID = floor(t * effectiveSegments);
+    float4 panelFill = (fmod(panelID, 2.0) == 0.0) ? Color1 : Color2;
     
-    // 1. Draw Handle
-    float handleAlpha = smoothstep(outW + aa, outW - 0.0001, dHandle);
-    float handleFillMask = smoothstep(0.0, -aa, dHandle);
-    float3 handleRGB = lerp(OutlineCol.rgb, HandleCol.rgb, handleFillMask);
-    float4 handleLayer = float4(handleRGB * handleAlpha, handleAlpha);
-
-    // 2. Draw Canopy
-    // Determine Panel Index for Coloring
-    // pCanopy.x range [-w/2, w/2]. Shift to [0, w]. Divide by panelW.
-    float pX = pCanopy.x + w * 0.5;
-    float pIdx = floor(pX / panelW);
-    pIdx = clamp(pIdx, 0.0, 4.0);
-
-    float4 panelCol = Col1;
-    if(pIdx > 0.5) panelCol = Col2;
-    if(pIdx > 1.5) panelCol = Col3;
-    if(pIdx > 2.5) panelCol = Col4;
-    if(pIdx > 3.5) panelCol = Col5;
-
-    // Separator Lines between panels
-    // Vertical lines at +/- 0.5pw and +/- 1.5pw relative to center
-    float absX = abs(pCanopy.x);
-    float distSep = min(abs(absX - panelW * 0.5), abs(absX - panelW * 1.5));
-    float sepMask = smoothstep(outW * 0.5 + aa, outW * 0.5 - 0.0001, distSep);
-
-    float canopyAlpha = smoothstep(outW + aa, outW - 0.0001, dCanopy);
-    float canopyFillMask = smoothstep(0.0, -aa, dCanopy);
+    // Scalloped Edge Wave
+    // Wave should align with segments. We use cos(phi * Segments) to get peaks/valleys.
+    // Use abs(cos) to make sharp cusps for the scallops
+    float wavePhase = phi * effectiveSegments;
+    float waveY = WaveAmp * abs(cos(wavePhase)); 
     
-    // Composite Panel Color + Separators + Outline
-    float3 canopyRGB = lerp(OutlineCol.rgb, panelCol.rgb, canopyFillMask);
-    // Apply Separators (only inside fill area)
-    canopyRGB = lerp(canopyRGB, OutlineCol.rgb, sepMask * canopyFillMask);
+    // Base Dome Shape (Superellipse approx)
+    // (x/W)^n + (y/H)^n = 1 -> We approximate SDF for drawing
+    // We scale p to unit space to calculate generalized distance
+    float2 pScaled = float2(abs(p.x) / Width, p.y / Height);
+    // Power function for curvature (2.0 = Ellipse, <2 = Pointy, >2 = Boxy)
+    float k = max(0.5, DomePower);
+    // Approx distance: (Length^k - 1) * scale
+    // Note: This isn't Euclidean but good enough for outline width if aspect ratio isn't extreme
+    float lenPow = pow(pScaled.x, k) + pow(max(0.0, pScaled.y), k); // max(y) to clip bottom half later
+    float dDome = (pow(lenPow, 1.0/k) - 1.0) * min(Width, Height);
+    
+    // Bottom Cutoff Plane with Wave
+    // We want p.y > (0 + waveY). The base of the canopy is at y=0.
+    // SDF for 'below plane': y - level. 
+    float canopyBaseY = 0.0;
+    float dBottom = -(p.y - (canopyBaseY + waveY)); // Negative inside (i.e. above wave)
+    
+    // Intersection: Max(dDome, dBottom)
+    // We want inside dome (dDome < 0) AND above wave (dBottom < 0)
+    float dCanopy = max(dDome, dBottom);
 
-    float4 canopyLayer = float4(canopyRGB * canopyAlpha, canopyAlpha);
+    // --- 3. FERRULE ---
+    // Small box sitting at the top apex (0, Height)
+    float dFerrule = sdBox(p - float2(0.0, Height), float2(FerruleSize * 0.5, FerruleSize * 0.8)) - 0.002;
 
-    // 3. Final Composite (Canopy Over Handle)
-    // Standard Premultiplied Alpha Blending: src + dst * (1 - src.a)
-    float3 finalRGB = canopyLayer.rgb + handleLayer.rgb * (1.0 - canopyLayer.a);
-    float finalA = canopyLayer.a + handleLayer.a * (1.0 - canopyLayer.a);
+    // --- 4. COMPOSITING ---
+    // Helper to mix layers with outlines
+    
+    // Stem Layer
+    // Outline is where dStem < StrokeWidth. Fill is where dStem < 0.
+    // But simpler: Draw outline (Stroke Color) then Fill (Handle Color) inside.
+    float stemMask = 1.0 - smoothstep(0.0, aa, dStem - StrokeWidth);
+    float stemFillMask = 1.0 - smoothstep(0.0, aa, dStem);
+    float4 lStem = lerp(float4(0,0,0,0), OutlineColor, stemMask);
+    lStem = lerp(lStem, HandleColor, stemFillMask);
 
-    outColor = float4(finalRGB, finalA);
+    // Canopy Layer
+    float canopyMask = 1.0 - smoothstep(0.0, aa, dCanopy - StrokeWidth);
+    float canopyFillMask = 1.0 - smoothstep(0.0, aa, dCanopy);
+    float4 lCanopy = lerp(float4(0,0,0,0), OutlineColor, canopyMask);
+    lCanopy = lerp(lCanopy, panelFill, canopyFillMask);
+    
+    // Ferrule Layer
+    float ferruleMask = 1.0 - smoothstep(0.0, aa, dFerrule - StrokeWidth);
+    float ferruleFillMask = 1.0 - smoothstep(0.0, aa, dFerrule);
+    float4 lFerrule = lerp(float4(0,0,0,0), OutlineColor, ferruleMask);
+    lFerrule = lerp(lFerrule, HandleColor, ferruleFillMask);
+    
+    // Blend Layers (Painters Algorithm: Back to Front)
+    // Order: Stem -> Canopy -> Ferrule
+    // Use premultiplied alpha blending logic: out = src + dst * (1 - src.a)
+    
+    float4 final = lStem;
+    final = lCanopy + final * (1.0 - lCanopy.a);
+    final = lFerrule + final * (1.0 - lFerrule.a);
+    
+    outColor = final;
 }

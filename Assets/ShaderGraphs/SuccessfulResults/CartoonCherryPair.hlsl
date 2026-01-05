@@ -203,3 +203,24 @@ void CartoonCherryPair_float(
 
     outColor = col;
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function generates a **stylized 2D cartoon cherry pair** using
+//  Signed Distance Functions (SDFs).
+//
+//  The visual result is composed of:
+//  - Two symmetric circular fruit bodies connected by linear stems to a
+//    central top junction.
+//  - Two elliptical leaves attached at the junction point.
+//  - Optional "Kawaii" facial features (eyes, smile, and blush) drawn
+//    on each fruit.
+//
+//  The rendering uses a flat cartoon style with distinct colors for stems,
+//  leaves, and fruits. The geometry (stem angle, leaf size, face scale)
+//  is fully adjustable.
+//
+//  The output is an anti-aliased RGBA color suitable for game items,
+//  slot machine icons, and cute UI elements.
+// ------------------------------------------------------------------------

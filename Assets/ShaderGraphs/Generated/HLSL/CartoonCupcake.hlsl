@@ -2,238 +2,167 @@
 #define PI 3.14159265359
 #endif
 
-// --- Helpers ---
+// --- Helper Functions ---
 
-// Alpha Blending: SRC over DST
-inline float4 cup_over(float4 src, float4 dst) {
-    float a = src.a + dst.a * (1.0 - src.a);
-    float3 c = (src.rgb * src.a + dst.rgb * dst.a * (1.0 - src.a)) / max(a, 1e-8);
-    return float4(c, a);
+// 2D Random
+float2 hash22(float2 p) {
+    float3 p3 = frac(float3(p.xyx) * float3(.1031, .1030, .0973));
+    p3 += dot(p3, p3.yzx + 33.33);
+    return frac((p3.xx+p3.yz)*p3.zy);
 }
 
-// SDF: Trapezoid (Isosceles)
-// widthBottom, widthTop, height are full dimensions
-inline float cup_sdTrapezoid(float2 p, float widthBottom, float widthTop, float height) {
-    float2 k1 = float2(widthTop, height);
-    float2 k2 = float2(widthTop - widthBottom, 2.0 * height);
+// Signed Distance to an Isosceles Trapezoid
+// r1: bottom half-width, r2: top half-width, he: half-height
+float sdTrapezoid(float2 p, float r1, float r2, float he) {
+    float2 k1 = float2(r2, he);
+    float2 k2 = float2(r2 - r1, 2.0 * he);
     p.x = abs(p.x);
-    float2 p_mod = p - 0.5 * k1;
-    
-    // Edge distance
-    float2 CA = float2(k2.x, -k2.y);
-    float2 PA = float2(p_mod.x - 0.5*k2.x, p_mod.y + 0.5*k2.y);
-    float h = clamp( dot(PA,CA)/dot(CA,CA), 0.0, 1.0 );
-    float s = sign(CA.x*PA.y - CA.y*PA.x);
-    float dEdge = length(PA - CA*h);
-    
-    // Top/Bottom distance
-    float dBase = length(max(float2(p_mod.x, abs(p_mod.y) - 0.5*height), 0.0));
-    
-    // Combine logic (interior vs exterior)
-    // Simplified interior check for isosceles trapezoid:
-    // Distance to side line
-    return (s > 0.0) ? dEdge : -min(dEdge, abs(p.y) < 0.5*height ? (0.5*widthTop - p.x) : 1.0);
+    float2 ca = float2(p.x - min(p.x, (p.y < 0.0) ? r1 : r2), abs(p.y) - he);
+    float2 cb = p - k1 + k2 * clamp(dot(k1 - p, k2) / dot(k2, k2), 0.0, 1.0);
+    float s = (cb.x < 0.0 && ca.y < 0.0) ? -1.0 : 1.0;
+    return s * sqrt(min(dot(ca, ca), dot(cb, cb)));
 }
 
-// Simplified/Robust Trapezoid using segment distance
-inline float cup_sdTrapezoidRobust(float2 p, float wb, float wt, float h) {
-    float halfH = h * 0.5;
-    float halfWB = wb * 0.5;
-    float halfWT = wt * 0.5;
-    
-    // Vertices
-    float2 v0 = float2(-halfWB, -halfH); // Bottom Left
-    float2 v1 = float2( halfWB, -halfH); // Bottom Right
-    float2 v2 = float2( halfWT,  halfH); // Top Right
-    float2 v3 = float2(-halfWT,  halfH); // Top Left
-    
-    // We only need right side due to symmetry
-    float2 pSym = float2(abs(p.x), p.y);
-    
-    // Distance to right segment (v1 to v2)
-    float2 pa = pSym - v1;
-    float2 ba = v2 - v1;
-    float t = clamp(dot(pa, ba) / dot(ba, ba), 0.0, 1.0);
-    float dEdge = length(pa - ba * t);
-    
-    // Exterior/Interior sign
-    // Right normal (outward)
-    float2 n = normalize(float2(ba.y, -ba.x));
-    float s = dot(pa, n);
-    
-    // Vertical bounds
-    float dy = max(abs(p.y) - halfH, 0.0);
-    float dx = max(pSym.x - max(halfWB, halfWT), 0.0); // Rough bound
-    
-    // Combine: Exact is complex, approximate for 2D icon is sufficient
-    // Let's use IQ's implementation logic explicitly adapted:
-    p.x = abs(p.x);
-    float H = h;
-    float Wb = wb * 0.5;
-    float Wt = wt * 0.5;
-    
-    float k1 = Wb;
-    float k2 = Wt - Wb;
-    float k3 = H;
-    
-    // Remap to bottom-center relative
-    float2 pb = p;
-    pb.y += H * 0.5;
-    
-    // Side line
-    float2 e = float2(k2, k3);
-    float2 q = pb - float2(k1, 0.0);
-    float val = dot(q, e) / dot(e, e);
-    val = clamp(val, 0.0, 1.0);
-    float2 closest = float2(k1, 0.0) + val * e;
-    float dSide = length(pb - closest);
-    
-    // Sign
-    // Cross product z-comp of (e) and (pb - (k1,0))
-    float cp = e.x * q.y - e.y * q.x;
-    float sideSign = sign(cp);
-    
-    // Top/Bottom caps
-    float dVertical = abs(pb.y - H * 0.5) - H * 0.5;
-    
-    // Combined Distance (Approximate signed)
-    if (pb.y < 0.0) return length(max(float2(abs(pb.x) - Wb, -pb.y), 0.0));
-    if (pb.y > H)   return length(max(float2(abs(pb.x) - Wt, pb.y - H), 0.0));
-    
-    return dSide * sideSign;
+// Signed Distance to a Circle
+float sdCircle(float2 p, float r) {
+    return length(p) - r;
 }
 
-// SDF: Ellipse
-inline float cup_sdEllipse(float2 p, float2 r) {
-    float k0 = length(p/r);
-    float k1 = length(p/(r*r));
-    return k0*(k0-1.0)/k1;
+// Signed Distance to a Rhombus (Diamond)
+float sdRhombus(float2 p, float2 b) {
+    p = abs(p);
+    float h = clamp(0.5 + 0.5 * (b.x * p.x - b.y * p.y) / (b.x * b.y), 0.0, 1.0);
+    return length(p - float2(b.x, b.y) * h) * sign(p.x * b.y + p.y * b.x - b.x * b.y);
 }
 
-// SDF: Heart (Inigo Quilez)
-inline float cup_sdHeart(float2 p) {
-    p.x = abs(p.x);
-    if(p.y + p.x > 1.0)
-        return sqrt(dot(p - float2(0.25, 0.75), p - float2(0.25, 0.75))) - sqrt(2.0)/4.0;
-    return sqrt(min(dot(p - float2(0.00, 1.00), p - float2(0.00, 1.00)),
-                    dot(p - 0.5 * max(p.x + p.y, 0.0), p - 0.5 * max(p.x + p.y, 0.0)))) * sign(p.x - p.y);
+// Smooth Min for blending shapes
+float smin(float a, float b, float k) {
+    float h = clamp(0.5 + 0.5 * (b - a) / k, 0.0, 1.0);
+    return lerp(b, a, h) - k * h * (1.0 - h);
 }
 
 // --- Main Function ---
-// User Request: A cartoon cupcake with trapezoidal wrapper, pleats, rounded frosting, heart topper.
-void CartoonCupcake_float(
-    float2 UV,
-    float WrapperBottomWidth,
-    float WrapperTopWidth,
-    float WrapperHeight,
-    float4 WrapperColor,
-    float PleatSpacing,
-    float PleatThickness,
-    float FrostingHeight,
-    float FrostingSpread,
-    float4 FrostingColor,
-    float HeartSize,
-    float4 HeartColor,
-    float StrokeThickness,
-    float4 StrokeColor,
-    out float4 outColor)
+// Request: Cartoon cupcake with trapezoid cup, ribbed surface, bulbous cap with lobes, chips.
+void CartoonCupcake_float(float2 UV, 
+                          float2 CupWidths,   // x=Bottom, y=Top
+                          float CupHeight,    // Total Height
+                          float4 CupColor,    // Base Color
+                          float2 RibProps,    // x=Count, y=Opacity
+                          float2 CapSize,     // x=Width, y=Height
+                          float2 CapLobes,    // x=Count, y=Size
+                          float4 CapColor,    // Frosting Color
+                          float3 ChipProps,   // x=Density, y=Size, z=ShapeMix
+                          float4 ChipColor,   // Topping Color
+                          out float4 outColor) 
 {
-    // PLAN:
-    // 1) Normalize UV to centered coordinates.
-    // 2) Define positions for Wrapper, Frosting, and Heart.
-    // 3) Calculate SDFs for each shape.
-    // 4) Apply Pleats logic to Wrapper mask.
-    // 5) Composite layers back-to-front (Wrapper -> Frosting -> Heart) with outlines.
+    // 1. Setup Center Coordinates
+    // Center the cupcake vertically based on heights
+    float totalH = CupHeight + CapSize.y;
+    float yOffset = (CapSize.y - CupHeight) * 0.5;
+    float2 p = (UV - 0.5) * 2.0; // Range [-1, 1]
+    p.y -= yOffset * 0.5; // Visual centering
 
-    float2 p = UV - 0.5;
-    float aa = fwidth(length(p));
-    float halfStroke = StrokeThickness * 0.5;
-    
-    // --- 1. GEOMETRY SETUP ---
-    // Shift everything down slightly to center visual mass
-    float totalH = WrapperHeight + FrostingHeight + HeartSize;
-    float yOffset = -totalH * 0.35;
-    p.y -= yOffset;
-    
-    // Wrapper Center
-    float2 pWrap = p;
-    // Wrapper is drawn from center, so move p so wrapper base is at desired Y
-    // Let wrapper center be at (0, 0) relative to pWrap
-    
-    // Frosting Center (sits on top of wrapper)
-    // Wrapper top is at +WrapperHeight/2
-    float2 pFrost = p - float2(0.0, WrapperHeight * 0.5);
-    
-    // Heart Center (sits on top of frosting)
-    // Heart bottom tip should be embedded in frosting
-    float2 pHeart = p - float2(0.0, WrapperHeight * 0.5 + FrostingHeight * 0.6);
+    float aa = 0.01; // Soft edge amount
 
-    // --- 2. SDF CALCULATION ---
-    
-    // WRAPPER SDF
-    float dWrap = cup_sdTrapezoidRobust(pWrap, WrapperBottomWidth, WrapperTopWidth, WrapperHeight);
-    
-    // FROSTING SDF (Ellipse)
-    // Flatten bottom of ellipse slightly to sit better? Standard ellipse is fine.
-    float dFrost = cup_sdEllipse(pFrost, float2(FrostingSpread * 0.5, FrostingHeight * 0.5));
-    
-    // HEART SDF
-    // Scale heart space. The SDF assumes a specific size approx 1.0 height.
-    float2 heartSpace = pHeart / max(HeartSize, 0.001);
-    // Offset Y because Heart SDF is centered around top lobes usually
-    heartSpace.y -= 0.5;
-    float dHeartRaw = cup_sdHeart(heartSpace);
-    float dHeart = dHeartRaw * HeartSize; // Restore scale
+    // --- 2. Cup Shape ---
+    // Cup is placed below y=0
+    float cupHalfHeight = CupHeight * 0.5;
+    float2 pCup = p - float2(0.0, -cupHalfHeight);
+    float cupDist = sdTrapezoid(pCup, CupWidths.x * 0.5, CupWidths.y * 0.5, cupHalfHeight);
+    float cupAlpha = smoothstep(aa, -aa, cupDist);
 
-    // --- 3. RENDERING LAYERS ---
+    // Cup Ribs Pattern
+    // Calculate width at current Y for perspective correctness
+    float t_cup = clamp((pCup.y + cupHalfHeight) / CupHeight, 0.0, 1.0);
+    float currentWidth = lerp(CupWidths.x, CupWidths.y, t_cup) * 0.5;
+    // Map x to [-1,1] relative to current width
+    float ribU = pCup.x / max(currentWidth, 0.001);
+    // Sine wave pattern for ribs
+    float ribPattern = smoothstep(0.0, 1.0, abs(sin(ribU * PI * RibProps.x)));
+    // Blend rib color
+    float4 finalCupColor = lerp(CupColor, CupColor * 0.8, ribPattern * RibProps.y);
+    finalCupColor = float4(finalCupColor.rgb * cupAlpha, cupAlpha);
+
+    // --- 3. Cap (Muffin Top) Shape ---
+    // Cap is placed above y=0
+    float capHalfHeight = CapSize.y * 0.5;
+    // Adjust cap center so the bottom lobes sit near the cup rim
+    // Main dome is an ellipse
+    float2 pCap = p - float2(0.0, capHalfHeight * 0.6);
+    float domeDist = length(pCap / (CapSize * 0.5)) - 1.0;
+    // Fix distance metric distortion for ellipse roughly
+    domeDist *= min(CapSize.x, CapSize.y) * 0.5;
+
+    // Lobe shapes at the bottom edge of the cap
+    float lobeCount = max(1.0, floor(CapLobes.x));
+    float lobeSize = CapLobes.y;
+    float lobeSpan = CapSize.x * 0.9; // Spanning most of the cap width
+    float lobeDist = 100.0;
     
-    // Initialize Output
-    outColor = float4(0, 0, 0, 0);
-
-    // --- LAYER 1: WRAPPER ---
-    {
-        // Fill
-        float fillMask = 1.0 - smoothstep(-aa, aa, dWrap);
-        
-        // Pleats (Vertical Stripes)
-        // Only calculate where wrapper exists
-        float4 baseColor = WrapperColor;
-        if (fillMask > 0.01) {
-            // Stripe pattern
-            float stripeX = pWrap.x;
-            // Map x to 0..1 range across width for cleaner distribution? 
-            // Or just screen space stripes. Screen space is easier for "vertical lines".
-            float stripeDist = abs(frac(stripeX * (1.0/max(PleatSpacing, 0.001))) - 0.5) * max(PleatSpacing, 0.001);
-            float stripeMask = 1.0 - smoothstep(0.0, aa, stripeDist - PleatThickness * 0.5 * PleatSpacing);
-            
-            // Darken wrapper color for pleats
-            float3 pleatRGB = baseColor.rgb * 0.8;
-            baseColor.rgb = lerp(baseColor.rgb, pleatRGB, stripeMask * 0.5);
-        }
-
-        // Outline
-        float strokeMask = 1.0 - smoothstep(-aa, aa, abs(dWrap) - halfStroke);
-        
-        // Composite Wrapper
-        float4 layerCol = cup_over(float4(StrokeColor.rgb, StrokeColor.a * strokeMask), float4(baseColor.rgb, baseColor.a * fillMask));
-        outColor = cup_over(layerCol, outColor);
+    // Combine lobes
+    for(float i = 0.0; i < lobeCount; i++) {
+        // Normalized position 0..1
+        float t_lobe = i / max(lobeCount - 1.0, 1.0);
+        // Map to x position
+        float lx = lerp(-lobeSpan * 0.5, lobeSpan * 0.5, t_lobe);
+        // Add slight arch to lobes (y offset)
+        float ly = sin(t_lobe * PI) * 0.05;
+        // Distance to this lobe circle
+        float d = sdCircle(p - float2(lx, ly), lobeSize);
+        lobeDist = min(lobeDist, d);
     }
 
-    // --- LAYER 2: FROSTING ---
-    {
-        float fillMask = 1.0 - smoothstep(-aa, aa, dFrost);
-        float strokeMask = 1.0 - smoothstep(-aa, aa, abs(dFrost) - halfStroke);
-        
-        float4 layerCol = cup_over(float4(StrokeColor.rgb, StrokeColor.a * strokeMask), float4(FrostingColor.rgb, FrostingColor.a * fillMask));
-        outColor = cup_over(layerCol, outColor);
-    }
+    // Combine Dome and Lobes
+    float capDist = smin(domeDist, lobeDist, 0.05);
+    float capAlpha = smoothstep(aa, -aa, capDist);
 
-    // --- LAYER 3: HEART ---
-    {
-        float fillMask = 1.0 - smoothstep(-aa, aa, dHeart);
-        float strokeMask = 1.0 - smoothstep(-aa, aa, abs(dHeart) - halfStroke);
-        
-        float4 layerCol = cup_over(float4(StrokeColor.rgb, StrokeColor.a * strokeMask), float4(HeartColor.rgb, HeartColor.a * fillMask));
-        outColor = cup_over(layerCol, outColor);
+    // --- 4. Toppings (Chips) ---
+    // Grid based scattering
+    float chipDensity = ChipProps.x;
+    float2 gridUV = p * chipDensity;
+    float2 cellID = floor(gridUV);
+    float2 cellUV = frac(gridUV) - 0.5;
+    
+    // Randomness per cell
+    float2 rand = hash22(cellID);
+    float2 chipOffset = (rand - 0.5) * 0.6; // Jitter position
+    float2 pChip = cellUV - chipOffset;
+    
+    // Random shape selection
+    float chipDist = 1.0;
+    float chipSizeLocal = ChipProps.y * chipDensity; // Scale relative to grid
+    
+    if (rand.x > ChipProps.z) {
+        // Diamond shape
+        chipDist = sdRhombus(pChip, float2(chipSizeLocal, chipSizeLocal * 1.3));
+    } else {
+        // Circle shape
+        chipDist = sdCircle(pChip, chipSizeLocal);
     }
+    
+    float chipAlpha = smoothstep(aa * chipDensity, -aa * chipDensity, chipDist);
+    
+    // Mask chips to only appear inside the cap
+    float chipMask = chipAlpha * smoothstep(0.0, 0.05, -capDist); // Hard mask by cap
+
+    // --- 5. Compositing ---
+    // Start with background (transparent)
+    float4 col = float4(0,0,0,0);
+
+    // Layer 1: Cup
+    col = lerp(col, finalCupColor, finalCupColor.a);
+
+    // Layer 2: Cap
+    float4 finalCapColor = float4(CapColor.rgb * capAlpha, capAlpha);
+    // Alpha blend cap over cup
+    float3 outRGB = finalCapColor.rgb + col.rgb * (1.0 - finalCapColor.a);
+    float outA = finalCapColor.a + col.a * (1.0 - finalCapColor.a);
+    col = float4(outRGB, outA);
+
+    // Layer 3: Toppings
+    float4 finalChipColor = float4(ChipColor.rgb * chipMask, chipMask);
+    outRGB = finalChipColor.rgb + col.rgb * (1.0 - finalChipColor.a);
+    outA = finalChipColor.a + col.a * (1.0 - finalChipColor.a);
+    
+    outColor = float4(outRGB, outA);
 }

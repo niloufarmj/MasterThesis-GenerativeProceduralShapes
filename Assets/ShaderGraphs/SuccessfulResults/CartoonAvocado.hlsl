@@ -103,3 +103,22 @@ void CartoonAvocado_float(
     
     outColor = float4(finalRGB, finalAlpha);
 }
+
+// ------------------------------------------------------------------------
+//  Visual Result (High-level, parameter-invariant description)
+// ------------------------------------------------------------------------
+//  This function produces a **2D cartoon avocado** constructed from
+//  analytic Signed Distance Functions (SDFs).
+//
+//  The resulting shape is composed of:
+//  - A pear-shaped body formed by smoothly blending two vertically offset circles (top and bottom)
+//  - A circular seed (pit) positioned within the lower body
+//  - Distinct layers for the outer skin, inner flesh, and seed
+//
+//  The geometry features a smooth, organic silhouette. The final appearance
+//  (body proportions, seed size/position, skin thickness, and colors) is
+//  fully controlled by input parameters.
+//
+//  The output is an anti-aliased RGBA color suitable for procedural UI,
+//  icons, and food-themed 2D graphics.
+// ------------------------------------------------------------------------
