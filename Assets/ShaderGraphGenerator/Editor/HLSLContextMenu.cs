@@ -12,16 +12,22 @@ namespace ShaderGraphGenerator.Editor
         [MenuItem("Assets/Generate ShaderGraph from HLSL (Opaque)", false, 100)]
         private static void GenerateShaderGraphOpaque()
         {
-            GenerateShaderGraph(false);
+            GenerateShaderGraph(false, false);
         }
 
         [MenuItem("Assets/Generate ShaderGraph from HLSL (Transparent)", false, 101)]
         private static void GenerateShaderGraphTransparent()
         {
-            GenerateShaderGraph(true);
+            GenerateShaderGraph(true, false);
         }
 
-        private static void GenerateShaderGraph(bool useTransparency)
+        [MenuItem("Assets/Generate ShaderGraph from HLSL (Puxelled)", false, 102)]
+        private static void GenerateShaderGraphPixelation()
+        {
+            GenerateShaderGraph(true, true);
+        }
+
+        private static void GenerateShaderGraph(bool useTransparency, bool pixelation)
         {
             var selected = Selection.activeObject;
             if (selected == null) return;
@@ -35,7 +41,7 @@ namespace ShaderGraphGenerator.Editor
             try
             {
                 // 1. Generate ShaderGraph (and get info)
-                HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency);
+                HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, guid, outputPath, useTransparency, pixelation);
 
                 // 2. Refresh to compile graph
                 AssetDatabase.Refresh();

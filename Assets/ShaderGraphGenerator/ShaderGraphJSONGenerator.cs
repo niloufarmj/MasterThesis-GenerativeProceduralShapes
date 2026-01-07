@@ -95,7 +95,8 @@ namespace ShaderGraphGenerator
             HLSLFunctionInfo functionInfo,
             string hlslFileGUID,
             string shaderGraphName = "ProceduralShader",
-            bool useTransparency = false)
+            bool useTransparency = false,
+            bool usePixelation = false)
         {
             guidMap.Clear();
 
@@ -112,26 +113,69 @@ namespace ShaderGraphGenerator
             string targetGuid = GetOrCreateGuid("target");
             string subTargetGuid = GetOrCreateGuid("subtarget");
 
-            // --- NEW GUIDS FOR MAINTEX SUPPORT ---
+            // --- MainTex support ---
             string mainTexPropNode = GetOrCreateGuid("main_tex_prop_node");
             string mainTexPropSlot = GetOrCreateGuid("main_tex_prop_slot");
             string mainTexPropDef = GetOrCreateGuid("main_tex_prop_def");
             string sampleTexNode = GetOrCreateGuid("sample_tex_node");
-            string multiplyNode = GetOrCreateGuid("multiply_node");
+
+            // Final multiply (mask * texture)
+            string finalMultiplyNode = GetOrCreateGuid("multiply_node");
 
             // Explicit slot GUIDs for Sample Texture and Multiply to ensure connections work
             string sampleTexSlotUV = GetOrCreateGuid("sample_tex_slot_uv");
             string sampleTexSlotTex = GetOrCreateGuid("sample_tex_slot_tex");
             string sampleTexSlotRGBA = GetOrCreateGuid("sample_tex_slot_rgba");
-            string multiplySlotA = GetOrCreateGuid("multiply_slot_a");
-            string multiplySlotB = GetOrCreateGuid("multiply_slot_b");
-            string multiplySlotOut = GetOrCreateGuid("multiply_slot_out");
+            string finalMultiplySlotA = GetOrCreateGuid("multiply_slot_a");
+            string finalMultiplySlotB = GetOrCreateGuid("multiply_slot_b");
+            string finalMultiplySlotOut = GetOrCreateGuid("multiply_slot_out");
 
-            // GUIDs for output splitting
+            // --- Pixelation nodes/props ---
+            // PixelatedUV = floor(UV * PixelCount) / PixelCount
+            string pixelCountPropNode = null;
+            string pixelCountPropSlot = null;
+            string pixelCountPropDef = null;
+
+            string pixelMultiplyNode = null;
+            string pixelMultiplySlotA = null;
+            string pixelMultiplySlotB = null;
+            string pixelMultiplySlotOut = null;
+
+            string floorNode = null;
+            string floorSlotIn = null;
+            string floorSlotOut = null;
+
+            string divideNode = null;
+            string divideSlotA = null;
+            string divideSlotB = null;
+            string divideSlotOut = null;
+
+            if (usePixelation)
+            {
+                pixelCountPropNode = GetOrCreateGuid("pixelcount_prop_node");
+                pixelCountPropSlot = GetOrCreateGuid("pixelcount_prop_slot");
+                pixelCountPropDef = GetOrCreateGuid("pixelcount_prop_def");
+
+                pixelMultiplyNode = GetOrCreateGuid("pixel_multiply_node");
+                pixelMultiplySlotA = GetOrCreateGuid("pixel_multiply_slot_a");
+                pixelMultiplySlotB = GetOrCreateGuid("pixel_multiply_slot_b");
+                pixelMultiplySlotOut = GetOrCreateGuid("pixel_multiply_slot_out");
+
+                floorNode = GetOrCreateGuid("floor_node");
+                floorSlotIn = GetOrCreateGuid("floor_slot_in");
+                floorSlotOut = GetOrCreateGuid("floor_slot_out");
+
+                divideNode = GetOrCreateGuid("divide_node");
+                divideSlotA = GetOrCreateGuid("divide_slot_a");
+                divideSlotB = GetOrCreateGuid("divide_slot_b");
+                divideSlotOut = GetOrCreateGuid("divide_slot_out");
+            }
+
+            // GUIDs for output splitting (transparency)
             string outputSplitNode = null;
             string outputVec3Node = null;
             var outputSplitSlotGuids = new Dictionary<string, string>(); // In, R, G, B, A
-            var outputVec3SlotGuids = new Dictionary<string, string>(); // X, Y, Z, Out
+            var outputVec3SlotGuids = new Dictionary<string, string>();  // X, Y, Z, Out
 
             if (useTransparency)
             {
@@ -202,10 +246,21 @@ namespace ShaderGraphGenerator
             sb.AppendLine("    \"m_Properties\": [");
 
             // Add MainTex property reference
-            sb.AppendLine($"        {{\n            \"m_Id\": \"{mainTexPropDef}\"\n        }},");
+            var propertyRefs = new List<string>
+            {
+                $"        {{\n            \"m_Id\": \"{mainTexPropDef}\"\n        }}"
+            };
 
-            var propRefs = propertyDefs.Values.Select(guid => $"        {{\n            \"m_Id\": \"{guid}\"\n        }}");
-            sb.AppendLine(string.Join(",\n", propRefs));
+            // Optional pixel property reference
+            if (usePixelation && pixelCountPropDef != null)
+            {
+                propertyRefs.Add($"        {{\n            \"m_Id\": \"{pixelCountPropDef}\"\n        }}");
+            }
+
+            // Add all user-defined property refs
+            propertyRefs.AddRange(propertyDefs.Values.Select(guid => $"        {{\n            \"m_Id\": \"{guid}\"\n        }}"));
+
+            sb.AppendLine(string.Join(",\n", propertyRefs));
             sb.AppendLine("    ],");
 
             sb.AppendLine("    \"m_Keywords\": [],");
@@ -228,10 +283,19 @@ namespace ShaderGraphGenerator
             nodeRefs.Add($"        {{\n            \"m_Id\": \"{customFunctionNode}\"\n        }}");
             nodeRefs.Add($"        {{\n            \"m_Id\": \"{uvNode}\"\n        }}");
 
+            // Pixelation nodes (between UV and CustomFunc/SampleTex)
+            if (usePixelation)
+            {
+                nodeRefs.Add($"        {{\n            \"m_Id\": \"{pixelCountPropNode}\"\n        }}");
+                nodeRefs.Add($"        {{\n            \"m_Id\": \"{pixelMultiplyNode}\"\n        }}");
+                nodeRefs.Add($"        {{\n            \"m_Id\": \"{floorNode}\"\n        }}");
+                nodeRefs.Add($"        {{\n            \"m_Id\": \"{divideNode}\"\n        }}");
+            }
+
             // Add MainTex specific nodes
             nodeRefs.Add($"        {{\n            \"m_Id\": \"{mainTexPropNode}\"\n        }}");
             nodeRefs.Add($"        {{\n            \"m_Id\": \"{sampleTexNode}\"\n        }}");
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{multiplyNode}\"\n        }}");
+            nodeRefs.Add($"        {{\n            \"m_Id\": \"{finalMultiplyNode}\"\n        }}");
 
             // Add split/vec3 nodes to the graph
             if (outputSplitNode != null)
@@ -247,6 +311,7 @@ namespace ShaderGraphGenerator
             {
                 nodeRefs.Add($"        {{\n            \"m_Id\": \"{propNode}\"\n        }}");
             }
+
             sb.AppendLine(string.Join(",\n", nodeRefs));
             sb.AppendLine("    ],");
 
@@ -257,14 +322,41 @@ namespace ShaderGraphGenerator
             sb.AppendLine("    \"m_Edges\": [");
             var edges = new List<string>();
 
-            // 1. UV node -> Custom function first float2 input
-            if (!string.IsNullOrEmpty(uvParamName))
+            // --- UV routing: either direct, or pixelated chain ---
+            if (usePixelation)
             {
-                var uvParam = functionInfo.InputParameters.First(p => p.Name == uvParamName);
-                edges.Add(FormatEdge(uvNode, 0, customFunctionNode, uvParam.SlotId));
+                // UV -> PixelMultiply.A
+                edges.Add(FormatEdge(uvNode, 0, pixelMultiplyNode, 0));
+                // PixelCount -> PixelMultiply.B
+                edges.Add(FormatEdge(pixelCountPropNode, 0, pixelMultiplyNode, 1));
+                // PixelMultiply.Out -> Floor.In
+                edges.Add(FormatEdge(pixelMultiplyNode, 2, floorNode, 0));
+                // Floor.Out -> Divide.A
+                edges.Add(FormatEdge(floorNode, 1, divideNode, 0));
+                // PixelCount -> Divide.B
+                edges.Add(FormatEdge(pixelCountPropNode, 0, divideNode, 1));
+
+                // Divide.Out -> Custom function UV input (first float2 input)
+                if (!string.IsNullOrEmpty(uvParamName))
+                {
+                    var uvParam = functionInfo.InputParameters.First(p => p.Name == uvParamName);
+                    edges.Add(FormatEdge(divideNode, 2, customFunctionNode, uvParam.SlotId));
+                }
+
+                // Divide.Out -> Sample Texture 2D UV Slot
+                edges.Add(FormatEdge(divideNode, 2, sampleTexNode, 2)); // 2 is UV input on SampleTex
             }
-            // 1b. UV Node -> Sample Texture 2D UV Slot
-            edges.Add(FormatEdge(uvNode, 0, sampleTexNode, 2)); // 2 is UV input on SampleTex
+            else
+            {
+                // 1. UV node -> Custom function first float2 input
+                if (!string.IsNullOrEmpty(uvParamName))
+                {
+                    var uvParam = functionInfo.InputParameters.First(p => p.Name == uvParamName);
+                    edges.Add(FormatEdge(uvNode, 0, customFunctionNode, uvParam.SlotId));
+                }
+                // 1b. UV Node -> Sample Texture 2D UV Slot
+                edges.Add(FormatEdge(uvNode, 0, sampleTexNode, 2)); // 2 is UV input on SampleTex
+            }
 
             // 2. Property nodes -> Custom function inputs
             foreach (var param in functionInfo.InputParameters)
@@ -278,8 +370,7 @@ namespace ShaderGraphGenerator
             // 3. MainTex Property -> Sample Texture 2D
             edges.Add(FormatEdge(mainTexPropNode, 0, sampleTexNode, 1)); // 1 is Texture input
 
-            // 4. Connect Outputs via Multiply
-            // We need to connect:
+            // 4. Connect Outputs via final Multiply
             // CustomFunction(Out) -> Multiply(A)
             // SampleTexture(RGBA) -> Multiply(B)
             // Multiply(Out) -> [SplitNode OR MasterStack]
@@ -288,13 +379,13 @@ namespace ShaderGraphGenerator
             if (firstOutput != null)
             {
                 // A. Custom Function -> Multiply Node A (Slot 0)
-                edges.Add(FormatEdge(customFunctionNode, firstOutput.SlotId, multiplyNode, 0));
+                edges.Add(FormatEdge(customFunctionNode, firstOutput.SlotId, finalMultiplyNode, 0));
 
                 // B. Sample Texture RGBA -> Multiply Node B (Slot 1)
-                edges.Add(FormatEdge(sampleTexNode, 4, multiplyNode, 1)); // 4 is RGBA output of SampleTex
+                edges.Add(FormatEdge(sampleTexNode, 4, finalMultiplyNode, 1)); // 4 is RGBA output of SampleTex
 
                 // C. Multiply Out (Slot 2) -> Final Destination
-                string sourceNodeForFinal = multiplyNode;
+                string sourceNodeForFinal = finalMultiplyNode;
                 int sourceSlotForFinal = 2; // Output of multiply
 
                 // Check if we are doing the split logic (Transparency)
@@ -406,44 +497,57 @@ namespace ShaderGraphGenerator
             AppendUVNode(sb, uvNode, uvOutputSlot);
             AppendUVSlot(sb, uvOutputSlot);
 
-            // --- NEW NODE DEFINITIONS ---
+            // Pixelation nodes/props definitions
+            if (usePixelation)
+            {
+                // PixelCount property node + slot + definition
+                AppendPropertyNode(sb, pixelCountPropNode, pixelCountPropDef, pixelCountPropSlot, "PixelCount");
+                AppendVector1SlotForPropertyNode(sb, pixelCountPropSlot, "PixelCount");
+                AppendVector1PropertyDefinition(sb, pixelCountPropDef, "PixelCount", "_PixelCount", 50.0f);
 
-            // MainTex Property Node
+                // UV * PixelCount
+                AppendMultiplyNodeCustomPosition(sb, pixelMultiplyNode, pixelMultiplySlotA, pixelMultiplySlotB, pixelMultiplySlotOut, -500.0f, 250.0f);
+
+                // Floor
+                AppendFloorNode(sb, floorNode, floorSlotIn, floorSlotOut, -300.0f, 250.0f);
+
+                // Divide
+                AppendDivideNode(sb, divideNode, divideSlotA, divideSlotB, divideSlotOut, -100.0f, 250.0f);
+            }
+
+            // MainTex nodes
             AppendPropertyNode(sb, mainTexPropNode, mainTexPropDef, mainTexPropSlot, "MainTex");
             AppendTexture2DSlot(sb, mainTexPropSlot); // Property node output slot
-
-            // MainTex Property Definition
             AppendTexture2DPropertyDefinition(sb, mainTexPropDef);
 
             // Sample Texture 2D Node
             AppendSampleTexture2DNode(sb, sampleTexNode, sampleTexSlotUV, sampleTexSlotTex, sampleTexSlotRGBA);
 
-            // Multiply Node
-            AppendMultiplyNode(sb, multiplyNode, multiplySlotA, multiplySlotB, multiplySlotOut);
-
+            // Final Multiply Node (mask * texture)
+            AppendMultiplyNode(sb, finalMultiplyNode, finalMultiplySlotA, finalMultiplySlotB, finalMultiplySlotOut);
 
             // Other Property nodes
             foreach (var kvp in propertyNodes)
             {
                 var param = functionInfo.InputParameters.First(p => p.Name == kvp.Key);
-                // Use the simplified signature for property node
                 AppendPropertyNode(sb, kvp.Value, propertyDefs[kvp.Key], propertySlots[kvp.Key], param.Name);
                 AppendPropertySlot(sb, propertySlots[kvp.Key], param);
             }
 
-            // Property definitions
+            // Property definitions (for function inputs)
             foreach (var kvp in propertyDefs)
             {
                 var param = functionInfo.InputParameters.First(p => p.Name == kvp.Key);
                 AppendPropertyDefinition(sb, kvp.Value, param);
             }
 
-            // Category - Add MainTex to list
+            // Category - Add MainTex (+ PixelCount optionally)
             var allProps = new List<string> { mainTexPropDef };
+            if (usePixelation && pixelCountPropDef != null) allProps.Add(pixelCountPropDef);
             allProps.AddRange(propertyDefs.Values);
             AppendCategory(sb, categoryGuid, allProps);
 
-            // Target
+            // Target/SubTarget
             AppendTarget(sb, targetGuid, subTargetGuid, useTransparency);
             AppendSubTarget(sb, subTargetGuid);
 
@@ -539,7 +643,6 @@ namespace ShaderGraphGenerator
     ""m_EnableGlobalMipBias"": true,
     ""m_MipSamplingMode"": 0
 }}");
-            // Add the actual slots definitions for the Sample Texture Node
             // Slot 4: RGBA Out
             sb.AppendLine($@"
 {{
@@ -593,6 +696,11 @@ namespace ShaderGraphGenerator
 
         private void AppendMultiplyNode(StringBuilder sb, string guid, string slotA, string slotB, string slotOut)
         {
+            AppendMultiplyNodeCustomPosition(sb, guid, slotA, slotB, slotOut, 50.0f, 200.0f);
+        }
+
+        private void AppendMultiplyNodeCustomPosition(StringBuilder sb, string guid, string slotA, string slotB, string slotOut, float x, float y)
+        {
             sb.AppendLine($@"
 {{
     ""m_SGVersion"": 0,
@@ -602,7 +710,7 @@ namespace ShaderGraphGenerator
     ""m_Name"": ""Multiply"",
     ""m_DrawState"": {{
         ""m_Expanded"": true,
-        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": 50.0, ""y"": 200.0, ""width"": 208.0, ""height"": 302.0 }}
+        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": {x}, ""y"": {y}, ""width"": 208.0, ""height"": 302.0 }}
     }},
     ""m_Slots"": [
         {{ ""m_Id"": ""{slotA}"" }},
@@ -616,50 +724,158 @@ namespace ShaderGraphGenerator
     ""m_PreviewMode"": 0,
     ""m_CustomColors"": {{ ""m_SerializableColors"": [] }}
 }}");
-            // Slot A (0)
+
+            AppendDynamicValueSlot(sb, slotA, 0, "A", 0);
+            AppendDynamicValueSlot(sb, slotB, 1, "B", 0);
+            AppendDynamicValueSlot(sb, slotOut, 2, "Out", 1);
+        }
+
+        private void AppendFloorNode(StringBuilder sb, string guid, string inSlot, string outSlot, float x, float y)
+        {
+            sb.AppendLine($@"
+{{
+    ""m_SGVersion"": 0,
+    ""m_Type"": ""UnityEditor.ShaderGraph.FloorNode"",
+    ""m_ObjectId"": ""{guid}"",
+    ""m_Group"": {{ ""m_Id"": """" }},
+    ""m_Name"": ""Floor"",
+    ""m_DrawState"": {{
+        ""m_Expanded"": true,
+        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": {x}, ""y"": {y}, ""width"": 208.0, ""height"": 140.0 }}
+    }},
+    ""m_Slots"": [
+        {{ ""m_Id"": ""{outSlot}"" }},
+        {{ ""m_Id"": ""{inSlot}"" }}
+    ],
+    ""synonyms"": [ ""rounddown"" ],
+    ""m_Precision"": 0,
+    ""m_PreviewExpanded"": false,
+    ""m_DismissedVersion"": 0,
+    ""m_PreviewMode"": 0,
+    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }}
+}}");
+
+            // Floor nodes typically: In (0) input, Out (1) output
+            AppendDynamicVectorSlot(sb, inSlot, 0, "In", 0);
+            AppendDynamicVectorSlot(sb, outSlot, 1, "Out", 1);
+        }
+
+        private void AppendDivideNode(StringBuilder sb, string guid, string slotA, string slotB, string slotOut, float x, float y)
+        {
+            sb.AppendLine($@"
+{{
+    ""m_SGVersion"": 0,
+    ""m_Type"": ""UnityEditor.ShaderGraph.DivideNode"",
+    ""m_ObjectId"": ""{guid}"",
+    ""m_Group"": {{ ""m_Id"": """" }},
+    ""m_Name"": ""Divide"",
+    ""m_DrawState"": {{
+        ""m_Expanded"": true,
+        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": {x}, ""y"": {y}, ""width"": 208.0, ""height"": 200.0 }}
+    }},
+    ""m_Slots"": [
+        {{ ""m_Id"": ""{slotA}"" }},
+        {{ ""m_Id"": ""{slotB}"" }},
+        {{ ""m_Id"": ""{slotOut}"" }}
+    ],
+    ""synonyms"": [ ""division"" ],
+    ""m_Precision"": 0,
+    ""m_PreviewExpanded"": false,
+    ""m_DismissedVersion"": 0,
+    ""m_PreviewMode"": 0,
+    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }}
+}}");
+
+            AppendDynamicVectorSlot(sb, slotA, 0, "A", 0);
+            AppendDynamicVectorSlot(sb, slotB, 1, "B", 0);
+            AppendDynamicVectorSlot(sb, slotOut, 2, "Out", 1);
+        }
+
+        private void AppendDynamicVectorSlot(StringBuilder sb, string guid, int id, string name, int slotType)
+        {
+            sb.AppendLine($@"
+{{
+    ""m_SGVersion"": 0,
+    ""m_Type"": ""UnityEditor.ShaderGraph.DynamicVectorMaterialSlot"",
+    ""m_ObjectId"": ""{guid}"",
+    ""m_Id"": {id},
+    ""m_DisplayName"": ""{name}"",
+    ""m_SlotType"": {slotType},
+    ""m_Hidden"": false,
+    ""m_ShaderOutputName"": ""{name}"",
+    ""m_StageCapability"": 3,
+    ""m_Value"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }},
+    ""m_DefaultValue"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }}
+}}");
+        }
+
+        private void AppendDynamicValueSlot(StringBuilder sb, string guid, int id, string name, int slotType)
+        {
+            // This matches the style already used in your generator for MultiplyNode slots
             sb.AppendLine($@"
 {{
     ""m_SGVersion"": 0,
     ""m_Type"": ""UnityEditor.ShaderGraph.DynamicValueMaterialSlot"",
-    ""m_ObjectId"": ""{slotA}"",
+    ""m_ObjectId"": ""{guid}"",
+    ""m_Id"": {id},
+    ""m_DisplayName"": ""{name}"",
+    ""m_SlotType"": {slotType},
+    ""m_Hidden"": false,
+    ""m_ShaderOutputName"": ""{name}"",
+    ""m_StageCapability"": 3,
+    ""m_Value"": {{ ""e00"": 0.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 0.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 0.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 0.0 }},
+    ""m_DefaultValue"": {{ ""e00"": 1.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 1.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 1.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 1.0 }}
+}}");
+        }
+
+        private void AppendVector1SlotForPropertyNode(StringBuilder sb, string guid, string displayName)
+        {
+            sb.AppendLine($@"
+{{
+    ""m_SGVersion"": 0,
+    ""m_Type"": ""UnityEditor.ShaderGraph.Vector1MaterialSlot"",
+    ""m_ObjectId"": ""{guid}"",
     ""m_Id"": 0,
-    ""m_DisplayName"": ""A"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""A"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""e00"": 0.5, ""e01"": 0.5, ""e02"": 0.5, ""e03"": 0.5, ""e10"": 2.0, ""e11"": 2.0, ""e12"": 2.0, ""e13"": 2.0, ""e20"": 2.0, ""e21"": 2.0, ""e22"": 2.0, ""e23"": 2.0, ""e30"": 2.0, ""e31"": 2.0, ""e32"": 2.0, ""e33"": 2.0 }},
-    ""m_DefaultValue"": {{ ""e00"": 1.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 1.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 1.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 1.0 }}
-}}");
-            // Slot B (1)
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.DynamicValueMaterialSlot"",
-    ""m_ObjectId"": ""{slotB}"",
-    ""m_Id"": 1,
-    ""m_DisplayName"": ""B"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""B"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""e00"": 2.0, ""e01"": 2.0, ""e02"": 2.0, ""e03"": 2.0, ""e10"": 2.0, ""e11"": 2.0, ""e12"": 2.0, ""e13"": 2.0, ""e20"": 2.0, ""e21"": 2.0, ""e22"": 2.0, ""e23"": 2.0, ""e30"": 2.0, ""e31"": 2.0, ""e32"": 2.0, ""e33"": 2.0 }},
-    ""m_DefaultValue"": {{ ""e00"": 1.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 1.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 1.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 1.0 }}
-}}");
-            // Slot Out (2)
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.DynamicValueMaterialSlot"",
-    ""m_ObjectId"": ""{slotOut}"",
-    ""m_Id"": 2,
-    ""m_DisplayName"": ""Out"",
+    ""m_DisplayName"": ""{displayName}"",
     ""m_SlotType"": 1,
     ""m_Hidden"": false,
     ""m_ShaderOutputName"": ""Out"",
     ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""e00"": 0.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 0.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 0.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 0.0 }},
-    ""m_DefaultValue"": {{ ""e00"": 1.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 1.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 1.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 1.0 }}
+    ""m_Value"": 0.0,
+    ""m_DefaultValue"": 0.0,
+    ""m_Labels"": []
+}}");
+        }
+
+        private void AppendVector1PropertyDefinition(StringBuilder sb, string guid, string name, string refName, float defaultValue)
+        {
+            sb.AppendLine($@"
+{{
+    ""m_SGVersion"": 1,
+    ""m_Type"": ""UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty"",
+    ""m_ObjectId"": ""{guid}"",
+    ""m_Guid"": {{
+        ""m_GuidSerialized"": ""{Guid.NewGuid()}""
+    }},
+    ""m_Name"": ""{name}"",
+    ""m_DefaultRefNameVersion"": 1,
+    ""m_RefNameGeneratedByDisplayName"": ""{name}"",
+    ""m_DefaultReferenceName"": ""{refName}"",
+    ""m_OverrideReferenceName"": ""{refName}"",
+    ""m_GeneratePropertyBlock"": true,
+    ""m_UseCustomSlotLabel"": false,
+    ""m_CustomSlotLabel"": """",
+    ""m_DismissedVersion"": 0,
+    ""m_Precision"": 0,
+    ""overrideHLSLDeclaration"": false,
+    ""hlslDeclarationOverride"": 0,
+    ""m_Hidden"": false,
+    ""m_Value"": {defaultValue},
+    ""m_FloatType"": 0,
+    ""m_RangeValues"": {{
+        ""x"": 1.0,
+        ""y"": 256.0
+    }}
 }}");
         }
 
@@ -714,8 +930,7 @@ namespace ShaderGraphGenerator
 }}");
         }
 
-        private void AppendPropertyNode(StringBuilder sb, string nodeGuid, string propDefGuid,
-            string slotGuid, string displayName)
+        private void AppendPropertyNode(StringBuilder sb, string nodeGuid, string propDefGuid, string slotGuid, string displayName)
         {
             sb.AppendLine($@"
 {{
@@ -755,21 +970,13 @@ namespace ShaderGraphGenerator
 }}");
         }
 
-        // Keep this for backward compatibility or refactor to use the one above
-        private void AppendPropertyNode(StringBuilder sb, string nodeGuid, string propDefGuid,
-            string slotGuid, FunctionParameter param)
+        // Backward compatibility overload
+        private void AppendPropertyNode(StringBuilder sb, string nodeGuid, string propDefGuid, string slotGuid, FunctionParameter param)
         {
             AppendPropertyNode(sb, nodeGuid, propDefGuid, slotGuid, param.Name);
         }
 
-        // ... [The rest of the helper methods remain unchanged from your original file]
-        // (AppendBlockNode, AppendPositionSlot, AppendNormalSlot, AppendTangentSlot, 
-        //  AppendColorRGBSlot, AppendAlphaSlot, AppendCustomFunctionNode, AppendFunctionSlot,
-        //  AppendUVNode, AppendUVSlot, AppendPropertySlot, AppendPropertyDefinition,
-        //  AppendCategory, AppendTarget, AppendSubTarget, AppendSplitNode, etc.)
-
-        private void AppendBlockNode(StringBuilder sb, string guid, string descriptor,
-            string displayName, string slotGuid, string slotType)
+        private void AppendBlockNode(StringBuilder sb, string guid, string descriptor, string displayName, string slotGuid, string slotType)
         {
             sb.AppendLine($@"
 {{
@@ -944,8 +1151,7 @@ namespace ShaderGraphGenerator
 }}");
         }
 
-        private void AppendCustomFunctionNode(StringBuilder sb, string guid,
-            HLSLFunctionInfo functionInfo, string hlslFileGUID, Dictionary<string, string> slotGuids)
+        private void AppendCustomFunctionNode(StringBuilder sb, string guid, HLSLFunctionInfo functionInfo, string hlslFileGUID, Dictionary<string, string> slotGuids)
         {
             sb.AppendLine($@"
 {{
@@ -1417,7 +1623,7 @@ namespace ShaderGraphGenerator
         /// <summary>
         /// Main entry point - Generate from HLSL file
         /// </summary>
-        public static HLSLFunctionInfo GenerateFromHLSL(string hlslFilePath, string hlslFileGUID, string outputPath, bool useTransparency)
+        public static HLSLFunctionInfo GenerateFromHLSL(string hlslFilePath, string hlslFileGUID, string outputPath, bool useTransparency, bool usePixelation)
         {
             try
             {
@@ -1437,7 +1643,7 @@ namespace ShaderGraphGenerator
                     Debug.Log($"  [{p.SlotId}] {(p.IsOutput ? "OUT" : "IN")} {p.Type} {p.Name}");
                 }
 
-                string json = generator.GenerateShaderGraphJSON(functionInfo, hlslFileGUID, "GeneratedShader", useTransparency);
+                string json = generator.GenerateShaderGraphJSON(functionInfo, hlslFileGUID, "GeneratedShader", useTransparency, usePixelation);
 
                 File.WriteAllText(outputPath, json);
 
@@ -1453,6 +1659,12 @@ namespace ShaderGraphGenerator
                 Debug.LogError($"Failed to generate ShaderGraph: {ex.Message}\n{ex.StackTrace}");
                 throw;
             }
+        }
+
+        // Backwards compatible overload (older calls)
+        public static HLSLFunctionInfo GenerateFromHLSL(string hlslFilePath, string hlslFileGUID, string outputPath, bool useTransparency)
+        {
+            return GenerateFromHLSL(hlslFilePath, hlslFileGUID, outputPath, useTransparency, false);
         }
     }
 }

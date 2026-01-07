@@ -570,7 +570,8 @@ namespace ShaderGraphExperiments.Editor
                 hlslPath,
                 hlslGuid,
                 graphPath,
-                useTransparency
+                useTransparency, 
+                false
             );
             it.shadergraph_asset_path = graphPath;
 
