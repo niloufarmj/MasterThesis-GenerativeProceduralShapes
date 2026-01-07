@@ -10,6 +10,8 @@ namespace ShaderGraphGenerator
         public bool IsOutput;
         public int SlotId;
 
+        public string Direction { get; internal set; }
+
         public string GetMaterialSlotType()
         {
             switch (Type.ToLower())

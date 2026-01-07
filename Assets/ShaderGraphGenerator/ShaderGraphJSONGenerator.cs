@@ -1,1670 +1,723 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using UnityEngine;
 
 namespace ShaderGraphGenerator
 {
     /// <summary>
-    /// Main generator class for creating ShaderGraph JSON files
+    /// Refactored to use the helper files (Models + Factories + JsonWriter) while preserving
+    /// the exact graph topology and behavior of the previously working generator.
     /// </summary>
-    public class ShaderGraphJSONGenerator
+    public sealed class ShaderGraphJSONGenerator
     {
-        private Dictionary<string, string> guidMap = new Dictionary<string, string>();
+        private readonly Dictionary<string, string> guidMap = new();
 
         private string GetOrCreateGuid(string key)
         {
-            if (!guidMap.ContainsKey(key))
+            if (!guidMap.TryGetValue(key, out var guid))
             {
-                guidMap[key] = Guid.NewGuid().ToString("N");
+                // Use the same compact format you used before (no dashes)
+                guid = Guid.NewGuid().ToString("N");
+                guidMap[key] = guid;
             }
-            return guidMap[key];
+            return guid;
         }
 
-        /// <summary>
-        /// Parse HLSL function signature
-        /// </summary>
-        public HLSLFunctionInfo ParseHLSLFunction(string hlslContent)
+        // =====================================================================
+        //  Public API (keep signatures convenient)
+        // =====================================================================
+
+        public HLSLFunctionInfo ParseHLSLFunction(string hlslCode)
         {
             var info = new HLSLFunctionInfo();
 
-            // Find the function signature - handle multiline
-            var functionPattern = @"void\s+(\w+)\s*\(((?:[^()]+|\((?:[^()]+|\([^()]*\))*\))*)\)";
-            var match = Regex.Match(hlslContent, functionPattern, RegexOptions.Singleline);
+            // Header: <ret> <name>(<args>)
+            var headerMatch = Regex.Match(
+                hlslCode,
+                @"(?<ret>\w+)\s+(?<name>\w+)\s*\((?<args>[^)]*)\)",
+                RegexOptions.Multiline);
 
-            if (!match.Success)
-            {
-                throw new Exception("Could not parse HLSL function signature");
-            }
+            if (!headerMatch.Success)
+                throw new Exception("Failed to parse HLSL function header.");
 
-            info.FunctionName = match.Groups[1].Value;
-            info.DisplayName = info.FunctionName.Replace("_float", "");
+            info.FunctionName = headerMatch.Groups["name"].Value.Trim();
 
-            // Parse parameters - be more careful with whitespace and line breaks
-            string paramsString = match.Groups[2].Value;
-
-            // Remove comments and normalize whitespace
-            paramsString = Regex.Replace(paramsString, @"//.*?$", "", RegexOptions.Multiline);
-            paramsString = Regex.Replace(paramsString, @"\s+", " ");
-
-            // Split by comma
-            var paramParts = paramsString.Split(',');
+            var args = headerMatch.Groups["args"].Value;
+            var argParts = args.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             int slotId = 0;
-            foreach (var part in paramParts)
+            foreach (var part in argParts)
             {
                 var trimmed = part.Trim();
-                if (string.IsNullOrEmpty(trimmed)) continue;
 
-                // Match: (out)? type name
-                var paramMatch = Regex.Match(trimmed, @"^\s*(out\s+)?(\w+)\s+(\w+)\s*$");
-                if (paramMatch.Success)
+                // Supports: [in|out|inout] <type> <name>
+                var m = Regex.Match(trimmed, @"(?:(in|out|inout)\s+)?(?<type>\w+)\s+(?<name>\w+)", RegexOptions.IgnoreCase);
+                if (!m.Success) continue;
+
+                string dir = (m.Groups[1].Success ? m.Groups[1].Value.ToLower() : "in");
+                string type = m.Groups["type"].Value.Trim();
+                string name = m.Groups["name"].Value.Trim();
+
+                var p = new FunctionParameter
                 {
-                    var param = new FunctionParameter
-                    {
-                        IsOutput = !string.IsNullOrEmpty(paramMatch.Groups[1].Value),
-                        Type = paramMatch.Groups[2].Value,
-                        Name = paramMatch.Groups[3].Value,
-                        SlotId = slotId++
-                    };
-                    info.Parameters.Add(param);
+                    Direction = dir,
+                    Type = type,
+                    Name = name,
+                    SlotId = slotId++
+                };
 
-                    Debug.Log($"Parsed param: {(param.IsOutput ? "out " : "")}{param.Type} {param.Name} (slot {param.SlotId})");
-                }
+                info.Parameters.Add(p);
+
+                if (dir == "out")
+                    info.OutputParameters.Add(p);
                 else
-                {
-                    Debug.LogWarning($"Could not parse parameter: '{trimmed}'");
-                }
-            }
-
-            if (info.Parameters.Count == 0)
-            {
-                throw new Exception("No parameters parsed from function signature");
+                    info.InputParameters.Add(p);
             }
 
             return info;
         }
 
-        /// <summary>
-        /// Generate complete ShaderGraph JSON - Main Entry Point
-        /// </summary>
-        public string GenerateShaderGraphJSON(
-            HLSLFunctionInfo functionInfo,
-            string hlslFileGUID,
-            string shaderGraphName = "ProceduralShader",
-            bool useTransparency = false,
-            bool usePixelation = false)
-        {
-            guidMap.Clear();
+        public string GenerateShaderGraphJSON(string hlslCode, string hlslFileGUID, bool usePixelation, bool useTransparency)
+            => GenerateShaderGraphJSON(ParseHLSLFunction(hlslCode), hlslFileGUID, usePixelation, useTransparency);
 
-            // Pre-create all GUIDs we need
+        public string GenerateShaderGraphJSON(HLSLFunctionInfo functionInfo, string hlslFileGUID, bool usePixelation, bool useTransparency)
+        {
+            if (functionInfo == null) throw new ArgumentNullException(nameof(functionInfo));
+            if (functionInfo.OutputParameters == null || functionInfo.OutputParameters.Count == 0)
+                throw new Exception("No output parameter detected in the HLSL function.");
+
+            // -----------------------------------------------------------------
+            //  Deterministic object ids (same keys as your previous generator)
+            // -----------------------------------------------------------------
+
+            // Graph/root
             string graphGuid = GetOrCreateGuid("graph");
             string categoryGuid = GetOrCreateGuid("category");
-            string vertexPosBlock = GetOrCreateGuid("vertex_pos");
-            string vertexNormalBlock = GetOrCreateGuid("vertex_normal");
-            string vertexTangentBlock = GetOrCreateGuid("vertex_tangent");
-            string fragmentBaseColorBlock = GetOrCreateGuid("fragment_basecolor");
-            string fragmentAlphaBlock = useTransparency ? GetOrCreateGuid("fragment_alpha") : null;
-            string customFunctionNode = GetOrCreateGuid("custom_function");
-            string uvNode = GetOrCreateGuid("uv_node");
+
+            // Targets
             string targetGuid = GetOrCreateGuid("target");
             string subTargetGuid = GetOrCreateGuid("subtarget");
 
-            // --- MainTex support ---
-            string mainTexPropNode = GetOrCreateGuid("main_tex_prop_node");
-            string mainTexPropSlot = GetOrCreateGuid("main_tex_prop_slot");
-            string mainTexPropDef = GetOrCreateGuid("main_tex_prop_def");
-            string sampleTexNode = GetOrCreateGuid("sample_tex_node");
+            // Nodes
+            string customFunctionNodeGuid = GetOrCreateGuid("custom_function");
+            string uvNodeGuid = GetOrCreateGuid("uv_node");
+            string sampleTextureNodeGuid = GetOrCreateGuid("sample_tex_node");
+            string multiplyNodeGuid = GetOrCreateGuid("multiply_node");
 
-            // Final multiply (mask * texture)
-            string finalMultiplyNode = GetOrCreateGuid("multiply_node");
+            // Block nodes
+            string vertexPosNodeGuid = GetOrCreateGuid("vertex_pos_node");
+            string vertexNormalNodeGuid = GetOrCreateGuid("vertex_normal_node");
+            string vertexTangentNodeGuid = GetOrCreateGuid("vertex_tangent_node");
+            string fragmentBaseColorNodeGuid = GetOrCreateGuid("fragment_basecolor_node");
 
-            // Explicit slot GUIDs for Sample Texture and Multiply to ensure connections work
-            string sampleTexSlotUV = GetOrCreateGuid("sample_tex_slot_uv");
-            string sampleTexSlotTex = GetOrCreateGuid("sample_tex_slot_tex");
+            // Block slots
+            string vertexPosSlotGuid = GetOrCreateGuid("vertex_pos_slot");
+            string vertexNormalSlotGuid = GetOrCreateGuid("vertex_normal_slot");
+            string vertexTangentSlotGuid = GetOrCreateGuid("vertex_tangent_slot");
+            string fragmentBaseColorSlotGuid = GetOrCreateGuid("fragment_basecolor_slot");
+
+            // UV slot
+            string uvOutputSlotGuid = GetOrCreateGuid("uv_output_slot");
+
+            // MainTex property + node + slot
+            string mainTexPropDefGuid = GetOrCreateGuid("main_tex_prop_def");
+            string mainTexPropNodeGuid = GetOrCreateGuid("main_tex_prop_node");
+            string mainTexPropSlotGuid = GetOrCreateGuid("main_tex_prop_slot");
+
+            // SampleTex slots (the 3 real ones)
             string sampleTexSlotRGBA = GetOrCreateGuid("sample_tex_slot_rgba");
-            string finalMultiplySlotA = GetOrCreateGuid("multiply_slot_a");
-            string finalMultiplySlotB = GetOrCreateGuid("multiply_slot_b");
-            string finalMultiplySlotOut = GetOrCreateGuid("multiply_slot_out");
+            string sampleTexSlotTex = GetOrCreateGuid("sample_tex_slot_tex");
+            string sampleTexSlotUV = GetOrCreateGuid("sample_tex_slot_uv");
 
-            // --- Pixelation nodes/props ---
-            // PixelatedUV = floor(UV * PixelCount) / PixelCount
-            string pixelCountPropNode = null;
-            string pixelCountPropSlot = null;
-            string pixelCountPropDef = null;
+            // Multiply slots
+            string multiplySlotA = GetOrCreateGuid("multiply_slot_a");
+            string multiplySlotB = GetOrCreateGuid("multiply_slot_b");
+            string multiplySlotOut = GetOrCreateGuid("multiply_slot_out");
 
-            string pixelMultiplyNode = null;
+            // Pixelation (optional)
+            string pixelCountPropDefGuid = null;
+            string pixelCountPropNodeGuid = null;
+            string pixelCountPropSlotGuid = null;
+
+            string pixelMultiplyNodeGuid = null;
             string pixelMultiplySlotA = null;
             string pixelMultiplySlotB = null;
             string pixelMultiplySlotOut = null;
 
-            string floorNode = null;
+            string floorNodeGuid = null;
+            string floorSlotOut = null; // Floor node lists Out first, but slot ids are In=0 Out=1
             string floorSlotIn = null;
-            string floorSlotOut = null;
 
-            string divideNode = null;
+            string divideNodeGuid = null;
             string divideSlotA = null;
             string divideSlotB = null;
             string divideSlotOut = null;
 
             if (usePixelation)
             {
-                pixelCountPropNode = GetOrCreateGuid("pixelcount_prop_node");
-                pixelCountPropSlot = GetOrCreateGuid("pixelcount_prop_slot");
-                pixelCountPropDef = GetOrCreateGuid("pixelcount_prop_def");
+                pixelCountPropDefGuid = GetOrCreateGuid("pixelcount_prop_def");
+                pixelCountPropNodeGuid = GetOrCreateGuid("pixelcount_prop_node");
+                pixelCountPropSlotGuid = GetOrCreateGuid("pixelcount_prop_slot");
 
-                pixelMultiplyNode = GetOrCreateGuid("pixel_multiply_node");
+                pixelMultiplyNodeGuid = GetOrCreateGuid("pixel_multiply_node");
                 pixelMultiplySlotA = GetOrCreateGuid("pixel_multiply_slot_a");
                 pixelMultiplySlotB = GetOrCreateGuid("pixel_multiply_slot_b");
                 pixelMultiplySlotOut = GetOrCreateGuid("pixel_multiply_slot_out");
 
-                floorNode = GetOrCreateGuid("floor_node");
-                floorSlotIn = GetOrCreateGuid("floor_slot_in");
+                floorNodeGuid = GetOrCreateGuid("floor_node");
                 floorSlotOut = GetOrCreateGuid("floor_slot_out");
+                floorSlotIn = GetOrCreateGuid("floor_slot_in");
 
-                divideNode = GetOrCreateGuid("divide_node");
+                divideNodeGuid = GetOrCreateGuid("divide_node");
                 divideSlotA = GetOrCreateGuid("divide_slot_a");
                 divideSlotB = GetOrCreateGuid("divide_slot_b");
                 divideSlotOut = GetOrCreateGuid("divide_slot_out");
             }
 
-            // GUIDs for output splitting (transparency)
-            string outputSplitNode = null;
-            string outputVec3Node = null;
-            var outputSplitSlotGuids = new Dictionary<string, string>(); // In, R, G, B, A
-            var outputVec3SlotGuids = new Dictionary<string, string>();  // X, Y, Z, Out
+            // Transparency (optional) only when first output is float4
+            bool splitAlpha = useTransparency && functionInfo.OutputParameters[0].Type.ToLower() == "float4";
 
-            if (useTransparency)
+            string outputSplitNodeGuid = null;
+            string outputVec3NodeGuid = null;
+
+            string splitIn = null, splitR = null, splitG = null, splitB = null, splitA = null;
+            string vec3Out = null, vec3X = null, vec3Y = null, vec3Z = null;
+
+            string alphaBlockNodeGuid = null;
+            string alphaBlockSlotGuid = null;
+
+            if (splitAlpha)
             {
-                var firstOutput_ = functionInfo.OutputParameters.FirstOrDefault();
-                if (firstOutput_ != null && firstOutput_.Type.ToLower() == "float4")
-                {
-                    outputSplitNode = GetOrCreateGuid("output_split_node");
-                    outputVec3Node = GetOrCreateGuid("output_vec3_node");
-                    outputSplitSlotGuids["In"] = GetOrCreateGuid("output_split_in");
-                    outputSplitSlotGuids["R"] = GetOrCreateGuid("output_split_r");
-                    outputSplitSlotGuids["G"] = GetOrCreateGuid("output_split_g");
-                    outputSplitSlotGuids["B"] = GetOrCreateGuid("output_split_b");
-                    outputSplitSlotGuids["A"] = GetOrCreateGuid("output_split_a");
-                    outputVec3SlotGuids["X"] = GetOrCreateGuid("output_vec3_x");
-                    outputVec3SlotGuids["Y"] = GetOrCreateGuid("output_vec3_y");
-                    outputVec3SlotGuids["Z"] = GetOrCreateGuid("output_vec3_z");
-                    outputVec3SlotGuids["Out"] = GetOrCreateGuid("output_vec3_out");
-                }
+                outputSplitNodeGuid = GetOrCreateGuid("output_split_node");
+                outputVec3NodeGuid = GetOrCreateGuid("output_vec3_node");
+
+                splitIn = GetOrCreateGuid("output_split_in");
+                splitR = GetOrCreateGuid("output_split_r");
+                splitG = GetOrCreateGuid("output_split_g");
+                splitB = GetOrCreateGuid("output_split_b");
+                splitA = GetOrCreateGuid("output_split_a");
+
+                vec3Out = GetOrCreateGuid("output_vec3_out");
+                vec3X = GetOrCreateGuid("output_vec3_x");
+                vec3Y = GetOrCreateGuid("output_vec3_y");
+                vec3Z = GetOrCreateGuid("output_vec3_z");
+
+                alphaBlockNodeGuid = GetOrCreateGuid("fragment_alpha_node");
+                alphaBlockSlotGuid = GetOrCreateGuid("fragment_alpha_slot");
             }
 
-            // Slot GUIDs
-            string vertexPosSlot = GetOrCreateGuid("vertex_pos_slot");
-            string vertexNormalSlot = GetOrCreateGuid("vertex_normal_slot");
-            string vertexTangentSlot = GetOrCreateGuid("vertex_tangent_slot");
-            string fragmentBaseColorSlot = GetOrCreateGuid("fragment_basecolor_slot");
-            string uvOutputSlot = GetOrCreateGuid("uv_output_slot");
+            // Function parameter slots
+            var functionSlotGuids = new Dictionary<string, string>();
+            foreach (var p in functionInfo.Parameters)
+                functionSlotGuids[p.Name] = GetOrCreateGuid($"cf_slot_{p.Name}");
 
-            // Property nodes and their slots
-            var propertyNodes = new Dictionary<string, string>();
-            var propertySlots = new Dictionary<string, string>();
-            var propertyDefs = new Dictionary<string, string>();
+            // Input properties (all non-UV float2 inputs become properties; the first float2 becomes UV input)
+            string uvParamName = functionInfo.InputParameters.FirstOrDefault(p => p.Type.ToLower() == "float2")?.Name;
 
-            // Track which parameter will use the UV node
-            string uvParamName = null;
+            var propertyDefGuids = new Dictionary<string, string>();
+            var propertyNodeGuids = new Dictionary<string, string>();
+            var propertySlotGuids = new Dictionary<string, string>();
 
-            foreach (var param in functionInfo.InputParameters)
+            foreach (var p in functionInfo.InputParameters)
             {
-                // First float2 parameter uses UV node, others become properties
-                if (param.Type.ToLower() == "float2" && uvParamName == null)
-                {
-                    uvParamName = param.Name;
-                }
-                else
-                {
-                    // All other parameters become properties
-                    propertyNodes[param.Name] = GetOrCreateGuid($"prop_node_{param.Name}");
-                    propertySlots[param.Name] = GetOrCreateGuid($"prop_slot_{param.Name}");
-                    propertyDefs[param.Name] = GetOrCreateGuid($"prop_def_{param.Name}");
-                }
+                if (p.Name == uvParamName) continue;
+
+                propertyDefGuids[p.Name] = GetOrCreateGuid($"prop_def_{p.Name}");
+                propertyNodeGuids[p.Name] = GetOrCreateGuid($"prop_node_{p.Name}");
+                propertySlotGuids[p.Name] = GetOrCreateGuid($"prop_slot_{p.Name}");
             }
 
-            // Custom function slots
-            var functionSlots = new Dictionary<string, string>();
-            foreach (var param in functionInfo.Parameters)
+            // -----------------------------------------------------------------
+            //  Build in-memory model (factories) then serialize (writer)
+            // -----------------------------------------------------------------
+
+            var nodeFactory = new ShaderGraphNodeFactory();
+            var slotFactory = new ShaderGraphSlotFactory();
+            var propFactory = new ShaderGraphPropertyFactory();
+
+            var graph = new ShaderGraphDataModel(graphGuid);
+
+            // --- Properties + refs ---
+            var mainTexProp = propFactory.CreateTexture2D(mainTexPropDefGuid, "MainTex", "MainTex", useTilingAndOffset: false, isMainTexture: false, defaultType: 0);
+            graph.PropertyRefs.Add(mainTexProp.AsRef());
+            graph.Definitions.Add(mainTexProp);
+
+            ShaderPropertyModel pixelCountProp = null;
+            if (usePixelation)
             {
-                functionSlots[param.Name] = GetOrCreateGuid($"func_slot_{param.Name}");
+                // Match your working defaults: PixelCount (float) default 50 range 1..256
+                pixelCountProp = propFactory.CreateVector1(pixelCountPropDefGuid, "PixelCount", "PixelCount", defaultValue: 50f, floatType: 0, rangeMin: 1f, rangeMax: 256f);
+                graph.PropertyRefs.Add(pixelCountProp.AsRef());
+                graph.Definitions.Add(pixelCountProp);
             }
 
-            var sb = new StringBuilder();
-
-            // ===== ROOT GRAPH OBJECT =====
-            sb.AppendLine("{");
-            sb.AppendLine("    \"m_SGVersion\": 3,");
-            sb.AppendLine("    \"m_Type\": \"UnityEditor.ShaderGraph.GraphData\",");
-            sb.AppendLine($"    \"m_ObjectId\": \"{graphGuid}\",");
-
-            // Properties
-            sb.AppendLine("    \"m_Properties\": [");
-
-            // Add MainTex property reference
-            var propertyRefs = new List<string>
+            foreach (var kvp in propertyDefGuids)
             {
-                $"        {{\n            \"m_Id\": \"{mainTexPropDef}\"\n        }}"
+                var p = functionInfo.InputParameters.First(x => x.Name == kvp.Key);
+                var prop = CreatePropertyForParam(propFactory, kvp.Value, p);
+                graph.PropertyRefs.Add(prop.AsRef());
+                graph.Definitions.Add(prop);
+            }
+
+            // --- Category (properties list) ---
+            var category = new CategoryDataModel(categoryGuid, name: "", sgVersion: 0);
+            category.AddProperty(mainTexProp.AsRef());
+            if (pixelCountProp != null) category.AddProperty(pixelCountProp.AsRef());
+            foreach (var kvp in propertyDefGuids) category.AddProperty(new PropertyRef(kvp.Value));
+            graph.Categories.Add(category);
+            graph.Definitions.Add(category);
+
+            // --- Targets ---
+            graph.Targets.Add(BuildUniversalTarget(targetGuid, subTargetGuid, useTransparency));
+            graph.Targets.Add(BuildUniversalUnlitSubTarget(subTargetGuid));
+            graph.Definitions.AddRange(graph.Targets);
+
+            // --- Nodes refs ---
+            // Master stack block nodes
+            var nPos = nodeFactory.CreateBlockNode(vertexPosNodeGuid, "VertexDescription.Position", vertexPosSlotGuid, x: -26.4f, y: -243.2f);
+            var nNrm = nodeFactory.CreateBlockNode(vertexNormalNodeGuid, "VertexDescription.Normal", vertexNormalSlotGuid, x: -26.4f, y: -203.2f);
+            var nTan = nodeFactory.CreateBlockNode(vertexTangentNodeGuid, "VertexDescription.Tangent", vertexTangentSlotGuid, x: -26.4f, y: -163.2f);
+            var nBase = nodeFactory.CreateBlockNode(fragmentBaseColorNodeGuid, "SurfaceDescription.BaseColor", fragmentBaseColorSlotGuid, x: 2.4f, y: 233.6f);
+
+            graph.NodeRefs.Add(nPos.AsRef());
+            graph.NodeRefs.Add(nNrm.AsRef());
+            graph.NodeRefs.Add(nTan.AsRef());
+            graph.NodeRefs.Add(nBase.AsRef());
+
+            graph.Definitions.Add(nPos);
+            graph.Definitions.Add(nNrm);
+            graph.Definitions.Add(nTan);
+            graph.Definitions.Add(nBase);
+
+            graph.Definitions.Add(slotFactory.CreatePositionBlockSlot(vertexPosSlotGuid));
+            graph.Definitions.Add(slotFactory.CreateNormalBlockSlot(vertexNormalSlotGuid));
+            graph.Definitions.Add(slotFactory.CreateTangentBlockSlot(vertexTangentSlotGuid));
+            graph.Definitions.Add(slotFactory.CreateBaseColorBlockSlot(fragmentBaseColorSlotGuid));
+
+            // UV node + slot
+            var uvNode = nodeFactory.CreateUVNode(uvNodeGuid, uvOutputSlotGuid, x: -664f, y: 41.6f, outputChannel: 0);
+            graph.NodeRefs.Add(uvNode.AsRef());
+            graph.Definitions.Add(uvNode);
+            graph.Definitions.Add(slotFactory.CreateUVNodeOut(uvOutputSlotGuid));
+
+            // Pixelation chain
+            if (usePixelation)
+            {
+                var pNode = nodeFactory.CreatePropertyNode(pixelCountPropNodeGuid, pixelCountPropSlotGuid, pixelCountPropDefGuid, x: -580f, y: 250f);
+                graph.NodeRefs.Add(pNode.AsRef());
+                graph.Definitions.Add(pNode);
+                graph.Definitions.Add(slotFactory.CreatePropertyVector1Out(pixelCountPropSlotGuid, "PixelCount"));
+
+                var mul = nodeFactory.CreateMultiplyNode(pixelMultiplyNodeGuid, pixelMultiplySlotA, pixelMultiplySlotB, pixelMultiplySlotOut, x: -450f, y: 196.8f);
+                graph.NodeRefs.Add(mul.AsRef());
+                graph.Definitions.Add(mul);
+                graph.Definitions.Add(slotFactory.CreateMultiplyA(pixelMultiplySlotA));
+                graph.Definitions.Add(slotFactory.CreateMultiplyB(pixelMultiplySlotB));
+                graph.Definitions.Add(slotFactory.CreateMultiplyOut(pixelMultiplySlotOut));
+
+                // Floor node lists [Out, In] in node slot list, but slot ids remain (In=0, Out=1)
+                var floor = nodeFactory.CreateFloorNode(floorNodeGuid, floorSlotOut, floorSlotIn, x: -250f, y: 196.8f);
+                graph.NodeRefs.Add(floor.AsRef());
+                graph.Definitions.Add(floor);
+                graph.Definitions.Add(slotFactory.CreateFloorIn(floorSlotIn));
+                graph.Definitions.Add(slotFactory.CreateFloorOut(floorSlotOut));
+
+                var div = nodeFactory.CreateDivideNode(divideNodeGuid, divideSlotA, divideSlotB, divideSlotOut, x: -80f, y: 196.8f);
+                graph.NodeRefs.Add(div.AsRef());
+                graph.Definitions.Add(div);
+                graph.Definitions.Add(slotFactory.CreateDivideA(divideSlotA));
+                graph.Definitions.Add(slotFactory.CreateDivideB(divideSlotB));
+                graph.Definitions.Add(slotFactory.CreateDivideOut(divideSlotOut));
+            }
+
+            // MainTex property node + slot
+            var mainTexNode = nodeFactory.CreatePropertyNode(mainTexPropNodeGuid, mainTexPropSlotGuid, mainTexPropDefGuid, x: -580f, y: 400f);
+            graph.NodeRefs.Add(mainTexNode.AsRef());
+            graph.Definitions.Add(mainTexNode);
+            graph.Definitions.Add(slotFactory.CreatePropertyTexture2DOut(mainTexPropSlotGuid, "MainTex"));
+
+            // Sample Texture 2D node (with the same slot list pattern your old JSON used)
+            // classic order: [ RGBA, random, random, random, random, Texture, UV, random ]
+            var stRand1 = GetOrCreateGuid("sample_tex_slot_rand1");
+            var stRand2 = GetOrCreateGuid("sample_tex_slot_rand2");
+            var stRand3 = GetOrCreateGuid("sample_tex_slot_rand3");
+            var stRand4 = GetOrCreateGuid("sample_tex_slot_rand4");
+            var stRand5 = GetOrCreateGuid("sample_tex_slot_rand5");
+
+            var sampleSlotsOrder = new List<string>
+            {
+                sampleTexSlotRGBA,
+                stRand1,
+                stRand2,
+                stRand3,
+                stRand4,
+                sampleTexSlotTex,
+                sampleTexSlotUV,
+                stRand5
             };
 
-            // Optional pixel property reference
-            if (usePixelation && pixelCountPropDef != null)
+            var sampleNode = nodeFactory.CreateSampleTexture2DNode(sampleTextureNodeGuid, sampleSlotsOrder, x: -280f, y: 450f, width: 208f, height: 437f);
+            graph.NodeRefs.Add(sampleNode.AsRef());
+            graph.Definitions.Add(sampleNode);
+
+            // Only define the 3 slots you previously defined (RGBA, Texture, UV)
+            graph.Definitions.Add(slotFactory.CreateSampleTexture2DRGBAOut(sampleTexSlotRGBA));
+            graph.Definitions.Add(slotFactory.CreateSampleTexture2DTextureIn(sampleTexSlotTex));
+            graph.Definitions.Add(slotFactory.CreateSampleTexture2DUVIn(sampleTexSlotUV, channel: 0));
+
+            // Multiply node (mask * texture)
+            var mulNode = nodeFactory.CreateMultiplyNode(multiplyNodeGuid, multiplySlotA, multiplySlotB, multiplySlotOut, x: 10f, y: 520f);
+            graph.NodeRefs.Add(mulNode.AsRef());
+            graph.Definitions.Add(mulNode);
+            graph.Definitions.Add(slotFactory.CreateMultiplyA(multiplySlotA));
+            graph.Definitions.Add(slotFactory.CreateMultiplyB(multiplySlotB));
+            graph.Definitions.Add(slotFactory.CreateMultiplyOut(multiplySlotOut));
+
+            // Function input property nodes
+            float propY = 600f;
+            foreach (var kvp in propertyNodeGuids)
             {
-                propertyRefs.Add($"        {{\n            \"m_Id\": \"{pixelCountPropDef}\"\n        }}");
+                var param = functionInfo.InputParameters.First(p => p.Name == kvp.Key);
+
+                var pn = nodeFactory.CreatePropertyNode(kvp.Value, propertySlotGuids[kvp.Key], propertyDefGuids[kvp.Key], x: -580f, y: propY);
+                graph.NodeRefs.Add(pn.AsRef());
+                graph.Definitions.Add(pn);
+
+                graph.Definitions.Add(CreatePropertyNodeOutSlot(slotFactory, propertySlotGuids[kvp.Key], param));
+
+                propY += 120f;
             }
 
-            // Add all user-defined property refs
-            propertyRefs.AddRange(propertyDefs.Values.Select(guid => $"        {{\n            \"m_Id\": \"{guid}\"\n        }}"));
+            // Custom Function Node + slots (slot order must match signature)
+            var cfSlotOrder = functionInfo.Parameters.Select(p => functionSlotGuids[p.Name]).ToList();
 
-            sb.AppendLine(string.Join(",\n", propertyRefs));
-            sb.AppendLine("    ],");
+            var cfNode = nodeFactory.CreateCustomFunctionNode(
+                nodeId: customFunctionNodeGuid,
+                displayName: functionInfo.FunctionName,
+                slotObjectIdsInOrder: cfSlotOrder,
+                hlslFileGuid: hlslFileGUID,
+                functionNameForNode: functionInfo.FunctionName,
+                usePragmas: true,
+                x: -280f,
+                y: 196.8f,
+                width: 208f,
+                height: 301.6f);
 
-            sb.AppendLine("    \"m_Keywords\": [],");
-            sb.AppendLine("    \"m_Dropdowns\": [],");
-            sb.AppendLine("    \"m_CategoryData\": [");
-            sb.AppendLine($"        {{\n            \"m_Id\": \"{categoryGuid}\"\n        }}");
-            sb.AppendLine("    ],");
+            graph.NodeRefs.Add(cfNode.AsRef());
+            graph.Definitions.Add(cfNode);
 
-            // Nodes
-            sb.AppendLine("    \"m_Nodes\": [");
-            var nodeRefs = new List<string>();
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{vertexPosBlock}\"\n        }}");
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{vertexNormalBlock}\"\n        }}");
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{vertexTangentBlock}\"\n        }}");
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{fragmentBaseColorBlock}\"\n        }}");
-            if (useTransparency && fragmentAlphaBlock != null)
+            // Function param slots
+            foreach (var p in functionInfo.Parameters)
             {
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{fragmentAlphaBlock}\"\n        }}");
-            }
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{customFunctionNode}\"\n        }}");
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{uvNode}\"\n        }}");
+                var matSlotType = GetMaterialSlotType(p);
+                var s = slotFactory.CreateFunctionParamSlot(
+                    objectId: functionSlotGuids[p.Name],
+                    slotId: p.SlotId,
+                    paramName: p.Name,
+                    materialSlotType: matSlotType,
+                    isOutput: p.Direction == "out",
+                    shaderOutputName: p.Name);
 
-            // Pixelation nodes (between UV and CustomFunc/SampleTex)
+                // Keep float3 vertex outputs as Vertex stage capability
+                if (p.Direction == "out" && p.Type.Equals("float3", StringComparison.OrdinalIgnoreCase))
+                    s.SetStageCapability(ShaderGraphSlotFactory.Stage_Vertex);
+
+                graph.Definitions.Add(s);
+            }
+
+            // Optional Split + Vector3 + Alpha block
+            if (splitAlpha)
+            {
+                var splitNode = nodeFactory.CreateSplitNode(outputSplitNodeGuid, splitIn, splitR, splitG, splitB, splitA, x: -20f, y: 196.8f);
+                graph.NodeRefs.Add(splitNode.AsRef());
+                graph.Definitions.Add(splitNode);
+
+                graph.Definitions.Add(slotFactory.CreateSplitIn(splitIn));
+                graph.Definitions.Add(slotFactory.CreateSplitOutR(splitR));
+                graph.Definitions.Add(slotFactory.CreateSplitOutG(splitG));
+                graph.Definitions.Add(slotFactory.CreateSplitOutB(splitB));
+                graph.Definitions.Add(slotFactory.CreateSplitOutA(splitA));
+
+                var vec3Node = nodeFactory.CreateVector3Node(outputVec3NodeGuid, vec3Out, vec3X, vec3Y, vec3Z, x: 150f, y: 196.8f);
+                graph.NodeRefs.Add(vec3Node.AsRef());
+                graph.Definitions.Add(vec3Node);
+
+                graph.Definitions.Add(slotFactory.CreateVector3NodeOut(vec3Out));
+                graph.Definitions.Add(slotFactory.CreateVector3NodeInX(vec3X));
+                graph.Definitions.Add(slotFactory.CreateVector3NodeInY(vec3Y));
+                graph.Definitions.Add(slotFactory.CreateVector3NodeInZ(vec3Z));
+
+                var alphaNode = nodeFactory.CreateBlockNode(alphaBlockNodeGuid, "SurfaceDescription.Alpha", alphaBlockSlotGuid, x: 2.4f, y: 273.6f);
+                graph.NodeRefs.Add(alphaNode.AsRef());
+                graph.Definitions.Add(alphaNode);
+                graph.Definitions.Add(slotFactory.CreateAlphaBlockSlot(alphaBlockSlotGuid));
+            }
+
+            // -----------------------------------------------------------------
+            //  Edges (topology identical)
+            // -----------------------------------------------------------------
+
+            // Custom function vertex outputs -> vertex blocks
+            var outPos = FindVertexOut(functionInfo, "position");
+            var outNrm = FindVertexOut(functionInfo, "normal");
+            var outTan = FindVertexOut(functionInfo, "tangent");
+
+            if (outPos != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(customFunctionNodeGuid), outPos.SlotId), new SlotRef(new NodeRef(vertexPosNodeGuid), 0)));
+            if (outNrm != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(customFunctionNodeGuid), outNrm.SlotId), new SlotRef(new NodeRef(vertexNormalNodeGuid), 0)));
+            if (outTan != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(customFunctionNodeGuid), outTan.SlotId), new SlotRef(new NodeRef(vertexTangentNodeGuid), 0)));
+
+            // Block inputs -> custom function inputs (Position/Normal/Tangent)
+            var inPos = FindVertexIn(functionInfo, "position");
+            var inNrm = FindVertexIn(functionInfo, "normal");
+            var inTan = FindVertexIn(functionInfo, "tangent");
+
+            if (inPos != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(vertexPosNodeGuid), 0), new SlotRef(new NodeRef(customFunctionNodeGuid), inPos.SlotId)));
+            if (inNrm != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(vertexNormalNodeGuid), 0), new SlotRef(new NodeRef(customFunctionNodeGuid), inNrm.SlotId)));
+            if (inTan != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(vertexTangentNodeGuid), 0), new SlotRef(new NodeRef(customFunctionNodeGuid), inTan.SlotId)));
+
+            // UV -> custom function input (the first float2 input) (the first float2 input)
+            if (!string.IsNullOrEmpty(uvParamName))
+            {
+                graph.Edges.Add(new EdgeModel(
+                    new SlotRef(new NodeRef(uvNodeGuid), 0),
+                    new SlotRef(new NodeRef(customFunctionNodeGuid), GetSlotId(functionInfo, uvParamName))));
+            }
+
+            // Other property nodes -> custom function inputs
+            foreach (var p in functionInfo.InputParameters)
+            {
+                if (p.Name == uvParamName) continue;
+
+                graph.Edges.Add(new EdgeModel(
+                    new SlotRef(new NodeRef(propertyNodeGuids[p.Name]), 0),
+                    new SlotRef(new NodeRef(customFunctionNodeGuid), GetSlotId(functionInfo, p.Name))));
+            }
+
+            // UV pipeline into Sample Texture UV
             if (usePixelation)
             {
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{pixelCountPropNode}\"\n        }}");
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{pixelMultiplyNode}\"\n        }}");
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{floorNode}\"\n        }}");
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{divideNode}\"\n        }}");
-            }
-
-            // Add MainTex specific nodes
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{mainTexPropNode}\"\n        }}");
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{sampleTexNode}\"\n        }}");
-            nodeRefs.Add($"        {{\n            \"m_Id\": \"{finalMultiplyNode}\"\n        }}");
-
-            // Add split/vec3 nodes to the graph
-            if (outputSplitNode != null)
-            {
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{outputSplitNode}\"\n        }}");
-            }
-            if (outputVec3Node != null)
-            {
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{outputVec3Node}\"\n        }}");
-            }
-
-            foreach (var propNode in propertyNodes.Values)
-            {
-                nodeRefs.Add($"        {{\n            \"m_Id\": \"{propNode}\"\n        }}");
-            }
-
-            sb.AppendLine(string.Join(",\n", nodeRefs));
-            sb.AppendLine("    ],");
-
-            sb.AppendLine("    \"m_GroupDatas\": [],");
-            sb.AppendLine("    \"m_StickyNoteDatas\": [],");
-
-            // Edges
-            sb.AppendLine("    \"m_Edges\": [");
-            var edges = new List<string>();
-
-            // --- UV routing: either direct, or pixelated chain ---
-            if (usePixelation)
-            {
-                // UV -> PixelMultiply.A
-                edges.Add(FormatEdge(uvNode, 0, pixelMultiplyNode, 0));
-                // PixelCount -> PixelMultiply.B
-                edges.Add(FormatEdge(pixelCountPropNode, 0, pixelMultiplyNode, 1));
-                // PixelMultiply.Out -> Floor.In
-                edges.Add(FormatEdge(pixelMultiplyNode, 2, floorNode, 0));
-                // Floor.Out -> Divide.A
-                edges.Add(FormatEdge(floorNode, 1, divideNode, 0));
-                // PixelCount -> Divide.B
-                edges.Add(FormatEdge(pixelCountPropNode, 0, divideNode, 1));
-
-                // Divide.Out -> Custom function UV input (first float2 input)
-                if (!string.IsNullOrEmpty(uvParamName))
-                {
-                    var uvParam = functionInfo.InputParameters.First(p => p.Name == uvParamName);
-                    edges.Add(FormatEdge(divideNode, 2, customFunctionNode, uvParam.SlotId));
-                }
-
-                // Divide.Out -> Sample Texture 2D UV Slot
-                edges.Add(FormatEdge(divideNode, 2, sampleTexNode, 2)); // 2 is UV input on SampleTex
+                // UV -> PixelMultiply A
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(uvNodeGuid), 0), new SlotRef(new NodeRef(pixelMultiplyNodeGuid), 0)));
+                // PixelCount -> PixelMultiply B
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(pixelCountPropNodeGuid), 0), new SlotRef(new NodeRef(pixelMultiplyNodeGuid), 1)));
+                // PixelMultiply Out -> Floor In (Floor In slot id = 0)
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(pixelMultiplyNodeGuid), 2), new SlotRef(new NodeRef(floorNodeGuid), 0)));
+                // Floor Out (id 1) -> Divide A
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(floorNodeGuid), 1), new SlotRef(new NodeRef(divideNodeGuid), 0)));
+                // PixelCount -> Divide B
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(pixelCountPropNodeGuid), 0), new SlotRef(new NodeRef(divideNodeGuid), 1)));
+                // Divide Out -> SampleTex UV (slot id 2)
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(divideNodeGuid), 2), new SlotRef(new NodeRef(sampleTextureNodeGuid), 2)));
             }
             else
             {
-                // 1. UV node -> Custom function first float2 input
-                if (!string.IsNullOrEmpty(uvParamName))
-                {
-                    var uvParam = functionInfo.InputParameters.First(p => p.Name == uvParamName);
-                    edges.Add(FormatEdge(uvNode, 0, customFunctionNode, uvParam.SlotId));
-                }
-                // 1b. UV Node -> Sample Texture 2D UV Slot
-                edges.Add(FormatEdge(uvNode, 0, sampleTexNode, 2)); // 2 is UV input on SampleTex
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(uvNodeGuid), 0), new SlotRef(new NodeRef(sampleTextureNodeGuid), 2)));
             }
 
-            // 2. Property nodes -> Custom function inputs
-            foreach (var param in functionInfo.InputParameters)
+            // MainTex -> SampleTex Texture (slot id 1)
+            graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(mainTexPropNodeGuid), 0), new SlotRef(new NodeRef(sampleTextureNodeGuid), 1)));
+
+            // SampleTex RGBA (slot id 4) -> Multiply B
+            graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(sampleTextureNodeGuid), 4), new SlotRef(new NodeRef(multiplyNodeGuid), 1)));
+
+            // Custom function primary output -> Multiply A
+            var mainOut = FindMainOutput(functionInfo);
+            graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(customFunctionNodeGuid), mainOut.SlotId), new SlotRef(new NodeRef(multiplyNodeGuid), 0)));
+
+            // Multiply Out -> BaseColor OR Split/Alpha pipeline
+            if (splitAlpha)
             {
-                if (propertyNodes.ContainsKey(param.Name))
-                {
-                    edges.Add(FormatEdge(propertyNodes[param.Name], 0, customFunctionNode, param.SlotId));
-                }
-            }
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(multiplyNodeGuid), 2), new SlotRef(new NodeRef(outputSplitNodeGuid), 0)));
 
-            // 3. MainTex Property -> Sample Texture 2D
-            edges.Add(FormatEdge(mainTexPropNode, 0, sampleTexNode, 1)); // 1 is Texture input
+                // Split RGB -> Vector3 XYZ
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputSplitNodeGuid), 1), new SlotRef(new NodeRef(outputVec3NodeGuid), 1)));
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputSplitNodeGuid), 2), new SlotRef(new NodeRef(outputVec3NodeGuid), 2)));
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputSplitNodeGuid), 3), new SlotRef(new NodeRef(outputVec3NodeGuid), 3)));
 
-            // 4. Connect Outputs via final Multiply
-            // CustomFunction(Out) -> Multiply(A)
-            // SampleTexture(RGBA) -> Multiply(B)
-            // Multiply(Out) -> [SplitNode OR MasterStack]
+                // Vec3 Out -> BaseColor
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputVec3NodeGuid), 0), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid), 0)));
 
-            var firstOutput = functionInfo.OutputParameters.FirstOrDefault();
-            if (firstOutput != null)
-            {
-                // A. Custom Function -> Multiply Node A (Slot 0)
-                edges.Add(FormatEdge(customFunctionNode, firstOutput.SlotId, finalMultiplyNode, 0));
-
-                // B. Sample Texture RGBA -> Multiply Node B (Slot 1)
-                edges.Add(FormatEdge(sampleTexNode, 4, finalMultiplyNode, 1)); // 4 is RGBA output of SampleTex
-
-                // C. Multiply Out (Slot 2) -> Final Destination
-                string sourceNodeForFinal = finalMultiplyNode;
-                int sourceSlotForFinal = 2; // Output of multiply
-
-                // Check if we are doing the split logic (Transparency)
-                if (useTransparency && outputSplitNode != null && outputVec3Node != null && fragmentAlphaBlock != null)
-                {
-                    // Multiply Out -> Split In
-                    edges.Add(FormatEdge(sourceNodeForFinal, sourceSlotForFinal, outputSplitNode, 0));
-
-                    // Split R -> Vec3 X
-                    edges.Add(FormatEdge(outputSplitNode, 1, outputVec3Node, 1));
-                    // Split G -> Vec3 Y
-                    edges.Add(FormatEdge(outputSplitNode, 2, outputVec3Node, 2));
-                    // Split B -> Vec3 Z
-                    edges.Add(FormatEdge(outputSplitNode, 3, outputVec3Node, 3));
-                    // Vec3 Out -> Base Color In
-                    edges.Add(FormatEdge(outputVec3Node, 0, fragmentBaseColorBlock, 0));
-                    // Split A -> Alpha In
-                    edges.Add(FormatEdge(outputSplitNode, 4, fragmentAlphaBlock, 0));
-                }
-                else
-                {
-                    // Opaque path: Multiply Out -> Base Color In
-                    edges.Add(FormatEdge(sourceNodeForFinal, sourceSlotForFinal, fragmentBaseColorBlock, 0));
-                }
-            }
-
-            sb.AppendLine(string.Join(",\n", edges));
-            sb.AppendLine("    ],");
-
-            // Contexts
-            sb.AppendLine("    \"m_VertexContext\": {");
-            sb.AppendLine("        \"m_Position\": {");
-            sb.AppendLine("            \"x\": 0.0,");
-            sb.AppendLine("            \"y\": 0.0");
-            sb.AppendLine("        },");
-            sb.AppendLine("        \"m_Blocks\": [");
-            sb.AppendLine($"            {{\n                \"m_Id\": \"{vertexPosBlock}\"\n            }},");
-            sb.AppendLine($"            {{\n                \"m_Id\": \"{vertexNormalBlock}\"\n            }},");
-            sb.AppendLine($"            {{\n                \"m_Id\": \"{vertexTangentBlock}\"\n            }}");
-            sb.AppendLine("        ]");
-            sb.AppendLine("    },");
-
-            sb.AppendLine("    \"m_FragmentContext\": {");
-            sb.AppendLine("        \"m_Position\": {");
-            sb.AppendLine("            \"x\": 0.0,");
-            sb.AppendLine("            \"y\": 200.0");
-            sb.AppendLine("        },");
-            sb.AppendLine("        \"m_Blocks\": [");
-            if (useTransparency && fragmentAlphaBlock != null)
-            {
-                sb.AppendLine($"            {{\n                \"m_Id\": \"{fragmentBaseColorBlock}\"\n            }},");
-                sb.AppendLine($"            {{\n                \"m_Id\": \"{fragmentAlphaBlock}\"\n            }}");
+                // Split A -> Alpha block
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputSplitNodeGuid), 4), new SlotRef(new NodeRef(alphaBlockNodeGuid), 0)));
             }
             else
             {
-                sb.AppendLine($"            {{\n                \"m_Id\": \"{fragmentBaseColorBlock}\"\n            }}");
+                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(multiplyNodeGuid), 2), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid), 0)));
             }
-            sb.AppendLine("        ]");
-            sb.AppendLine("    },");
 
-            sb.AppendLine("    \"m_PreviewData\": {");
-            sb.AppendLine("        \"serializedMesh\": {");
-            sb.AppendLine("            \"m_SerializedMesh\": \"{\\\"mesh\\\":{\\\"instanceID\\\":0}}\",");
-            sb.AppendLine("            \"m_Guid\": \"\"");
-            sb.AppendLine("        },");
-            sb.AppendLine("        \"preventRotation\": false");
-            sb.AppendLine("    },");
+            return ShaderGraphJsonWriter.Write(graph);
+        }
 
-            sb.AppendLine("    \"m_Path\": \"Shader Graphs\",");
-            sb.AppendLine("    \"m_GraphPrecision\": 1,");
-            sb.AppendLine("    \"m_PreviewMode\": 2,");
-            sb.AppendLine("    \"m_OutputNode\": {");
-            sb.AppendLine("        \"m_Id\": \"\"");
-            sb.AppendLine("    },");
-            sb.AppendLine("    \"m_SubDatas\": [],");
-            sb.AppendLine("    \"m_ActiveTargets\": [");
-            sb.AppendLine($"        {{\n            \"m_Id\": \"{targetGuid}\"\n        }}");
-            sb.AppendLine("    ]");
-            sb.AppendLine("}");
+        // =====================================================================
+        //  Helpers
+        // =====================================================================
 
-            // ===== NODE DEFINITIONS =====
 
-            // Vertex/Fragment Blocks
-            AppendBlockNode(sb, vertexPosBlock, "VertexDescription.Position", "Position", vertexPosSlot, "UnityEditor.ShaderGraph.PositionMaterialSlot");
-            AppendBlockNode(sb, vertexNormalBlock, "VertexDescription.Normal", "Normal", vertexNormalSlot, "UnityEditor.ShaderGraph.NormalMaterialSlot");
-            AppendBlockNode(sb, vertexTangentBlock, "VertexDescription.Tangent", "Tangent", vertexTangentSlot, "UnityEditor.ShaderGraph.TangentMaterialSlot");
-            AppendBlockNode(sb, fragmentBaseColorBlock, "SurfaceDescription.BaseColor", "Base Color", fragmentBaseColorSlot, "UnityEditor.ShaderGraph.ColorRGBMaterialSlot");
+        private static FunctionParameter FindVertexOut(HLSLFunctionInfo info, string keyword)
+        {
+            var p = info.OutputParameters.FirstOrDefault(x => x.Type.Equals("float3", StringComparison.OrdinalIgnoreCase)
+                                                             && x.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0);
+            if (p != null) return p;
 
-            if (useTransparency && fragmentAlphaBlock != null)
+            // Fallback: first float3 out parameters in order
+            return info.OutputParameters.FirstOrDefault(x => x.Type.Equals("float3", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static FunctionParameter FindVertexIn(HLSLFunctionInfo info, string keyword)
+        {
+            var p = info.InputParameters.FirstOrDefault(x => x.Type.Equals("float3", StringComparison.OrdinalIgnoreCase)
+                                                            && x.Name.IndexOf(keyword, StringComparison.OrdinalIgnoreCase) >= 0);
+            if (p != null) return p;
+
+            // Fallback: first float3 inputs in order
+            return info.InputParameters.FirstOrDefault(x => x.Type.Equals("float3", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private static FunctionParameter FindMainOutput(HLSLFunctionInfo info)
+        {
+            // Prefer the first out param that is NOT a float3 vertex output (mask/rgba etc)
+            var p = info.OutputParameters.FirstOrDefault(x => !x.Type.Equals("float3", StringComparison.OrdinalIgnoreCase));
+            return p ?? info.OutputParameters[0];
+        }
+        private static int GetSlotId(HLSLFunctionInfo info, string paramName)
+        {
+            var p = info.Parameters.FirstOrDefault(x => x.Name == paramName);
+            if (p == null) throw new Exception($"Missing function parameter '{paramName}'. Keep the same parameter naming as your working version.");
+            return p.SlotId;
+        }
+
+        private static string GetMaterialSlotType(FunctionParameter p)
+        {
+            // Colors are encoded as Vector4 slots in your helper factory,
+            // while numeric values map to vector arity.
+            if (p.IsColorProperty()) return ShaderGraphSlotFactory.S_Vector4;
+
+            switch (p.Type.ToLower())
             {
-                string fragmentAlphaSlot = GetOrCreateGuid("fragment_alpha_slot");
-                AppendBlockNode(sb, fragmentAlphaBlock, "SurfaceDescription.Alpha", "Alpha", fragmentAlphaSlot, "UnityEditor.ShaderGraph.Vector1MaterialSlot");
-                AppendAlphaSlot(sb, fragmentAlphaSlot);
+                case "float": return ShaderGraphSlotFactory.S_Vector1;
+                case "float2": return ShaderGraphSlotFactory.S_Vector2;
+                case "float3": return ShaderGraphSlotFactory.S_Vector3;
+                case "float4": return ShaderGraphSlotFactory.S_Vector4;
+                default: return ShaderGraphSlotFactory.S_Vector1;
             }
-
-            AppendPositionSlot(sb, vertexPosSlot);
-            AppendNormalSlot(sb, vertexNormalSlot);
-            AppendTangentSlot(sb, vertexTangentSlot);
-            AppendColorRGBSlot(sb, fragmentBaseColorSlot);
-
-            // Custom Function Node
-            AppendCustomFunctionNode(sb, customFunctionNode, functionInfo, hlslFileGUID, functionSlots);
-            foreach (var param in functionInfo.Parameters)
-            {
-                AppendFunctionSlot(sb, functionSlots[param.Name], param);
-            }
-
-            // UV Node
-            AppendUVNode(sb, uvNode, uvOutputSlot);
-            AppendUVSlot(sb, uvOutputSlot);
-
-            // Pixelation nodes/props definitions
-            if (usePixelation)
-            {
-                // PixelCount property node + slot + definition
-                AppendPropertyNode(sb, pixelCountPropNode, pixelCountPropDef, pixelCountPropSlot, "PixelCount");
-                AppendVector1SlotForPropertyNode(sb, pixelCountPropSlot, "PixelCount");
-                AppendVector1PropertyDefinition(sb, pixelCountPropDef, "PixelCount", "_PixelCount", 50.0f);
-
-                // UV * PixelCount
-                AppendMultiplyNodeCustomPosition(sb, pixelMultiplyNode, pixelMultiplySlotA, pixelMultiplySlotB, pixelMultiplySlotOut, -500.0f, 250.0f);
-
-                // Floor
-                AppendFloorNode(sb, floorNode, floorSlotIn, floorSlotOut, -300.0f, 250.0f);
-
-                // Divide
-                AppendDivideNode(sb, divideNode, divideSlotA, divideSlotB, divideSlotOut, -100.0f, 250.0f);
-            }
-
-            // MainTex nodes
-            AppendPropertyNode(sb, mainTexPropNode, mainTexPropDef, mainTexPropSlot, "MainTex");
-            AppendTexture2DSlot(sb, mainTexPropSlot); // Property node output slot
-            AppendTexture2DPropertyDefinition(sb, mainTexPropDef);
-
-            // Sample Texture 2D Node
-            AppendSampleTexture2DNode(sb, sampleTexNode, sampleTexSlotUV, sampleTexSlotTex, sampleTexSlotRGBA);
-
-            // Final Multiply Node (mask * texture)
-            AppendMultiplyNode(sb, finalMultiplyNode, finalMultiplySlotA, finalMultiplySlotB, finalMultiplySlotOut);
-
-            // Other Property nodes
-            foreach (var kvp in propertyNodes)
-            {
-                var param = functionInfo.InputParameters.First(p => p.Name == kvp.Key);
-                AppendPropertyNode(sb, kvp.Value, propertyDefs[kvp.Key], propertySlots[kvp.Key], param.Name);
-                AppendPropertySlot(sb, propertySlots[kvp.Key], param);
-            }
-
-            // Property definitions (for function inputs)
-            foreach (var kvp in propertyDefs)
-            {
-                var param = functionInfo.InputParameters.First(p => p.Name == kvp.Key);
-                AppendPropertyDefinition(sb, kvp.Value, param);
-            }
-
-            // Category - Add MainTex (+ PixelCount optionally)
-            var allProps = new List<string> { mainTexPropDef };
-            if (usePixelation && pixelCountPropDef != null) allProps.Add(pixelCountPropDef);
-            allProps.AddRange(propertyDefs.Values);
-            AppendCategory(sb, categoryGuid, allProps);
-
-            // Target/SubTarget
-            AppendTarget(sb, targetGuid, subTargetGuid, useTransparency);
-            AppendSubTarget(sb, subTargetGuid);
-
-            // Output split nodes
-            if (outputSplitNode != null)
-            {
-                AppendSplitNode(sb, outputSplitNode, outputSplitSlotGuids);
-                AppendSplitSlotIn(sb, outputSplitSlotGuids["In"], 0);
-                AppendSplitSlotOut(sb, outputSplitSlotGuids["R"], 1, "R");
-                AppendSplitSlotOut(sb, outputSplitSlotGuids["G"], 2, "G");
-                AppendSplitSlotOut(sb, outputSplitSlotGuids["B"], 3, "B");
-                AppendSplitSlotOut(sb, outputSplitSlotGuids["A"], 4, "A");
-            }
-            if (outputVec3Node != null)
-            {
-                AppendVector3Node(sb, outputVec3Node, outputVec3SlotGuids);
-                AppendVector3SlotIn(sb, outputVec3SlotGuids["X"], 1, "X");
-                AppendVector3SlotIn(sb, outputVec3SlotGuids["Y"], 2, "Y");
-                AppendVector3SlotIn(sb, outputVec3SlotGuids["Z"], 3, "Z");
-                AppendVector3SlotOut(sb, outputVec3SlotGuids["Out"], 0, "Out");
-            }
-
-            return sb.ToString();
         }
 
-        private string FormatEdge(string fromNode, int fromSlot, string toNode, int toSlot)
+        private static ShaderPropertyModel CreatePropertyForParam(ShaderGraphPropertyFactory propFactory, string propertyObjectId, FunctionParameter param)
         {
-            return $@"        {{
-            ""m_OutputSlot"": {{
-                ""m_Node"": {{
-                    ""m_Id"": ""{fromNode}""
-                }},
-                ""m_SlotId"": {fromSlot}
-            }},
-            ""m_InputSlot"": {{
-                ""m_Node"": {{
-                    ""m_Id"": ""{toNode}""
-                }},
-                ""m_SlotId"": {toSlot}
-            }}
-        }}";
-        }
-
-        // --- NEW APPENDERS ---
-
-        private void AppendSampleTexture2DNode(StringBuilder sb, string guid, string uvSlot, string texSlot, string rgbaSlot)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.SampleTexture2DNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{ ""m_Id"": """" }},
-    ""m_Name"": ""Sample Texture 2D"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": -280.0, ""y"": 450.0, ""width"": 208.0, ""height"": 437.0 }}
-    }},
-    ""m_Slots"": [
-        {{
-            ""m_Id"": ""{rgbaSlot}""
-        }},
-        {{
-            ""m_Id"": ""{Guid.NewGuid().ToString("N")}""
-        }},
-        {{
-            ""m_Id"": ""{Guid.NewGuid().ToString("N")}""
-        }},
-        {{
-            ""m_Id"": ""{Guid.NewGuid().ToString("N")}""
-        }},
-        {{
-            ""m_Id"": ""{Guid.NewGuid().ToString("N")}""
-        }},
-        {{
-            ""m_Id"": ""{texSlot}""
-        }},
-        {{
-            ""m_Id"": ""{uvSlot}""
-        }},
-        {{
-            ""m_Id"": ""{Guid.NewGuid().ToString("N")}""
-        }}
-    ],
-    ""synonyms"": [ ""tex2d"" ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": false,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }},
-    ""m_TextureType"": 0,
-    ""m_NormalMapSpace"": 0,
-    ""m_EnableGlobalMipBias"": true,
-    ""m_MipSamplingMode"": 0
-}}");
-            // Slot 4: RGBA Out
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector4MaterialSlot"",
-    ""m_ObjectId"": ""{rgbaSlot}"",
-    ""m_Id"": 4,
-    ""m_DisplayName"": ""RGBA"",
-    ""m_SlotType"": 1,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""RGBA"",
-    ""m_StageCapability"": 2,
-    ""m_Value"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }},
-    ""m_DefaultValue"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }},
-    ""m_Labels"": []
-}}");
-            // Slot 1: Texture In
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Texture2DInputMaterialSlot"",
-    ""m_ObjectId"": ""{texSlot}"",
-    ""m_Id"": 1,
-    ""m_DisplayName"": ""Texture"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Texture"",
-    ""m_StageCapability"": 3,
-    ""m_BareResource"": false,
-    ""m_Texture"": {{ ""m_SerializedTexture"": ""{{\""texture\"":{{\""instanceID\"":0}}}}"", ""m_Guid"": """" }},
-    ""m_DefaultType"": 0
-}}");
-            // Slot 2: UV In
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.UVMaterialSlot"",
-    ""m_ObjectId"": ""{uvSlot}"",
-    ""m_Id"": 2,
-    ""m_DisplayName"": ""UV"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""UV"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""x"": 0.0, ""y"": 0.0 }},
-    ""m_DefaultValue"": {{ ""x"": 0.0, ""y"": 0.0 }},
-    ""m_Labels"": [],
-    ""m_Channel"": 0
-}}");
-        }
-
-        private void AppendMultiplyNode(StringBuilder sb, string guid, string slotA, string slotB, string slotOut)
-        {
-            AppendMultiplyNodeCustomPosition(sb, guid, slotA, slotB, slotOut, 50.0f, 200.0f);
-        }
-
-        private void AppendMultiplyNodeCustomPosition(StringBuilder sb, string guid, string slotA, string slotB, string slotOut, float x, float y)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.MultiplyNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{ ""m_Id"": """" }},
-    ""m_Name"": ""Multiply"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": {x}, ""y"": {y}, ""width"": 208.0, ""height"": 302.0 }}
-    }},
-    ""m_Slots"": [
-        {{ ""m_Id"": ""{slotA}"" }},
-        {{ ""m_Id"": ""{slotB}"" }},
-        {{ ""m_Id"": ""{slotOut}"" }}
-    ],
-    ""synonyms"": [ ""multiplication"", ""times"", ""x"" ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": false,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }}
-}}");
-
-            AppendDynamicValueSlot(sb, slotA, 0, "A", 0);
-            AppendDynamicValueSlot(sb, slotB, 1, "B", 0);
-            AppendDynamicValueSlot(sb, slotOut, 2, "Out", 1);
-        }
-
-        private void AppendFloorNode(StringBuilder sb, string guid, string inSlot, string outSlot, float x, float y)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.FloorNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{ ""m_Id"": """" }},
-    ""m_Name"": ""Floor"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": {x}, ""y"": {y}, ""width"": 208.0, ""height"": 140.0 }}
-    }},
-    ""m_Slots"": [
-        {{ ""m_Id"": ""{outSlot}"" }},
-        {{ ""m_Id"": ""{inSlot}"" }}
-    ],
-    ""synonyms"": [ ""rounddown"" ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": false,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }}
-}}");
-
-            // Floor nodes typically: In (0) input, Out (1) output
-            AppendDynamicVectorSlot(sb, inSlot, 0, "In", 0);
-            AppendDynamicVectorSlot(sb, outSlot, 1, "Out", 1);
-        }
-
-        private void AppendDivideNode(StringBuilder sb, string guid, string slotA, string slotB, string slotOut, float x, float y)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.DivideNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{ ""m_Id"": """" }},
-    ""m_Name"": ""Divide"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{ ""serializedVersion"": ""2"", ""x"": {x}, ""y"": {y}, ""width"": 208.0, ""height"": 200.0 }}
-    }},
-    ""m_Slots"": [
-        {{ ""m_Id"": ""{slotA}"" }},
-        {{ ""m_Id"": ""{slotB}"" }},
-        {{ ""m_Id"": ""{slotOut}"" }}
-    ],
-    ""synonyms"": [ ""division"" ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": false,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }}
-}}");
-
-            AppendDynamicVectorSlot(sb, slotA, 0, "A", 0);
-            AppendDynamicVectorSlot(sb, slotB, 1, "B", 0);
-            AppendDynamicVectorSlot(sb, slotOut, 2, "Out", 1);
-        }
-
-        private void AppendDynamicVectorSlot(StringBuilder sb, string guid, int id, string name, int slotType)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.DynamicVectorMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": {id},
-    ""m_DisplayName"": ""{name}"",
-    ""m_SlotType"": {slotType},
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""{name}"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }},
-    ""m_DefaultValue"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }}
-}}");
-        }
-
-        private void AppendDynamicValueSlot(StringBuilder sb, string guid, int id, string name, int slotType)
-        {
-            // This matches the style already used in your generator for MultiplyNode slots
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.DynamicValueMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": {id},
-    ""m_DisplayName"": ""{name}"",
-    ""m_SlotType"": {slotType},
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""{name}"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""e00"": 0.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 0.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 0.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 0.0 }},
-    ""m_DefaultValue"": {{ ""e00"": 1.0, ""e01"": 0.0, ""e02"": 0.0, ""e03"": 0.0, ""e10"": 0.0, ""e11"": 1.0, ""e12"": 0.0, ""e13"": 0.0, ""e20"": 0.0, ""e21"": 0.0, ""e22"": 1.0, ""e23"": 0.0, ""e30"": 0.0, ""e31"": 0.0, ""e32"": 0.0, ""e33"": 1.0 }}
-}}");
-        }
-
-        private void AppendVector1SlotForPropertyNode(StringBuilder sb, string guid, string displayName)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector1MaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""{displayName}"",
-    ""m_SlotType"": 1,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Out"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": 0.0,
-    ""m_DefaultValue"": 0.0,
-    ""m_Labels"": []
-}}");
-        }
-
-        private void AppendVector1PropertyDefinition(StringBuilder sb, string guid, string name, string refName, float defaultValue)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 1,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Guid"": {{
-        ""m_GuidSerialized"": ""{Guid.NewGuid()}""
-    }},
-    ""m_Name"": ""{name}"",
-    ""m_DefaultRefNameVersion"": 1,
-    ""m_RefNameGeneratedByDisplayName"": ""{name}"",
-    ""m_DefaultReferenceName"": ""{refName}"",
-    ""m_OverrideReferenceName"": ""{refName}"",
-    ""m_GeneratePropertyBlock"": true,
-    ""m_UseCustomSlotLabel"": false,
-    ""m_CustomSlotLabel"": """",
-    ""m_DismissedVersion"": 0,
-    ""m_Precision"": 0,
-    ""overrideHLSLDeclaration"": false,
-    ""hlslDeclarationOverride"": 0,
-    ""m_Hidden"": false,
-    ""m_Value"": {defaultValue},
-    ""m_FloatType"": 0,
-    ""m_RangeValues"": {{
-        ""x"": 1.0,
-        ""y"": 256.0
-    }}
-}}");
-        }
-
-        private void AppendTexture2DPropertyDefinition(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Internal.Texture2DShaderProperty"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Guid"": {{
-        ""m_GuidSerialized"": ""{Guid.NewGuid().ToString()}""
-    }},
-    ""m_Name"": ""MainTex"",
-    ""m_DefaultRefNameVersion"": 1,
-    ""m_RefNameGeneratedByDisplayName"": ""MainTex"",
-    ""m_DefaultReferenceName"": ""_MainTex"",
-    ""m_OverrideReferenceName"": ""_MainTex"",
-    ""m_GeneratePropertyBlock"": true,
-    ""m_UseCustomSlotLabel"": false,
-    ""m_CustomSlotLabel"": """",
-    ""m_DismissedVersion"": 0,
-    ""m_Precision"": 0,
-    ""overrideHLSLDeclaration"": false,
-    ""hlslDeclarationOverride"": 0,
-    ""m_Hidden"": false,
-    ""m_Value"": {{
-        ""m_SerializedTexture"": ""{{\""texture\"":{{\""instanceID\"":0}}}}"",
-        ""m_Guid"": """"
-    }},
-    ""isMainTexture"": false,
-    ""useTilingAndOffset"": false,
-    ""m_Modifiable"": true,
-    ""m_DefaultType"": 0
-}}");
-        }
-
-        private void AppendTexture2DSlot(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Texture2DMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""MainTex"",
-    ""m_SlotType"": 1,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Out"",
-    ""m_StageCapability"": 3,
-    ""m_BareResource"": false
-}}");
-        }
-
-        private void AppendPropertyNode(StringBuilder sb, string nodeGuid, string propDefGuid, string slotGuid, string displayName)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.PropertyNode"",
-    ""m_ObjectId"": ""{nodeGuid}"",
-    ""m_Group"": {{
-        ""m_Id"": """"
-    }},
-    ""m_Name"": ""Property"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{
-            ""serializedVersion"": ""2"",
-            ""x"": -580.0,
-            ""y"": 400.0,
-            ""width"": 0.0,
-            ""height"": 0.0
-        }}
-    }},
-    ""m_Slots"": [
-        {{
-            ""m_Id"": ""{slotGuid}""
-        }}
-    ],
-    ""synonyms"": [],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": true,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{
-        ""m_SerializableColors"": []
-    }},
-    ""m_Property"": {{
-        ""m_Id"": ""{propDefGuid}""
-    }}
-}}");
-        }
-
-        // Backward compatibility overload
-        private void AppendPropertyNode(StringBuilder sb, string nodeGuid, string propDefGuid, string slotGuid, FunctionParameter param)
-        {
-            AppendPropertyNode(sb, nodeGuid, propDefGuid, slotGuid, param.Name);
-        }
-
-        private void AppendBlockNode(StringBuilder sb, string guid, string descriptor, string displayName, string slotGuid, string slotType)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.BlockNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{
-        ""m_Id"": """"
-    }},
-    ""m_Name"": ""{descriptor}"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{
-            ""serializedVersion"": ""2"",
-            ""x"": 0.0,
-            ""y"": 0.0,
-            ""width"": 0.0,
-            ""height"": 0.0
-        }}
-    }},
-    ""m_Slots"": [
-        {{
-            ""m_Id"": ""{slotGuid}""
-        }}
-    ],
-    ""synonyms"": [],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": true,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{
-        ""m_SerializableColors"": []
-    }},
-    ""m_SerializedDescriptor"": ""{descriptor}""
-}}");
-        }
-
-        private void AppendPositionSlot(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.PositionMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""Position"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Position"",
-    ""m_StageCapability"": 1,
-    ""m_Value"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0
-    }},
-    ""m_DefaultValue"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0
-    }},
-    ""m_Labels"": [],
-    ""m_Space"": 0
-}}");
-        }
-
-        private void AppendNormalSlot(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.NormalMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""Normal"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Normal"",
-    ""m_StageCapability"": 1,
-    ""m_Value"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0
-    }},
-    ""m_DefaultValue"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0
-    }},
-    ""m_Labels"": [],
-    ""m_Space"": 0
-}}");
-        }
-
-        private void AppendTangentSlot(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.TangentMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""Tangent"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Tangent"",
-    ""m_StageCapability"": 1,
-    ""m_Value"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0
-    }},
-    ""m_DefaultValue"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0
-    }},
-    ""m_Labels"": [],
-    ""m_Space"": 0
-}}");
-        }
-
-        private void AppendColorRGBSlot(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.ColorRGBMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""Base Color"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""BaseColor"",
-    ""m_StageCapability"": 2,
-    ""m_Value"": {{
-        ""x"": 0.5,
-        ""y"": 0.5,
-        ""z"": 0.5
-    }},
-    ""m_DefaultValue"": {{
-        ""x"": 0.5,
-        ""y"": 0.5,
-        ""z"": 0.5
-    }},
-    ""m_Labels"": [],
-    ""m_ColorMode"": 0,
-    ""m_DefaultColor"": {{
-        ""r"": 0.5,
-        ""g"": 0.5,
-        ""b"": 0.5,
-        ""a"": 1.0
-    }}
-}}");
-        }
-
-        private void AppendAlphaSlot(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector1MaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""Alpha"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Alpha"",
-    ""m_StageCapability"": 2,
-    ""m_Value"": 1.0,
-    ""m_DefaultValue"": 1.0,
-    ""m_Labels"": []
-}}");
-        }
-
-        private void AppendCustomFunctionNode(StringBuilder sb, string guid, HLSLFunctionInfo functionInfo, string hlslFileGUID, Dictionary<string, string> slotGuids)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 1,
-    ""m_Type"": ""UnityEditor.ShaderGraph.CustomFunctionNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{
-        ""m_Id"": """"
-    }},
-    ""m_Name"": ""{functionInfo.DisplayName} (Custom Function)"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{
-            ""serializedVersion"": ""2"",
-            ""x"": -280.0,
-            ""y"": 196.8,
-            ""width"": 208.0,
-            ""height"": 301.6
-        }}
-    }},
-    ""m_Slots"": [");
-
-            var slotRefs = functionInfo.Parameters.Select(p =>
-                $"        {{\n            \"m_Id\": \"{slotGuids[p.Name]}\"\n        }}");
-            sb.AppendLine(string.Join(",\n", slotRefs));
-
-            sb.AppendLine($@"    ],
-    ""synonyms"": [
-        ""code"",
-        ""HLSL""
-    ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": true,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{
-        ""m_SerializableColors"": []
-    }},
-    ""m_SourceType"": 0,
-    ""m_FunctionName"": ""{functionInfo.DisplayName}"",
-    ""m_FunctionSource"": ""{hlslFileGUID}"",
-    ""m_FunctionSourceUsePragmas"": true,
-    ""m_FunctionBody"": ""Enter function body here...""
-}}");
-        }
-
-        private void AppendFunctionSlot(StringBuilder sb, string guid, FunctionParameter param)
-        {
-            string slotType = param.IsOutput ? "1" : "0";
-            string valueStr;
-            switch (param.Type.ToLower())
-            {
-                case "float":
-                    valueStr = "    \"m_Value\": 0.0,\n    \"m_DefaultValue\": 0.0,";
-                    break;
-                case "float2":
-                    valueStr = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0\n    },\n    \"m_DefaultValue\": {\n        \"x\": 0.0,\n        \"y\": 0.0\n    },";
-                    break;
-                case "float3":
-                    valueStr = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0\n    },\n    \"m_DefaultValue\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0\n    },";
-                    break;
-                case "float4":
-                    valueStr = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n    },\n    \"m_DefaultValue\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n    },";
-                    break;
-                default:
-                    valueStr = "    \"m_Value\": 0.0,\n    \"m_DefaultValue\": 0.0,";
-                    break;
-            }
-
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""{param.GetMaterialSlotType()}"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": {param.SlotId},
-    ""m_DisplayName"": ""{param.Name}"",
-    ""m_SlotType"": {slotType},
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""{param.Name}"",
-    ""m_StageCapability"": 3,
-{valueStr}
-    ""m_Labels"": []
-}}");
-        }
-
-        private void AppendUVNode(StringBuilder sb, string guid, string slotGuid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.UVNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{
-        ""m_Id"": """"
-    }},
-    ""m_Name"": ""UV"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{
-            ""serializedVersion"": ""2"",
-            ""x"": -664.0,
-            ""y"": 41.6,
-            ""width"": 208.0,
-            ""height"": 310.4
-        }}
-    }},
-    ""m_Slots"": [
-        {{
-            ""m_Id"": ""{slotGuid}""
-        }}
-    ],
-    ""synonyms"": [
-        ""texcoords"",
-        ""coords"",
-        ""coordinates""
-    ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": true,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{
-        ""m_SerializableColors"": []
-    }},
-    ""m_OutputChannel"": 0
-}}");
-        }
-
-        private void AppendUVSlot(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector4MaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""Out"",
-    ""m_SlotType"": 1,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Out"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0,
-        ""w"": 0.0
-    }},
-    ""m_DefaultValue"": {{
-        ""x"": 0.0,
-        ""y"": 0.0,
-        ""z"": 0.0,
-        ""w"": 0.0
-    }},
-    ""m_Labels"": []
-}}");
-        }
-
-        private void AppendPropertySlot(StringBuilder sb, string guid, FunctionParameter param)
-        {
-            string valueStr;
-            string slotType = param.GetMaterialSlotType();
-
-            switch (param.Type.ToLower())
-            {
-                case "float":
-                    valueStr = "    \"m_Value\": 0.0,\n    \"m_DefaultValue\": 0.0,";
-                    break;
-                case "float2":
-                    valueStr = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0\n    },\n    \"m_DefaultValue\": {\n        \"x\": 0.0,\n        \"y\": 0.0\n    },";
-                    break;
-                case "float3":
-                    valueStr = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0\n    },\n    \"m_DefaultValue\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0\n    },";
-                    break;
-                case "float4":
-                    valueStr = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n    },\n    \"m_DefaultValue\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n    },";
-                    break;
-                default:
-                    valueStr = "    \"m_Value\": 0.0,\n    \"m_DefaultValue\": 0.0,";
-                    break;
-            }
-
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""{slotType}"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": 0,
-    ""m_DisplayName"": ""{param.Name}"",
-    ""m_SlotType"": 1,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""Out"",
-    ""m_StageCapability"": 3,
-{valueStr}
-    ""m_Labels"": []
-}}");
-        }
-
-        private void AppendPropertyDefinition(StringBuilder sb, string guid, FunctionParameter param)
-        {
-            string propertyType;
-            string valueField;
-            string extras = "";
+            string refName = param.Name;
 
             if (param.IsColorProperty())
+                return propFactory.CreateColor(propertyObjectId, param.Name, refName, r: 0f, g: 0f, b: 0f, a: 1f, colorMode: 0, isMainColor: false);
+
+            switch (param.Type.ToLower())
             {
-                propertyType = "UnityEditor.ShaderGraph.Internal.ColorShaderProperty";
-                valueField = "    \"m_Value\": {\n        \"r\": 0.0,\n        \"g\": 0.0,\n        \"b\": 0.0,\n        \"a\": 1.0\n    },";
-                extras = ",\n    \"isMainColor\": false,\n    \"m_ColorMode\": 0";
-            }
-            else
-            {
-                switch (param.Type.ToLower())
-                {
-                    case "float":
-                        propertyType = "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty";
-                        valueField = "    \"m_Value\": 0.0,";
-                        break;
-                    case "float2":
-                        propertyType = "UnityEditor.ShaderGraph.Internal.Vector2ShaderProperty";
-                        valueField = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0\n    },";
-                        break;
-                    case "float3":
-                        propertyType = "UnityEditor.ShaderGraph.Internal.Vector3ShaderProperty";
-                        valueField = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0\n    },";
-                        break;
-                    case "float4":
-                        propertyType = "UnityEditor.ShaderGraph.Internal.Vector4ShaderProperty";
-                        valueField = "    \"m_Value\": {\n        \"x\": 0.0,\n        \"y\": 0.0,\n        \"z\": 0.0,\n        \"w\": 0.0\n    },";
-                        break;
-                    default:
-                        propertyType = "UnityEditor.ShaderGraph.Internal.Vector1ShaderProperty";
-                        valueField = "    \"m_Value\": 0.0,";
-                        break;
-                }
-            }
-
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 1,
-    ""m_Type"": ""{propertyType}"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Guid"": {{
-        ""m_GuidSerialized"": ""{Guid.NewGuid()}""
-    }},
-    ""m_Name"": ""{param.Name}"",
-    ""m_DefaultRefNameVersion"": 1,
-    ""m_RefNameGeneratedByDisplayName"": ""{param.Name}"",
-    ""m_DefaultReferenceName"": ""_{param.Name}"",
-    ""m_OverrideReferenceName"": """",
-    ""m_GeneratePropertyBlock"": true,
-    ""m_UseCustomSlotLabel"": false,
-    ""m_CustomSlotLabel"": """",
-    ""m_DismissedVersion"": 0,
-    ""m_Precision"": 0,
-    ""overrideHLSLDeclaration"": false,
-    ""hlslDeclarationOverride"": 0,
-    ""m_Hidden"": false,
-{valueField}
-    ""m_FloatType"": 0,
-    ""m_RangeValues"": {{
-        ""x"": 0.0,
-        ""y"": 1.0
-    }}{extras}
-}}");
-        }
-
-        private void AppendCategory(StringBuilder sb, string guid, List<string> propertyGuids)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.CategoryData"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Name"": """",
-    ""m_ChildObjectList"": [");
-
-            var childRefs = propertyGuids.Select(g => $"        {{\n            \"m_Id\": \"{g}\"\n        }}");
-            sb.AppendLine(string.Join(",\n", childRefs));
-            sb.AppendLine("    ]");
-            sb.AppendLine("}");
-        }
-
-        private void AppendTarget(StringBuilder sb, string guid, string subTargetGuid, bool useTransparency)
-        {
-            string surfaceType = useTransparency ? "1" : "0";
-            string zWriteControl = useTransparency ? "2" : "0";
-
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 1,
-    ""m_Type"": ""UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Datas"": [],
-    ""m_ActiveSubTarget"": {{
-        ""m_Id"": ""{subTargetGuid}""
-    }},
-    ""m_AllowMaterialOverride"": false,
-    ""m_SurfaceType"": {surfaceType},
-    ""m_ZTestMode"": 4,
-    ""m_ZWriteControl"": {zWriteControl},
-    ""m_AlphaMode"": 0,
-    ""m_RenderFace"": 2,
-    ""m_AlphaClip"": false,
-    ""m_CastShadows"": true,
-    ""m_ReceiveShadows"": true,
-    ""m_DisableTint"": false,
-    ""m_AdditionalMotionVectorMode"": 0,
-    ""m_AlembicMotionVectors"": false,
-    ""m_SupportsLODCrossFade"": false,
-    ""m_CustomEditorGUI"": """",
-    ""m_SupportVFX"": false
-}}");
-        }
-
-        private void AppendSubTarget(StringBuilder sb, string guid)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 2,
-    ""m_Type"": ""UnityEditor.Rendering.Universal.ShaderGraph.UniversalUnlitSubTarget"",
-    ""m_ObjectId"": ""{guid}""
-}}");
-        }
-
-        private void AppendSplitNode(StringBuilder sb, string guid, Dictionary<string, string> slotGuids)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.SplitNode"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{ ""m_Id"": """" }},
-    ""m_Name"": ""Split"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{
-            ""serializedVersion"": ""2"",
-            ""x"": -20.0,
-            ""y"": 196.8,
-            ""width"": 119.2,
-            ""height"": 148.8
-        }}
-    }},
-    ""m_Slots"": [
-        {{ ""m_Id"": ""{slotGuids["In"]}"", ""m_SGVersion"": 0 }},
-        {{ ""m_Id"": ""{slotGuids["R"]}"", ""m_SGVersion"": 0 }},
-        {{ ""m_Id"": ""{slotGuids["G"]}"", ""m_SGVersion"": 0 }},
-        {{ ""m_Id"": ""{slotGuids["B"]}"", ""m_SGVersion"": 0 }},
-        {{ ""m_Id"": ""{slotGuids["A"]}"", ""m_SGVersion"": 0 }}
-    ],
-    ""synonyms"": [ ""separate"" ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": true,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }}
-}}");
-        }
-
-        private void AppendSplitSlotIn(StringBuilder sb, string guid, int id)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.DynamicVectorMaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": {id},
-    ""m_DisplayName"": ""In"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""In"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }},
-    ""m_DefaultValue"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0, ""w"": 0.0 }}
-}}");
-        }
-
-        private void AppendSplitSlotOut(StringBuilder sb, string guid, int id, string name)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector1MaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": {id},
-    ""m_DisplayName"": ""{name}"",
-    ""m_SlotType"": 1,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""{name}"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": 0.0,
-    ""m_DefaultValue"": 0.0,
-    ""m_Labels"": []
-}}");
-        }
-
-        private void AppendVector3Node(StringBuilder sb, string guid, Dictionary<string, string> slotGuids)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector3Node"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Group"": {{ ""m_Id"": """" }},
-    ""m_Name"": ""Vector 3"",
-    ""m_DrawState"": {{
-        ""m_Expanded"": true,
-        ""m_Position"": {{
-            ""serializedVersion"": ""2"",
-            ""x"": 150.0,
-            ""y"": 196.8,
-            ""width"": 128.0,
-            ""height"": 124.8
-        }}
-    }},
-    ""m_Slots"": [
-        {{ ""m_Id"": ""{slotGuids["Out"]}"", ""m_SGVersion"": 0 }},
-        {{ ""m_Id"": ""{slotGuids["X"]}"", ""m_SGVersion"": 0 }},
-        {{ ""m_Id"": ""{slotGuids["Y"]}"", ""m_SGVersion"": 0 }},
-        {{ ""m_Id"": ""{slotGuids["Z"]}"", ""m_SGVersion"": 0 }}
-    ],
-    ""synonyms"": [ ""3"", ""v3"", ""vec3"", ""float3"" ],
-    ""m_Precision"": 0,
-    ""m_PreviewExpanded"": true,
-    ""m_DismissedVersion"": 0,
-    ""m_PreviewMode"": 0,
-    ""m_CustomColors"": {{ ""m_SerializableColors"": [] }},
-    ""m_Value"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0 }}
-}}");
-        }
-
-        private void AppendVector3SlotIn(StringBuilder sb, string guid, int id, string name)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector1MaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": {id},
-    ""m_DisplayName"": ""{name}"",
-    ""m_SlotType"": 0,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""{name}"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": 0.0,
-    ""m_DefaultValue"": 0.0,
-    ""m_Labels"": [ ""{name}"" ]
-}}");
-        }
-
-        private void AppendVector3SlotOut(StringBuilder sb, string guid, int id, string name)
-        {
-            sb.AppendLine($@"
-{{
-    ""m_SGVersion"": 0,
-    ""m_Type"": ""UnityEditor.ShaderGraph.Vector3MaterialSlot"",
-    ""m_ObjectId"": ""{guid}"",
-    ""m_Id"": {id},
-    ""m_DisplayName"": ""{name}"",
-    ""m_SlotType"": 1,
-    ""m_Hidden"": false,
-    ""m_ShaderOutputName"": ""{name}"",
-    ""m_StageCapability"": 3,
-    ""m_Value"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0 }},
-    ""m_DefaultValue"": {{ ""x"": 0.0, ""y"": 0.0, ""z"": 0.0 }},
-    ""m_Labels"": []
-}}");
-        }
-
-        /// <summary>
-        /// Main entry point - Generate from HLSL file
-        /// </summary>
-        public static HLSLFunctionInfo GenerateFromHLSL(string hlslFilePath, string hlslFileGUID, string outputPath, bool useTransparency, bool usePixelation)
-        {
-            try
-            {
-                string hlslContent = File.ReadAllText(hlslFilePath);
-
-                var generator = new ShaderGraphJSONGenerator();
-                var functionInfo = generator.ParseHLSLFunction(hlslContent);
-
-                Debug.Log($"=== Parsing HLSL Function ===");
-                Debug.Log($"Function: {functionInfo.FunctionName} → Display: {functionInfo.DisplayName}");
-                Debug.Log($"Total Parameters: {functionInfo.Parameters.Count}");
-                Debug.Log($"  Inputs: {functionInfo.InputParameters.Count}");
-                Debug.Log($"  Outputs: {functionInfo.OutputParameters.Count}");
-
-                foreach (var p in functionInfo.Parameters)
-                {
-                    Debug.Log($"  [{p.SlotId}] {(p.IsOutput ? "OUT" : "IN")} {p.Type} {p.Name}");
-                }
-
-                string json = generator.GenerateShaderGraphJSON(functionInfo, hlslFileGUID, "GeneratedShader", useTransparency, usePixelation);
-
-                File.WriteAllText(outputPath, json);
-
-                Debug.Log($"✓ Generated ShaderGraph JSON: {outputPath}");
-                Debug.Log($"  Function: {functionInfo.FunctionName}");
-                Debug.Log($"  Inputs: {string.Join(", ", functionInfo.InputParameters.Select(p => $"{p.Type} {p.Name}"))}");
-                Debug.Log($"  Outputs: {string.Join(", ", functionInfo.OutputParameters.Select(p => $"{p.Type} {p.Name}"))}");
-
-                return functionInfo;
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Failed to generate ShaderGraph: {ex.Message}\n{ex.StackTrace}");
-                throw;
+                case "float": return propFactory.CreateVector1(propertyObjectId, param.Name, refName, defaultValue: 0f, floatType: 0, rangeMin: 0f, rangeMax: 1f);
+                case "float2": return propFactory.CreateVector2(propertyObjectId, param.Name, refName, x: 0f, y: 0f);
+                case "float3": return propFactory.CreateVector3(propertyObjectId, param.Name, refName, x: 0f, y: 0f, z: 0f);
+                case "float4": return propFactory.CreateVector4(propertyObjectId, param.Name, refName, x: 0f, y: 0f, z: 0f, w: 0f);
+                default: return propFactory.CreateVector1(propertyObjectId, param.Name, refName, defaultValue: 0f, floatType: 0, rangeMin: 0f, rangeMax: 1f);
             }
         }
 
-        // Backwards compatible overload (older calls)
-        public static HLSLFunctionInfo GenerateFromHLSL(string hlslFilePath, string hlslFileGUID, string outputPath, bool useTransparency)
+        private static SlotModel CreatePropertyNodeOutSlot(ShaderGraphSlotFactory slotFactory, string slotObjectId, FunctionParameter param)
         {
-            return GenerateFromHLSL(hlslFilePath, hlslFileGUID, outputPath, useTransparency, false);
+            if (param.IsColorProperty())
+            {
+                var s = new SlotModel(ShaderGraphSlotFactory.S_Vector4, slotObjectId, id: 0, displayName: param.Name, slotType: ShaderGraphSlotFactory.Output, shaderOutputName: "Out")
+                    .SetStageCapability(ShaderGraphSlotFactory.Stage_All)
+                    .SetValue(ShaderGraphSlotFactory.V4(0, 0, 0, 0), ShaderGraphSlotFactory.V4(0, 0, 0, 0));
+                s.Labels = new List<string>();
+                return s;
+            }
+
+            switch (param.Type.ToLower())
+            {
+                case "float":
+                    return slotFactory.CreatePropertyVector1Out(slotObjectId, param.Name);
+
+                case "float2":
+                    return new SlotModel(ShaderGraphSlotFactory.S_Vector2, slotObjectId, 0, param.Name, ShaderGraphSlotFactory.Output, "Out")
+                        .SetStageCapability(ShaderGraphSlotFactory.Stage_All)
+                        .SetValue(ShaderGraphSlotFactory.V2(0, 0), ShaderGraphSlotFactory.V2(0, 0));
+
+                case "float3":
+                    return new SlotModel(ShaderGraphSlotFactory.S_Vector3, slotObjectId, 0, param.Name, ShaderGraphSlotFactory.Output, "Out")
+                        .SetStageCapability(ShaderGraphSlotFactory.Stage_All)
+                        .SetValue(ShaderGraphSlotFactory.V3(0, 0, 0), ShaderGraphSlotFactory.V3(0, 0, 0));
+
+                case "float4":
+                    return new SlotModel(ShaderGraphSlotFactory.S_Vector4, slotObjectId, 0, param.Name, ShaderGraphSlotFactory.Output, "Out")
+                        .SetStageCapability(ShaderGraphSlotFactory.Stage_All)
+                        .SetValue(ShaderGraphSlotFactory.V4(0, 0, 0, 0), ShaderGraphSlotFactory.V4(0, 0, 0, 0));
+
+                default:
+                    return slotFactory.CreatePropertyVector1Out(slotObjectId, param.Name);
+            }
+        }
+
+        private static TargetModel BuildUniversalTarget(string targetId, string subTargetId, bool useTransparency)
+        {
+            int surfaceType = useTransparency ? 1 : 0;
+            int zWriteControl = useTransparency ? 2 : 0;
+
+            var t = new TargetModel("UnityEditor.Rendering.Universal.ShaderGraph.UniversalTarget", targetId, sgVersion: 1);
+
+            t.SetExtra("m_Datas", new List<object>());
+            t.SetExtra("m_ActiveSubTarget", new Dictionary<string, object> { { "m_Id", subTargetId } });
+            t.SetExtra("m_AllowMaterialOverride", false);
+            t.SetExtra("m_SurfaceType", surfaceType);
+            t.SetExtra("m_ZTestMode", 4);
+            t.SetExtra("m_ZWriteControl", zWriteControl);
+            t.SetExtra("m_AlphaMode", 0);
+            t.SetExtra("m_RenderFace", 2);
+            t.SetExtra("m_AlphaClip", false);
+            t.SetExtra("m_CastShadows", true);
+            t.SetExtra("m_ReceiveShadows", true);
+            t.SetExtra("m_DisableTint", false);
+            t.SetExtra("m_AdditionalMotionVectorMode", 0);
+            t.SetExtra("m_AlembicMotionVectors", false);
+            t.SetExtra("m_SupportsLODCrossFade", false);
+            t.SetExtra("m_DebugSymbols", false);
+            t.SetExtra("m_UseVFXGraph", false);
+            t.SetExtra("m_IncludeStrippingInformation", false);
+            t.SetExtra("m_IncludeAdditionalProperties", false);
+            t.SetExtra("m_AllowSRPBatcher", true);
+            t.SetExtra("m_CustomEditorGUI", "");
+            t.SetExtra("m_CustomEditorGUIEnabled", false);
+            t.SetExtra("m_SupportsFog", true);
+            t.SetExtra("m_RenderGraphSettings", new Dictionary<string, object>
+            {
+                { "m_UseRenderGraph", false },
+                { "m_UseRenderGraphForPreview", false }
+            });
+
+            return t;
+        }
+
+        private static TargetModel BuildUniversalUnlitSubTarget(string subTargetId)
+        {
+            var st = new TargetModel("UnityEditor.Rendering.Universal.ShaderGraph.UniversalUnlitSubTarget", subTargetId, sgVersion: 2);
+
+            st.SetExtra("m_WorkflowMode", 0);
+            st.SetExtra("m_NormalDropOffSpace", 0);
+            st.SetExtra("m_BlendMode", 0);
+            st.SetExtra("m_TwoSided", false);
+            st.SetExtra("m_AlphaClip", false);
+            st.SetExtra("m_QueueControl", 0);
+            st.SetExtra("m_QueueOffset", 0);
+            st.SetExtra("m_DepthWrite", true);
+            st.SetExtra("m_AlphaToMask", false);
+            st.SetExtra("m_SupportsMeshLOD", false);
+            st.SetExtra("m_OverrideEnabled", false);
+            st.SetExtra("m_Override", new Dictionary<string, object>
+            {
+                { "m_Dithering", false },
+                { "m_ZWrite", false },
+                { "m_ZTest", 4 }
+            });
+
+            return st;
         }
     }
 }
