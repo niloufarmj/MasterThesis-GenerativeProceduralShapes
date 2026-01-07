@@ -55,7 +55,8 @@ void PineappleShape_float(
 ) {
     // Center UVs to (0,0) range [-0.5, 0.5]
     float2 p = UV - 0.5;
-    float aa = fwidth(length(p)); // Anti-aliasing width
+    // float aa = fwidth(length(p)); // این خط را غیرفعال کنید
+    float aa = 0.001; // یک مقدار ثابت بسیار کوچک برای جلوگیری از تقسیم بر صفر
     
     // --- 1. BODY SDF ---
     // Use a Rounded Box to simulate the fruit body (Oval to Rectangle adjustable)
