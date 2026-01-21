@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using UnityEngine;
 
 namespace ShaderGraphGenerator
 {
@@ -17,7 +19,7 @@ namespace ShaderGraphGenerator
         {
             if (!guidMap.TryGetValue(key, out var guid))
             {
-                // Use the same compact format you used before (no dashes)
+                // Use the same compact format used before (no dashes)
                 guid = Guid.NewGuid().ToString("N");
                 guidMap[key] = guid;
             }
@@ -25,7 +27,7 @@ namespace ShaderGraphGenerator
         }
 
         // =====================================================================
-        //  Public API (keep signatures convenient)
+        //  Public API
         // =====================================================================
 
         public HLSLFunctionInfo ParseHLSLFunction(string hlslCode)
@@ -42,14 +44,20 @@ namespace ShaderGraphGenerator
                 throw new Exception("Failed to parse HLSL function header.");
 
             info.FunctionName = headerMatch.Groups["name"].Value.Trim();
+            // Helper for display name if needed, or just use function name
+            info.DisplayName = info.FunctionName.Replace("_float", ""); 
 
             var args = headerMatch.Groups["args"].Value;
+            // Handle newlines in args list
+            args = Regex.Replace(args, @"\s+", " ");
+            
             var argParts = args.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             int slotId = 0;
             foreach (var part in argParts)
             {
                 var trimmed = part.Trim();
+                if (string.IsNullOrEmpty(trimmed)) continue;
 
                 // Supports: [in|out|inout] <type> <name>
                 var m = Regex.Match(trimmed, @"(?:(in|out|inout)\s+)?(?<type>\w+)\s+(?<name>\w+)", RegexOptions.IgnoreCase);
@@ -394,7 +402,7 @@ namespace ShaderGraphGenerator
 
             var cfNode = nodeFactory.CreateCustomFunctionNode(
                 nodeId: customFunctionNodeGuid,
-                displayName: functionInfo.FunctionName,
+                displayName: functionInfo.DisplayName ?? functionInfo.FunctionName,
                 slotObjectIdsInOrder: cfSlotOrder,
                 hlslFileGuid: hlslFileGUID,
                 functionNameForNode: functionInfo.FunctionName,
@@ -476,7 +484,7 @@ namespace ShaderGraphGenerator
             if (inNrm != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(vertexNormalNodeGuid), 0), new SlotRef(new NodeRef(customFunctionNodeGuid), inNrm.SlotId)));
             if (inTan != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(vertexTangentNodeGuid), 0), new SlotRef(new NodeRef(customFunctionNodeGuid), inTan.SlotId)));
 
-            // UV -> custom function input (the first float2 input) (the first float2 input)
+            // UV -> custom function input (the first float2 input)
             if (!string.IsNullOrEmpty(uvParamName))
             {
                 graph.Edges.Add(new EdgeModel(
@@ -550,9 +558,80 @@ namespace ShaderGraphGenerator
         }
 
         // =====================================================================
-        //  Helpers
+        //  Static Entry Points (RESTORED for Backward Compatibility)
         // =====================================================================
 
+        /// <summary>
+        /// Reads HLSL file, parses it, generates JSON, writes result to outputPath.
+        /// This is the method your Editor Window is trying to call.
+        /// </summary>
+        public static HLSLFunctionInfo GenerateFromHLSL(
+            string hlslFilePath,
+            string hlslFileGUID,
+            string outputPath,
+            bool useTransparency,
+            bool usePixelation)
+        {
+            try
+            {
+                // 1. Read the HLSL content
+                string hlslContent = File.ReadAllText(hlslFilePath);
+
+                // 2. Instantiate and Parse
+                var generator = new ShaderGraphJSONGenerator();
+                var functionInfo = generator.ParseHLSLFunction(hlslContent);
+
+                // 3. Log debug info (matches your old logic)
+                Debug.Log($"=== Parsing HLSL Function ===");
+                Debug.Log($"Function: {functionInfo.FunctionName}");
+                Debug.Log($"Total Parameters: {functionInfo.Parameters.Count}");
+                Debug.Log($"  Inputs: {functionInfo.InputParameters.Count}");
+                Debug.Log($"  Outputs: {functionInfo.OutputParameters.Count}");
+
+                foreach (var p in functionInfo.Parameters)
+                {
+                    Debug.Log($"  [{p.SlotId}] {(p.IsOutput ? "OUT" : "IN")} {p.Type} {p.Name}");
+                }
+
+                // 4. Generate JSON string
+                string json = generator.GenerateShaderGraphJSON(
+                    functionInfo,
+                    hlslFileGUID,
+                    usePixelation,
+                    useTransparency);
+
+                // 5. Write to disk
+                File.WriteAllText(outputPath, json);
+
+                Debug.Log($"✓ Generated ShaderGraph JSON: {outputPath}");
+                Debug.Log($"  Function: {functionInfo.FunctionName}");
+                Debug.Log($"  Inputs: {string.Join(", ", functionInfo.InputParameters.Select(p => $"{p.Type} {p.Name}"))}");
+                Debug.Log($"  Outputs: {string.Join(", ", functionInfo.OutputParameters.Select(p => $"{p.Type} {p.Name}"))}");
+
+                return functionInfo;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Failed to generate ShaderGraph: {ex.Message}\n{ex.StackTrace}");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Backwards compatible overload for older calls that don't pass usePixelation.
+        /// </summary>
+        public static HLSLFunctionInfo GenerateFromHLSL(
+            string hlslFilePath,
+            string hlslFileGUID,
+            string outputPath,
+            bool useTransparency)
+        {
+            return GenerateFromHLSL(hlslFilePath, hlslFileGUID, outputPath, useTransparency, false);
+        }
+
+        // =====================================================================
+        //  Helpers
+        // =====================================================================
 
         private static FunctionParameter FindVertexOut(HLSLFunctionInfo info, string keyword)
         {
