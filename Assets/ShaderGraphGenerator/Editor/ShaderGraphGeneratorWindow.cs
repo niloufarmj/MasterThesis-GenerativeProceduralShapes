@@ -1,49 +1,62 @@
 using UnityEditor;
 using UnityEngine;
-using ShaderGraphGenerator; // Import the runtime namespace
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using UnityEngine.Networking;
 using System.IO;
-using Newtonsoft.Json;
-using System;
 
 namespace ShaderGraphGenerator.Editor
 {
-    public class LLMMatchScoreResponse
-    {
-        public int score;          // 1–10
-        public string explanation; // short text
-    }
-
     /// <summary>
-    /// Unity Editor integration for easy ShaderGraph generation
+    /// Main editor window for the SDF ShaderGraph Generator.
+    /// Provides two modes: Generate from HLSL file or Generate with AI.
+    /// 
+    /// Architecture:
+    /// - This class handles UI state and user interaction
+    /// - GeneratorWindowUI: Reusable UI drawing methods
+    /// - ShaderGenerationPipeline: Generation logic and iteration
+    /// - LLMApiService: API communication
+    /// - LLMDataModels: Data structures
     /// </summary>
     public class ShaderGraphGeneratorWindow : EditorWindow
     {
-        private UnityEngine.Object hlslFile;
+        // ═══════════════════════════════════════════════════════════════════════
+        //  FIELDS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        // --- From File Section ---
+        private Object hlslFile;
         private string outputPath = "Assets/ShaderGraphs/Generated.shadergraph";
-        private bool useTransparency = false;
-        private bool usePixelation = false; // <--- NEW FIELD
+
+        // --- Shared Output Settings ---
+        private bool useTransparency = true;
+        private bool usePixelation = false;
         private bool createMaterial = true;
         private bool createPreviewQuad = true;
         private bool captureScreenshot = true;
         private string screenshotPath = "Assets/ShaderGraphs/Previews/GeneratedPreview.png";
 
-        private string llmPrompt = "a pentagon with dynamic size and dynamic stroke, centered, with dynamic rotation and dynamic corner radius";
-
-        // ... (Keep existing fields) ...
+        // --- AI Generation Section ---
+        private string llmPrompt = "a pentagon with dynamic size and stroke, centered, with rotation and corner radius";
         private ShaderGraphGeneratorConfig config;
         private string llmHlslFolder = "Assets/ShaderGraphs/Generated/HLSL";
         private string llmGraphFolder = "Assets/ShaderGraphs/Generated/Graphs";
         private string llmPreviewFolder = "Assets/ShaderGraphs/Generated/Previews";
         private bool isGenerating = false;
+
+        // --- UI State ---
         private Vector2 scrollPos;
+        private bool showPromptGuide = false;
+        private bool showAdvancedSettings = false;
+        private int selectedTab = 0;
+        private readonly string[] tabNames = { "Generate from HLSL", "Generate with AI" };
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  MENU & LIFECYCLE
+        // ═══════════════════════════════════════════════════════════════════════
 
         [MenuItem("Tools/ShaderGraph Generator")]
         public static void ShowWindow()
         {
-            GetWindow<ShaderGraphGeneratorWindow>("ShaderGraph Generator");
+            var window = GetWindow<ShaderGraphGeneratorWindow>("ShaderGraph Generator");
+            window.minSize = new Vector2(420, 500);
         }
 
         private void OnEnable()
@@ -53,74 +66,182 @@ namespace ShaderGraphGenerator.Editor
             );
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        //  MAIN GUI
+        // ═══════════════════════════════════════════════════════════════════════
+
         private void OnGUI()
         {
             scrollPos = EditorGUILayout.BeginScrollView(scrollPos);
 
-            GUILayout.Label("Generate from HLSL File", EditorStyles.boldLabel);
-            EditorGUILayout.Space();
+            GeneratorWindowUI.DrawHeader();
+            EditorGUILayout.Space(10);
 
-            hlslFile = EditorGUILayout.ObjectField("HLSL File", hlslFile, typeof(UnityEngine.Object), false);
+            // Tab Selection
+            selectedTab = GUILayout.Toolbar(selectedTab, tabNames, GUILayout.Height(28));
+            EditorGUILayout.Space(15);
+
+            // Draw selected tab content
+            if (selectedTab == 0)
+                DrawHLSLFileSection();
+            else
+                DrawAIGenerationSection();
+
+            EditorGUILayout.Space(15);
+            DrawSharedOutputSettings();
+
+            EditorGUILayout.Space(10);
+            GeneratorWindowUI.DrawFooter();
+
+            EditorGUILayout.EndScrollView();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  TAB: HLSL FILE
+        // ═══════════════════════════════════════════════════════════════════════
+
+        private void DrawHLSLFileSection()
+        {
+            GeneratorWindowUI.DrawSectionHeader("📄 Generate from HLSL File");
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            hlslFile = EditorGUILayout.ObjectField("HLSL File", hlslFile, typeof(Object), false);
             outputPath = EditorGUILayout.TextField("Output Path", outputPath);
 
-            // --- UPDATED UI ---
-            useTransparency = EditorGUILayout.Toggle("Use Transparency", useTransparency);
-            usePixelation = EditorGUILayout.Toggle("Pixelation", usePixelation); // <--- NEW TOGGLE
+            EditorGUILayout.Space(8);
 
-            createMaterial = EditorGUILayout.Toggle("Create Material", createMaterial);
-            createPreviewQuad = EditorGUILayout.Toggle("Create Preview Quad", createPreviewQuad);
-
-            EditorGUI.BeginDisabledGroup(!createPreviewQuad);
-            captureScreenshot = EditorGUILayout.Toggle("Capture Screenshot", captureScreenshot);
-            if (captureScreenshot)
-            {
-                screenshotPath = EditorGUILayout.TextField("Screenshot Path", screenshotPath);
-            }
-            EditorGUI.EndDisabledGroup(); // Fixed missing EndDisabledGroup location based on screenshot logic
-
-            if (GUILayout.Button("Generate ShaderGraph from File"))
+            EditorGUI.BeginDisabledGroup(hlslFile == null);
+            if (GUILayout.Button("Generate ShaderGraph", GUILayout.Height(30)))
             {
                 GenerateFromFile();
             }
+            EditorGUI.EndDisabledGroup();
 
-            EditorGUILayout.HelpBox("This tool parses HLSL functions and generates complete ShaderGraph JSON files.\n\n" +
-                "Requirements:\n" +
-                "• HLSL function must follow format: void FunctionName(params)\n" +
-                "• Use 'out' modifier for output parameters\n" +
-                "• The first float2 parameter is connected to a UV node\n" +
-                "• float4 params with 'color' in the name become Color properties\n" +
-                "• Other parameters become shader properties\n\n" +
-                "Transparency:\n" +
-                "• Check 'Use Transparency' for shaders with alpha output\n" +
-                "• float4 outputs automatically connect RGB→BaseColor, A→Alpha\n\n" +
-                "Pixelation:\n" +
-                "• Check 'Pixelation' to add a PixelCount property and pixelate the UVs.", // Added info
-                MessageType.Info);
+            EditorGUILayout.EndVertical();
 
-            // --- Separator ---
-            EditorGUILayout.Space(20);
-            EditorGUILayout.LabelField("", GUI.skin.horizontalSlider);
+            GeneratorWindowUI.DrawHLSLRequirementsInfo();
+        }
 
-            // --- New LLM Flow ---
-            GUILayout.Label("Generate from Text (Experimental)", EditorStyles.boldLabel);
+        // ═══════════════════════════════════════════════════════════════════════
+        //  TAB: AI GENERATION
+        // ═══════════════════════════════════════════════════════════════════════
 
-            GUILayout.Label("Describe your shader function:");
+        private void DrawAIGenerationSection()
+        {
+            GeneratorWindowUI.DrawSectionHeader("🤖 Generate with AI");
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            EditorGUILayout.LabelField("Describe your shape:", EditorStyles.boldLabel);
             llmPrompt = EditorGUILayout.TextArea(llmPrompt, GUILayout.Height(80));
 
-            // --- New Button ---
-            EditorGUI.BeginDisabledGroup(isGenerating);
-            if (GUILayout.Button(isGenerating ? "Generating..." : "Generate with AI"))
+            EditorGUILayout.Space(8);
+
+            // Generate Button
+            EditorGUI.BeginDisabledGroup(isGenerating || config == null);
+            string buttonText = isGenerating ? "⏳ Generating..." : "✨ Generate Shape";
+            if (GUILayout.Button(buttonText, GUILayout.Height(35)))
             {
                 GenerateFromLLMAsync();
             }
             EditorGUI.EndDisabledGroup();
 
-            // ... (Rest of GUI) ...
+            if (config == null)
+            {
+                GeneratorWindowUI.DrawConfigMissingWarning();
+            }
 
-            EditorGUILayout.EndScrollView();
+            EditorGUILayout.EndVertical();
+
+            // Prompt Guide
+            EditorGUILayout.Space(5);
+            showPromptGuide = EditorGUILayout.Foldout(showPromptGuide, "📖 Prompt Writing Guide", true);
+
+            if (showPromptGuide)
+            {
+                string selectedExample = GeneratorWindowUI.DrawPromptGuide();
+                if (!string.IsNullOrEmpty(selectedExample))
+                {
+                    llmPrompt = selectedExample;
+                }
+            }
         }
 
-        // ... (Keep existing methods: GenerateShapeLibrary, etc.) ...
+        // ═══════════════════════════════════════════════════════════════════════
+        //  SHARED OUTPUT SETTINGS
+        // ═══════════════════════════════════════════════════════════════════════
+
+        private void DrawSharedOutputSettings()
+        {
+            GeneratorWindowUI.DrawSectionHeader("⚙️ Output Settings");
+
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            // Rendering Options
+            EditorGUILayout.LabelField("Rendering", EditorStyles.boldLabel);
+            useTransparency = EditorGUILayout.Toggle(
+                new GUIContent("Transparency", "Enable alpha channel for transparent backgrounds"),
+                useTransparency);
+            usePixelation = EditorGUILayout.Toggle(
+                new GUIContent("Pixelation Effect", "Add PixelCount property for retro pixel art style"),
+                usePixelation);
+
+            EditorGUILayout.Space(5);
+
+            // Asset Creation Options
+            EditorGUILayout.LabelField("Asset Creation", EditorStyles.boldLabel);
+            createMaterial = EditorGUILayout.Toggle(
+                new GUIContent("Create Material", "Automatically create a material using the generated shader"),
+                createMaterial);
+            createPreviewQuad = EditorGUILayout.Toggle(
+                new GUIContent("Create Preview Quad", "Create a quad in scene to preview the shader"),
+                createPreviewQuad);
+
+            EditorGUI.BeginDisabledGroup(!createPreviewQuad);
+            EditorGUI.indentLevel++;
+            captureScreenshot = EditorGUILayout.Toggle(
+                new GUIContent("Capture Screenshot", "Save a PNG preview of the generated shape"),
+                captureScreenshot);
+
+            if (captureScreenshot)
+            {
+                screenshotPath = EditorGUILayout.TextField("Screenshot Path", screenshotPath);
+            }
+            EditorGUI.indentLevel--;
+            EditorGUI.EndDisabledGroup();
+
+            EditorGUILayout.EndVertical();
+
+            // Advanced Settings
+            showAdvancedSettings = EditorGUILayout.Foldout(showAdvancedSettings, "🔧 Advanced Settings", true);
+            if (showAdvancedSettings)
+            {
+                DrawAdvancedSettings();
+            }
+        }
+
+        private void DrawAdvancedSettings()
+        {
+            EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+
+            EditorGUILayout.LabelField("AI Generation Paths", EditorStyles.boldLabel);
+            llmHlslFolder = EditorGUILayout.TextField("HLSL Output", llmHlslFolder);
+            llmGraphFolder = EditorGUILayout.TextField("Graph Output", llmGraphFolder);
+            llmPreviewFolder = EditorGUILayout.TextField("Preview Output", llmPreviewFolder);
+
+            EditorGUILayout.Space(5);
+
+            EditorGUILayout.LabelField("API Configuration", EditorStyles.boldLabel);
+            config = (ShaderGraphGeneratorConfig)EditorGUILayout.ObjectField(
+                "Config Asset", config, typeof(ShaderGraphGeneratorConfig), false);
+
+            EditorGUILayout.EndVertical();
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  GENERATION METHODS
+        // ═══════════════════════════════════════════════════════════════════════
 
         private void GenerateFromFile()
         {
@@ -138,13 +259,9 @@ namespace ShaderGraphGenerator.Editor
 
             try
             {
-                // 1. Generate the ShaderGraph (Pass usePixelation)
+                // Generate the ShaderGraph
                 HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(
-                    hlslPath,
-                    guid,
-                    outputPath,
-                    useTransparency,
-                    usePixelation // <--- PASS NEW FLAG
+                    hlslPath, guid, outputPath, useTransparency, usePixelation
                 );
 
                 AssetDatabase.Refresh();
@@ -160,8 +277,8 @@ namespace ShaderGraphGenerator.Editor
                         if (functionInfo != null)
                         {
                             ShaderGraphGeneratorEditorUtility.SetRandomMaterialProperties(mat, functionInfo);
-                            // New: Set default PixelCount if property exists
-                            if (mat.HasProperty("_PixelCount")) mat.SetFloat("_PixelCount", 50.0f);
+                            if (mat.HasProperty("_PixelCount"))
+                                mat.SetFloat("_PixelCount", 50.0f);
                         }
                         successMessage += $"\n\nMaterial created at:\n{AssetDatabase.GetAssetPath(mat)}";
                     }
@@ -169,9 +286,11 @@ namespace ShaderGraphGenerator.Editor
 
                 if (createPreviewQuad && mat != null && functionInfo != null)
                 {
-                    GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(mat, captureScreenshot, screenshotPath);
-                    successMessage += $"\n\nCreated and selected Preview Quad: {quad.name}";
+                    GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(
+                        mat, captureScreenshot, screenshotPath);
+                    successMessage += $"\n\nCreated Preview Quad: {quad.name}";
                 }
+
                 AssetDatabase.Refresh();
                 EditorUtility.DisplayDialog("Success", successMessage, "OK");
             }
@@ -181,435 +300,6 @@ namespace ShaderGraphGenerator.Editor
             }
         }
 
-        private async Task<string> BuildPipelineOnce(LLMShaderResponse llmResponse)
-        {
-            // 1. Write HLSL file
-            string hlslPath = ShaderGraphGeneratorEditorUtility.CreateHLSLFile(
-                llmResponse.file_name,
-                llmResponse.hlsl_code,
-                llmHlslFolder
-            );
-
-            string hlslGuid = AssetDatabase.AssetPathToGUID(hlslPath);
-            AssetDatabase.Refresh();
-
-            // 2. Create ShaderGraph (Pass usePixelation)
-            string graphPath = Path.Combine(llmGraphFolder, llmResponse.file_name + ".shadergraph");
-            HLSLFunctionInfo functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(
-                hlslPath,
-                hlslGuid,
-                graphPath,
-                true, // useTransparency for LLM
-                usePixelation // <--- PASS NEW FLAG FOR LLM GEN TOO
-            );
-
-            AssetDatabase.Refresh();
-
-            // 3. Create Material
-            Material mat = ShaderGraphGeneratorEditorUtility.CreateMaterialForShaderGraph(graphPath);
-            if (mat == null) throw new Exception("Failed to create material.");
-
-            // 4. Apply defaults
-            ShaderGraphGeneratorEditorUtility.SetDefaultMaterialProperties(mat, llmResponse.properties);
-
-            // Apply Pixelation default if needed
-            if (usePixelation && mat.HasProperty("_PixelCount"))
-            {
-                mat.SetFloat("_PixelCount", 50.0f);
-            }
-
-            // 5. Check errors
-            if (ShaderGraphGeneratorEditorUtility.HasShaderCompileErrors(mat.shader))
-                throw new Exception("Shader compile error.");
-
-            // 6. Preview
-            if (!Directory.Exists(llmPreviewFolder)) Directory.CreateDirectory(llmPreviewFolder);
-            string previewPath = Path.Combine(llmPreviewFolder, $"{llmResponse.file_name}_{Guid.NewGuid()}.png");
-
-            GameObject quad = ShaderGraphGeneratorEditorUtility.CreatePreviewQuad(mat, true, previewPath);
-            bool ready = await WaitForPreviewFileAsync(previewPath);
-            if (!ready) throw new Exception("Screenshot not produced.");
-
-            return previewPath;
-        }
-
-
-
-
-        /// <summary>
-        /// NEW: Handles the raw web request to OpenAI
-        /// </summary>
-        private async Task<string> CallClaudeAsync(string prompt, string apiKey)
-        {
-            string url = "https://api.anthropic.com/v1/messages";
-
-            // ── JSON Schema مخصوص پروژه تو ─────────────────────────────
-            var schema = new
-            {
-                type = "object",
-                properties = new
-                {
-                    file_name = new { type = "string" },
-                    hlsl_code = new { type = "string" },
-                    properties = new
-                    {
-                        type = "array",
-                        items = new
-                        {
-                            type = "object",
-                            properties = new {
-                                name = new { type = "string" },
-                                type = new { type = "string" },
-                                default_value = new {
-                                    type = "object",
-                                    properties = new {
-                                        x = new { type = "number" },
-                                        y = new { type = "number" },
-                                        z = new { type = "number" },
-                                        w = new { type = "number" }
-                                    },
-                                    required = new[] { "x", "y", "z", "w" },
-                                    additionalProperties = false
-                                }
-                            },
-                            required = new[] { "name", "type", "default_value" },
-                            additionalProperties = false
-                        }
-                    }
-                },
-                required = new[] { "file_name", "hlsl_code", "properties" },
-                additionalProperties = false
-            };
-
-            var bodyObject = new
-            {
-                model = "claude-sonnet-4-5-20250929",
-                max_tokens = 4096,
-                messages = new object[]
-                {
-                    new {
-                        role = "user",
-                        content = new object[]
-                        {
-                            new { type = "text", text = prompt }
-                        }
-                    }
-                },
-                output_format = new {
-                    type = "json_schema",
-                    schema = schema
-                },
-                betas = new[] { "structured-outputs-2025-11-13" }
-            };
-
-            string jsonBody = JsonConvert.SerializeObject(bodyObject);
-            byte[] raw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
-
-            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
-            {
-                www.uploadHandler = new UploadHandlerRaw(raw);
-                www.downloadHandler = new DownloadHandlerBuffer();
-
-                www.SetRequestHeader("content-type", "application/json");
-                www.SetRequestHeader("x-api-key", apiKey);
-                www.SetRequestHeader("anthropic-version", "2023-06-01");
-                www.SetRequestHeader("anthropic-beta", "structured-outputs-2025-11-13");
-
-                var op = www.SendWebRequest();
-                while (!op.isDone)
-                    await Task.Yield();
-
-                if (www.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogError("Claude API Error: " + www.error + "\n" + www.downloadHandler.text);
-                    return null;
-                }
-
-                var rawResponse = www.downloadHandler.text;
-                dynamic parsed = JsonConvert.DeserializeObject(rawResponse);
-
-                // structured JSON always appears here:
-                string jsonText = parsed.content[0].text;
-
-                return jsonText;
-            }
-        }
-
-        /// <summary>
-        /// Calls OpenAI with image + text and asks for a 1–10 match score.
-        /// </summary>
-        private async Task<string> CallOpenAIEvalAsync(
-            string userPrompt,
-            string hlslCode,
-            List<LLMShaderProperty> properties,
-            string previewPath,
-            string apiKey)
-        {
-            string url = "https://api.openai.com/v1/chat/completions";
-
-            // 1) Read preview image and convert to data URL
-            if (!File.Exists(previewPath))
-            {
-                Debug.LogError($"Preview image not found at: {previewPath}");
-                return null;
-            }
-
-            byte[] imageBytes = File.ReadAllBytes(previewPath);
-            string base64 = Convert.ToBase64String(imageBytes);
-            string dataUrl = $"data:image/png;base64,{base64}";
-
-            // 2) Build text content
-            string propertiesJson = BuildPropertySummaryJson(properties);
-
-            string textContent =
-                "You are a strict visual evaluator for procedurally generated shapes.\n\n" +
-                "User requested shape (natural language):\n" +
-                userPrompt + "\n\n" +
-                "HLSL code that produced the image:\n" +
-                hlslCode + "\n\n" +
-                "Shader properties (name, type, default_value) used for this preview:\n" +
-                propertiesJson + "\n\n" +
-                "Using ONLY the attached image and this information, rate from 1 to 10 how well " +
-                "the rendered image matches the user's request. 1 = completely wrong, 10 = perfect match.\n\n" +
-                "Return ONLY valid JSON with this structure:\n" +
-                "{ \"score\": <integer 1-10>, \"explanation\": \"short explanation\" }";
-
-            // 3) Build messages with multimodal content
-            var bodyObject = new
-            {
-                model = "gpt-5.1",
-                response_format = new { type = "json_object" },
-                messages = new object[]
-                {
-                    new {
-                        role = "system",
-                        content = "You are a helpful assistant that only responds with valid, raw JSON. " +
-                                "Do not include markdown or any other text outside the JSON object."
-                    },
-                    new {
-                        role = "user",
-                        content = new object[]
-                        {
-                            new { type = "text", text = textContent },
-                            new { type = "image_url", image_url = new { url = dataUrl } }
-                        }
-                    }
-                }
-            };
-
-            string jsonBody = JsonConvert.SerializeObject(bodyObject);
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
-
-            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
-            {
-                www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                www.downloadHandler = new DownloadHandlerBuffer();
-                www.SetRequestHeader("Content-Type", "application/json");
-                www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
-
-                var op = www.SendWebRequest();
-                while (!op.isDone)
-                {
-                    await Task.Yield();
-                }
-
-                if (www.result == UnityWebRequest.Result.ConnectionError ||
-                    www.result == UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogError($"OpenAI Eval API Error: {www.error}\n{www.downloadHandler.text}");
-                    return null;
-                }
-                else
-                {
-                    string rawResponse = www.downloadHandler.text;
-                    try
-                    {
-                        var openAiResponse = JsonConvert.DeserializeObject<dynamic>(rawResponse);
-                        string jsonContent = openAiResponse.choices[0].message.content;
-                        return jsonContent;
-                    }
-                    catch (System.Exception ex)
-                    {
-                        Debug.LogError($"Failed to parse OpenAI eval response shell: {ex.Message}\nRaw response: {rawResponse}");
-                        // Fallback: sometimes the API just returns the content directly
-                        return rawResponse;
-                    }
-                }
-            }
-        }
-
-        private async Task<string> CallGeminiAsync(string prompt, string apiKey)
-        {
-            string model = "gemini-3-pro-preview";
-
-            string url =
-                $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
-
-            var bodyObj = new
-            {
-                contents = new object[]
-                {
-                    new
-                    {
-                        parts = new object[]
-                        {
-                            new { text = prompt }
-                        }
-                    }
-                }
-            };
-
-            string jsonBody = JsonConvert.SerializeObject(bodyObj);
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
-
-            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
-            {
-                www.uploadHandler = new UploadHandlerRaw(bodyRaw);
-                www.downloadHandler = new DownloadHandlerBuffer();
-                www.SetRequestHeader("Content-Type", "application/json");
-
-                var op = www.SendWebRequest();
-                while (!op.isDone)
-                    await Task.Yield();
-
-                if (www.result == UnityWebRequest.Result.ConnectionError ||
-                    www.result == UnityWebRequest.Result.ProtocolError)
-                {
-                    Debug.LogError($"Gemini API Error: {www.error}\n{www.downloadHandler.text}");
-                    return null;
-                }
-
-                string raw = www.downloadHandler.text;
-
-                try
-                {
-                    dynamic parsed = JsonConvert.DeserializeObject(raw);
-
-                    string text =
-                        parsed.candidates[0].content.parts[0].text;
-
-                    return text;
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogError($"Gemini parse error: {ex.Message}\nRaw: {raw}");
-                    return null;
-                }
-            }
-        }
-
-
-        private string BuildPropertySummaryJson(List<LLMShaderProperty> properties)
-        {
-            if (properties == null) return "[]";
-            return JsonConvert.SerializeObject(properties, Formatting.Indented);
-        }
-
-        private async Task<bool> WaitForPreviewFileAsync(string path, float timeoutSeconds = 5f)
-        {
-            double start = EditorApplication.timeSinceStartup;
-
-            // Normalize slashes just in case
-            path = path.Replace("\\", "/");
-
-            while (!File.Exists(path) &&
-                EditorApplication.timeSinceStartup - start < timeoutSeconds)
-            {
-                await Task.Delay(200); // wait 0.2s and check again
-            }
-
-            return File.Exists(path);
-        }
-
-        public async void RunLibraryGeneration()
-        {
-            string filePath = "Assets/ShaderGraphs/ShapeLibrary.txt";
-
-            if (!File.Exists(filePath))
-            {
-                EditorUtility.DisplayDialog("Error", "ShapeLibrary.txt not found!", "OK");
-                return;
-            }
-
-            string[] lines = File.ReadAllLines(filePath);
-            List<string> shapeRequests = new List<string>();
-
-            foreach (string line in lines)
-            {
-                string trimmed = line.Trim();
-                if (!string.IsNullOrEmpty(trimmed))
-                    shapeRequests.Add(trimmed);
-            }
-
-            Debug.Log($"Loaded {shapeRequests.Count} shape definitions.");
-
-            foreach (string request in shapeRequests)
-            {
-                Debug.Log($"=== Processing shape: {request} ===");
-
-                await ProcessSingleShapeRequest(request);
-
-                // Disable all existing preview quads
-                DisableAllPreviewQuads();
-            }
-
-            Debug.Log("✓ Library generation completed.");
-        }
-
-        private async Task ProcessSingleShapeRequest(string request)
-        {
-            const int maxIterations = 4;
-
-            string firstPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(request, true);
-            string currentPrompt = firstPrompt;
-
-            LLMShaderResponse llmResponse = null;
-
-            for (int iteration = 1; iteration <= maxIterations; iteration++)
-            {
-                Debug.Log($"[{request}] Iteration {iteration}");
-
-                // 1. Call Gemini
-                string jsonResponse = await CallGeminiAsync(currentPrompt, config.geminiKey);
-                llmResponse = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
-
-                // 2. Build pipeline (HLSL → Graph → Material → Screenshot)
-                string previewPath = await BuildPipelineOnce(llmResponse);
-
-                // 3. Evaluate using OpenAI
-                var evalJson = await CallOpenAIEvalAsync(
-                    request,
-                    llmResponse.hlsl_code,
-                    llmResponse.properties,
-                    previewPath,
-                    config.openAIKey
-                );
-
-                var eval = JsonConvert.DeserializeObject<LLMMatchScoreResponse>(evalJson);
-
-                Debug.Log($"[{request}] Score: {eval.score}. Reason: {eval.explanation}");
-
-                if (eval.score >= 7)
-                {
-                    SaveSuccessfulResult(llmResponse);
-                    Debug.Log($"[{request}] SUCCESS (score {eval.score}). Saved!");
-                    return;
-                }
-
-                // 4. Refinement prompt
-                currentPrompt = ShaderGraphGeneratorEditorUtility.BuildRefinementPrompt(
-                    firstPrompt,
-                    llmResponse,
-                    eval.explanation
-                );
-            }
-
-            Debug.LogWarning($"[{request}] FAILED after {maxIterations} iterations.");
-        }
-
-        /// <summary>
-        /// NEW: Async method to handle the entire LLM-to-Quad pipeline.
-        /// </summary>
         private async void GenerateFromLLMAsync()
         {
             if (isGenerating) return;
@@ -617,108 +307,42 @@ namespace ShaderGraphGenerator.Editor
             isGenerating = true;
             Repaint();
 
-            const int maxIterations = 4;
-
-            string firstPrompt = ShaderGraphGeneratorEditorUtility.BuildLLMPrompt(llmPrompt, true);
-            string currentPrompt = firstPrompt;
-            LLMShaderResponse llmResponse = null;
-            int iteration = 0;
-
-            while (iteration < maxIterations)
+            var settings = new GenerationSettings
             {
-                iteration++;
-                Debug.Log($"=== ITERATION {iteration} ===");
+                UseTransparency = useTransparency,
+                UsePixelation = usePixelation,
+                CreateMaterial = createMaterial,
+                CreatePreviewQuad = createPreviewQuad,
+                CaptureScreenshot = captureScreenshot,
+                HlslFolder = llmHlslFolder,
+                GraphFolder = llmGraphFolder,
+                PreviewFolder = llmPreviewFolder
+            };
 
-                // 1. CALL GEMINI
-                string jsonResponse = await CallGeminiAsync(currentPrompt, config.geminiKey);
-                llmResponse = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
+            var result = await ShaderGenerationPipeline.GenerateWithFeedbackAsync(
+                llmPrompt,
+                settings,
+                config,
+                (iteration, status) => Debug.Log($"[Generation] {status}")
+            );
 
-                // 2. BUILD PIPELINE → HLSL → ShaderGraph → Material → Screenshot
-                string previewPath = await BuildPipelineOnce(llmResponse);
-
-                // 3. EVALUATE PREVIEW
-                var evalJson = await CallOpenAIEvalAsync(
-                    llmPrompt,
-                    llmResponse.hlsl_code,
-                    llmResponse.properties,
-                    previewPath,
-                    config.openAIKey
-                );
-
-                var eval = JsonConvert.DeserializeObject<LLMMatchScoreResponse>(evalJson);
-
-                Debug.Log($"Score = {eval.score}, Explanation = {eval.explanation}");
-
-                if (eval.score >= 7)
-                {
-                    SaveSuccessfulResult(llmResponse);
-                    EditorUtility.DisplayDialog("Success", "Shape looks correct!", "OK");
-                    break;
-                }
-
-                // 4. PREPARE FEEDBACK PROMPT FOR NEXT ITERATION
-                currentPrompt = ShaderGraphGeneratorEditorUtility.BuildRefinementPrompt(firstPrompt, llmResponse, eval.explanation);
+            if (result.Success)
+            {
+                EditorUtility.DisplayDialog("Success",
+                    $"Shape generated successfully!\n" +
+                    $"Score: {result.FinalScore}/10\n" +
+                    $"Iterations: {result.IterationsUsed}\n\n" +
+                    $"{result.Explanation}", "OK");
             }
-
-            if (iteration == maxIterations)
+            else
             {
-                EditorUtility.DisplayDialog("Failure", "Max attempts reached. Shape not correct.", "OK");
+                EditorUtility.DisplayDialog("Generation Incomplete",
+                    "Max refinement attempts reached. The shape may need manual adjustment.\n\n" +
+                    "Check the generated assets in the output folders.", "OK");
             }
 
             isGenerating = false;
             Repaint();
         }
-
-        private void SaveSuccessfulResult(LLMShaderResponse resp)
-        {
-            string folder = "Assets/ShaderGraphs/SuccessfulResults";
-            if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
-
-            string path = Path.Combine(folder, resp.file_name + ".hlsl");
-            File.WriteAllText(path, resp.hlsl_code);
-            AssetDatabase.ImportAsset(path);
-
-            Debug.Log($"✓ Saved final successful result to {path}");
-        }
-
-
-        private void DisableAllPreviewQuads()
-        {
-            foreach (var quad in GameObject.FindObjectsOfType<MeshRenderer>())
-            {
-                if (quad.name.Contains("Preview Quad"))
-                    quad.gameObject.SetActive(false);
-            }
-        }
-
-
     }
-
-
-
-    [System.Serializable]
-    public struct LLMValueObject
-    {
-        public float x;
-        public float y;
-        public float z;
-        public float w;
-    }
-
-    [System.Serializable]
-    public class LLMShaderProperty
-    {
-        public string name;
-        public string type;
-        public LLMValueObject default_value;
-    }
-
-    [System.Serializable]
-    public class LLMShaderResponse
-    {
-        public string file_name;
-        public string hlsl_code;
-        public List<LLMShaderProperty> properties;
-    }
-
 }
