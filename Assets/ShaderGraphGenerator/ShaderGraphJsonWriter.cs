@@ -127,7 +127,7 @@ namespace ShaderGraphGenerator
                 {
                     ["serializedMesh"] = new Dictionary<string, object>
                     {
-                        ["m_SerializedMesh"] = "{\\\"mesh\\\":{\\\"instanceID\\\":0}}",
+                        ["m_SerializedMesh"] = "{\"mesh\":{\"instanceID\":0}}",  // <-- CORRECT: raw string, WriteString will escape it
                         ["m_Guid"] = ""
                     },
                     ["preventRotation"] = false
@@ -466,13 +466,22 @@ namespace ShaderGraphGenerator
                 _sb.Append("}");
             }
 
-            private void WriteArray(IEnumerable items)
+             private void WriteArray(IEnumerable items)
             {
+                // Check if array is empty first
+                var itemList = items.Cast<object>().ToList();
+                
+                if (itemList.Count == 0)
+                {
+                    _sb.Append("[]");
+                    return;
+                }
+                
                 _sb.AppendLine("[");
                 _indent++;
 
                 bool first = true;
-                foreach (var it in items)
+                foreach (var it in itemList)
                 {
                     if (!first) _sb.AppendLine(",");
                     first = false;
@@ -486,7 +495,7 @@ namespace ShaderGraphGenerator
                 Indent();
                 _sb.Append("]");
             }
-
+            
             private void WriteString(string s)
             {
                 _sb.Append('"');

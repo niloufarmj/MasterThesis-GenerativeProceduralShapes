@@ -34,23 +34,65 @@ namespace ShaderGraphGenerator
         {
             var info = new HLSLFunctionInfo();
 
-            // Header: <ret> <name>(<args>)
-            var headerMatch = Regex.Match(
+            // Find ALL function definitions in the file
+            var allMatches = Regex.Matches(
                 hlslCode,
-                @"(?<ret>\w+)\s+(?<name>\w+)\s*\((?<args>[^)]*)\)",
+                @"(?<ret>\w+)\s+(?<funcname>\w+)\s*\((?<args>[^)]*)\)",
                 RegexOptions.Multiline);
 
-            if (!headerMatch.Success)
-                throw new Exception("Failed to parse HLSL function header.");
+            if (allMatches.Count == 0)
+                throw new Exception("Failed to parse HLSL function header. No functions found in file.");
 
-            info.FunctionName = headerMatch.Groups["name"].Value.Trim();
-            // Helper for display name if needed, or just use function name
-            info.DisplayName = info.FunctionName.Replace("_float", ""); 
-
-            var args = headerMatch.Groups["args"].Value;
-            // Handle newlines in args list
-            args = Regex.Replace(args, @"\s+", " ");
+            // Find the MAIN function - prioritize:
+            // 1. Function with "out float4" parameter (standard shader output)
+            // 2. Function name ending with "_float" (Unity convention)
+            // 3. Last function in file (main functions typically defined last)
             
+            Match mainMatch = null;
+
+            foreach (Match match in allMatches)
+            {
+                string argss = match.Groups["args"].Value;
+                
+                // Priority 1: Has "out float4" - this is definitely the main shader function
+                if (Regex.IsMatch(argss, @"\bout\s+float4\b", RegexOptions.IgnoreCase))
+                {
+                    mainMatch = match;
+                    Debug.Log($"[Parser] Found main function with 'out float4': {match.Groups["funcname"].Value}");
+                    break;
+                }
+            }
+
+            // Priority 2: Function ending with "_float"
+            if (mainMatch == null)
+            {
+                foreach (Match match in allMatches)
+                {
+                    string funcName = match.Groups["funcname"].Value;
+                    if (funcName.EndsWith("_float", StringComparison.OrdinalIgnoreCase))
+                    {
+                        mainMatch = match;
+                        Debug.Log($"[Parser] Found main function by '_float' suffix: {funcName}");
+                        break;
+                    }
+                }
+            }
+
+            // Priority 3: Last function (fallback)
+            if (mainMatch == null)
+            {
+                mainMatch = allMatches[allMatches.Count - 1];
+                Debug.LogWarning($"[Parser] Could not find main function. Using last function: {mainMatch.Groups["funcname"].Value}");
+            }
+
+            // Parse the selected function
+            info.FunctionName = mainMatch.Groups["funcname"].Value.Trim();
+            info.DisplayName = info.FunctionName.Replace("_float", "");
+
+            var args = mainMatch.Groups["args"].Value;
+            // Normalize whitespace (handle newlines in argument list)
+            args = Regex.Replace(args, @"\s+", " ");
+
             var argParts = args.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
 
             int slotId = 0;
@@ -59,28 +101,25 @@ namespace ShaderGraphGenerator
                 var trimmed = part.Trim();
                 if (string.IsNullOrEmpty(trimmed)) continue;
 
-                // Supports: [in|out|inout] <type> <name>
-                var m = Regex.Match(trimmed, @"(?:(in|out|inout)\s+)?(?<type>\w+)\s+(?<name>\w+)", RegexOptions.IgnoreCase);
+                // Pattern: [in|out|inout] <type> <name>
+                var m = Regex.Match(trimmed, @"(?:(in|out|inout)\s+)?(?<type>\w+)\s+(?<paramname>\w+)", RegexOptions.IgnoreCase);
                 if (!m.Success) continue;
 
-                string dir = (m.Groups[1].Success ? m.Groups[1].Value.ToLower() : "in");
+                string dir = m.Groups[1].Success ? m.Groups[1].Value.ToLower() : "in";
                 string type = m.Groups["type"].Value.Trim();
-                string name = m.Groups["name"].Value.Trim();
+                string name = m.Groups["paramname"].Value.Trim();
+                bool isOut = (dir == "out" || dir == "inout");
 
                 var p = new FunctionParameter
                 {
                     Direction = dir,
                     Type = type,
                     Name = name,
-                    SlotId = slotId++
+                    SlotId = slotId++,
+                    IsOutput = isOut  // <-- THIS WAS MISSING!
                 };
 
                 info.Parameters.Add(p);
-
-                if (dir == "out")
-                    info.OutputParameters.Add(p);
-                else
-                    info.InputParameters.Add(p);
             }
 
             return info;
@@ -405,7 +444,7 @@ namespace ShaderGraphGenerator
                 displayName: functionInfo.DisplayName ?? functionInfo.FunctionName,
                 slotObjectIdsInOrder: cfSlotOrder,
                 hlslFileGuid: hlslFileGUID,
-                functionNameForNode: functionInfo.FunctionName,
+                functionNameForNode: functionInfo.DisplayName,
                 usePragmas: true,
                 x: -280f,
                 y: 196.8f,
@@ -684,7 +723,7 @@ namespace ShaderGraphGenerator
 
         private static ShaderPropertyModel CreatePropertyForParam(ShaderGraphPropertyFactory propFactory, string propertyObjectId, FunctionParameter param)
         {
-            string refName = param.Name;
+            string refName = "_" + param.Name;
 
             if (param.IsColorProperty())
                 return propFactory.CreateColor(propertyObjectId, param.Name, refName, r: 0f, g: 0f, b: 0f, a: 1f, colorMode: 0, isMainColor: false);
