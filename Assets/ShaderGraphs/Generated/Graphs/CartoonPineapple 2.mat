@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PeppermintShape
-  m_Shader: {fileID: -6465566751694194690, guid: 17b4c624e63869b438244eee520e6eba, type: 3}
+  m_Name: CartoonPineapple 2
+  m_Shader: {fileID: -6465566751694194690, guid: b2d43a6855cd8ea4bb06c63ca8602630, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -24,6 +24,10 @@ Material:
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
+    - MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -38,18 +42,25 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _Curvature: 0.15
+    - _GridDensity: 8
+    - _GridThickness: 0.02
+    - _Height: 0.45
+    - _LeafCount: 5
+    - _LeafLength: 0.25
+    - _LeafSpread: 1.5
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Size: 0.35
-    - _StripeCount: 7
-    - _SwirlTightness: 5.45
+    - _StrokeThickness: 0.015
+    - _Width: 0.35
     m_Colors:
-    - _BaseColor: {r: 0.9433962, g: 0.89856416, b: 0.38714847, a: 1}
-    - _Center: {r: 0.5, g: 0.5, b: 0, a: 0}
-    - _StripeColor: {r: 1, g: 0, b: 0, a: 1}
+    - _BodyColor: {r: 1, g: 0.8, b: 0.1, a: 1}
+    - _GridColor: {r: 0.8, g: 0.5, b: 0, a: 1}
+    - _LeafColor: {r: 0.2, g: 0.8, b: 0.2, a: 1}
+    - _StrokeColor: {r: 0.1, g: 0.05, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &7513666829940517318
+--- !u!114 &6822290563149977265
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
