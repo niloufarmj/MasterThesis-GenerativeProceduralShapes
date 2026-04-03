@@ -1,0 +1,84 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: test-snowman
+  m_Shader: {fileID: -6465566751694194690, guid: 4ae077c8be36b584198a0505b3c73dd0, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _Component0_Rotation: 0.3383495
+    - _Component0_Scale: 0.32614738
+    - _Component1_Rotation: 0.40084597
+    - _Component1_Scale: 0.3762081
+    - _Component2_Rotation: 0.3619108
+    - _Component2_Scale: 0.10682471
+    - _Component3_Rotation: 0.43787047
+    - _Component3_Scale: 0.40067023
+    - _Component4_Rotation: 0.3836165
+    - _Component4_Scale: 0.40198538
+    - _Component5_Rotation: 0.39825913
+    - _Component5_Scale: 0.11474784
+    - _Component6_Rotation: 0.22536117
+    - _Component6_Scale: 0.2757844
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    m_Colors:
+    - _Color: {r: 1, g: 0.2251742, b: 0.018355727, a: 1}
+    - _Component0_Offset: {r: 0.5504432, g: 0.30270717, b: 0, a: 0}
+    - _Component1_Offset: {r: 0.5104793, g: 0.36759523, b: 0, a: 0}
+    - _Component2_Offset: {r: 0.35833517, g: 0.40451527, b: 0, a: 0}
+    - _Component3_Offset: {r: 0.40594327, g: 0.5846824, b: 0, a: 0}
+    - _Component4_Offset: {r: 0.3844267, g: 0.5310534, b: 0, a: 0}
+    - _Component5_Offset: {r: 0.3365736, g: 0.36026555, b: 0, a: 0}
+    - _Component6_Offset: {r: 0.517366, g: 0.5764716, b: 0, a: 0}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &2914186216888129589
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
