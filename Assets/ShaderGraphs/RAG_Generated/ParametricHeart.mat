@@ -1,18 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-4689591083071621819
-MonoBehaviour:
-  m_ObjectHideFlags: 11
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  version: 9
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -20,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: WatermelonCharacter
-  m_Shader: {fileID: -6465566751694194690, guid: de0685d9104604a4a89a497a93b65edc, type: 3}
+  m_Name: ParametricHeart
+  m_Shader: {fileID: -6465566751694194690, guid: b9341845ec23f80468d7a31c13ea2b02, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -55,19 +42,28 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
+    - _CornerRadius: -0.02
+    - _OutlineWidth: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _float4: -0.02
+    - _Size: 0.53
     m_Colors:
-    - _ArmParams: {r: -0.05, g: 0.12, b: 0.05, a: 0.006}
-    - _EyeParams: {r: 0.018, g: 0.12, b: 0, a: 0}
-    - _OutlineColor: {r: 0.05, g: 0.05, b: 0.05, a: 1}
-    - _SeedParams: {r: 0.015, g: 6, b: 0, a: 0}
-    - _SliceParams: {r: 0.72, g: 0.49, b: 1.28, a: 0}
-    - _StarFaceParams: {r: 0.005, g: 0.025, b: 0.03, a: 0.01}
-    - _StarParams: {r: 0.05, g: 5, b: 0.4, a: 0.005}
-    - _WandStickParams: {r: 0.3, g: 0.25, b: 0.5, a: 0.008}
-    - _WatermelonRedColor: {r: 0.95, g: 0.19999996, b: 0.44705883, a: 1}
-    - _WatermelonWhiteColor: {r: 0.95, g: 0.98, b: 0.95, a: 1}
+    - _Center: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _FillColor: {r: 0.89, g: 0.15, b: 0.25, a: 1}
+    - _OutlineColor: {r: 1, g: 1, b: 1, a: 1}
+    - _ShapeProportions: {r: 0.85, g: 0.66, b: 0, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
+--- !u!114 &8057971916012117763
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9

@@ -163,66 +163,104 @@ namespace ShaderGraphGenerator.RAG
         }
 
         /// <summary>
-        /// Render preview image of the material applied to a quad
+        /// Creates a quad in the active scene with the material applied, hides every other
+        /// renderer, renders a clean off-screen screenshot onto a white background,
+        /// then restores the scene. The quad stays in the scene so the user can inspect it.
         /// </summary>
         private static async Task<bool> RenderPreviewAsync(Material material, string outputPath)
         {
+            // Hide all pre-existing renderers so the screenshot shows only this shape.
+            var allRenderers = UnityEngine.Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None);
+            var wasEnabled = new bool[allRenderers.Length];
+            for (int i = 0; i < allRenderers.Length; i++)
+            {
+                wasEnabled[i] = allRenderers[i].enabled;
+                allRenderers[i].enabled = false;
+            }
+
+            GameObject cameraGO  = null;
+            RenderTexture rt     = null;
+            Texture2D screenshot = null;
+
             try
             {
-                // Create temporary scene with quad
-                var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
-                quad.name = "PreviewQuad";
-                
-                var renderer = quad.GetComponent<Renderer>();
-                renderer.material = material;
-
-                // Position quad for camera
+                // ── Create quad in scene (stays after this method returns) ──────
+                GameObject quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                quad.name = $"RAG Preview — {material.name}";
+                quad.GetComponent<Renderer>().material = material;
                 quad.transform.position = Vector3.zero;
                 quad.transform.rotation = Quaternion.identity;
+                quad.transform.localScale = Vector3.one;
 
-                // Create camera
-                var cameraGO = new GameObject("PreviewCamera");
-                var camera = cameraGO.AddComponent<Camera>();
-                camera.transform.position = new Vector3(0, 0, -2);
-                camera.transform.LookAt(quad.transform);
-                camera.clearFlags = CameraClearFlags.SolidColor;
-                camera.backgroundColor = new Color(1f, 0f, 1f, 1f); // Magenta background
-                camera.orthographic = true;
-                camera.orthographicSize = 0.6f;
+                // Frame it in the Scene View so the user sees it
+                Selection.activeGameObject = quad;
+                if (SceneView.lastActiveSceneView != null)
+                    SceneView.lastActiveSceneView.FrameSelected();
 
-                // Create RenderTexture
-                var rt = new RenderTexture(512, 512, 24);
-                camera.targetTexture = rt;
+                // ── Off-screen camera (destroyed after render) ────────────────
+                cameraGO = new GameObject("_RAGPreviewCamera");
+                var cam  = cameraGO.AddComponent<Camera>();
+                cam.transform.position    = new Vector3(0f, 0f, -2f);
+                cam.transform.LookAt(quad.transform);
+                cam.clearFlags            = CameraClearFlags.SolidColor;
+                cam.backgroundColor       = Color.white;
+                cam.orthographic          = true;
+                cam.orthographicSize      = 0.55f;
+                cam.cullingMask           = 1 << quad.layer; // only render the quad's layer
 
-                // Render
-                camera.Render();
+                rt             = new RenderTexture(512, 512, 24);
+                cam.targetTexture = rt;
 
-                // Read pixels
+                // Let Unity finish one frame so the material compiles
+                await Task.Delay(100);
+
+                cam.Render();
+
+                // ── Read pixels ───────────────────────────────────────────────
                 RenderTexture.active = rt;
-                var screenshot = new Texture2D(512, 512, TextureFormat.RGB24, false);
+                screenshot = new Texture2D(512, 512, TextureFormat.RGBA32, false);
                 screenshot.ReadPixels(new Rect(0, 0, 512, 512), 0, 0);
                 screenshot.Apply();
 
-                // Save to file
-                byte[] bytes = screenshot.EncodeToPNG();
-                File.WriteAllBytes(outputPath, bytes);
+                // Composite over white so transparent areas become white
+                var pixels = screenshot.GetPixels32();
+                for (int i = 0; i < pixels.Length; i++)
+                {
+                    float a  = pixels[i].a / 255f;
+                    pixels[i].r = (byte)(pixels[i].r * a + 255 * (1f - a));
+                    pixels[i].g = (byte)(pixels[i].g * a + 255 * (1f - a));
+                    pixels[i].b = (byte)(pixels[i].b * a + 255 * (1f - a));
+                    pixels[i].a = 255;
+                }
+                screenshot.SetPixels32(pixels);
+                screenshot.Apply();
 
-                // Cleanup
-                RenderTexture.active = null;
-                camera.targetTexture = null;
-                UnityEngine.Object.DestroyImmediate(rt);
-                UnityEngine.Object.DestroyImmediate(screenshot);
-                UnityEngine.Object.DestroyImmediate(cameraGO);
-                UnityEngine.Object.DestroyImmediate(quad);
+                File.WriteAllBytes(outputPath, screenshot.EncodeToPNG());
+                Debug.Log($"[RAG Pipeline] Screenshot saved: {outputPath}");
 
-                AssetDatabase.Refresh();
-                
                 return true;
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Render preview failed: {ex.Message}");
+                Debug.LogError($"[RAG Pipeline] Render preview failed: {ex.Message}\n{ex.StackTrace}");
                 return false;
+            }
+            finally
+            {
+                // ── Cleanup: destroy only the temporary camera & GPU resources ──
+                RenderTexture.active = null;
+                if (rt != null)         { rt.Release(); UnityEngine.Object.DestroyImmediate(rt); }
+                if (screenshot != null) { UnityEngine.Object.DestroyImmediate(screenshot); }
+                if (cameraGO != null)   { UnityEngine.Object.DestroyImmediate(cameraGO); }
+
+                // ── Restore all pre-existing renderers ────────────────────────
+                for (int i = 0; i < allRenderers.Length; i++)
+                {
+                    if (allRenderers[i] != null)
+                        allRenderers[i].enabled = wasEnabled[i];
+                }
+
+                AssetDatabase.Refresh();
             }
         }
 

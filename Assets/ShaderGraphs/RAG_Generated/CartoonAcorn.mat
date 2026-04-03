@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-763394228762035823
+--- !u!114 &-1824975115230095982
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CartoonWatermelonSlice
-  m_Shader: {fileID: -6465566751694194690, guid: c49130a1f4353b64e8ed57a3288fc761, type: 3}
+  m_Name: CartoonAcorn
+  m_Shader: {fileID: -6465566751694194690, guid: f8260dff41181594c884881c3f00c73c, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -33,7 +33,7 @@ Material:
   stringTagMap: {}
   disabledShaderPasses:
   - MOTIONVECTORS
-  m_LockedProperties: _ColorOutline
+  m_LockedProperties: 
   m_SavedProperties:
     serializedVersion: 3
     m_TexEnvs:
@@ -55,27 +55,23 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BottomCurvature: 0.91
-    - _OutlineThick: 0.015
+    - _HighlightAngle: 0.3
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _SkinThick: 0.03
-    - _SliceAngle: 0.75
-    - _SliceRadius: 0.38
-    - _WhiteThick: 0.02
+    - _StrokeWidth: 0.015
     m_Colors:
-    - _ColorBody: {r: 0.95, g: 0.2, b: 0.3, a: 1}
-    - _ColorFace: {r: 0.1, g: 0.1, b: 0.1, a: 1}
-    - _ColorOutline: {r: 0.1, g: 0.1, b: 0.1, a: 1}
-    - _ColorSeed: {r: 0.15, g: 0.08, b: 0.05, a: 1}
-    - _ColorSkin: {r: 0.5202513, g: 0.93207544, b: 0.27258798, a: 1}
-    - _ColorStar: {r: 1, g: 0.9, b: 0.1, a: 1}
-    - _ColorWand: {r: 0.2905661, g: 0.14050736, b: 0.041117802, a: 1}
-    - _ColorWhite: {r: 0.95, g: 0.98, b: 0.95, a: 1}
-    - _FaceParams: {r: 0.015, g: 0.03, b: 0.02, a: 0.01}
-    - _HandParams: {r: 0.06, g: 0.04, b: -0.16, a: 0.16}
-    - _SeedParams: {r: 5.82, g: 0.015, b: 0.85, a: 0.49}
-    - _StarParams: {r: 0.06, g: 0.01, b: 0.006, a: 0.005}
-    - _WandParams: {r: 0.16, g: 0.15, b: 0.001, a: 0.17}
+    - _CapColor: {r: 0.4, g: 0.2, b: 0.1, a: 1}
+    - _CapGridColor: {r: 0.2, g: 0.1, b: 0.05, a: 1}
+    - _CapParams: {r: 1.5, g: 0.13, b: 0, a: 0}
+    - _CapSize: {r: 0.13, g: 0.06, b: 0, a: 0}
+    - _GridParams: {r: 19.55, g: 0.15, b: 0.7853, a: 0}
+    - _HighlightColor: {r: 1, g: 1, b: 1, a: 0.6}
+    - _HighlightParams: {r: 0.06, g: -0.05, b: 0.04, a: 0.015}
+    - _NutColor: {r: 0.8, g: 0.5, b: 0.2, a: 1}
+    - _NutParams: {r: 1.12, g: 0.08, b: 0, a: 0}
+    - _NutSize: {r: 0.12, g: 0.11, b: 0, a: 0}
+    - _StemColor: {r: 0.3, g: 0.15, b: 0.05, a: 1}
+    - _StemParams: {r: 0.1, g: 0.015, b: 2, a: 0.18}
+    - _StrokeColor: {r: 0.1, g: 0.05, b: 0, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
