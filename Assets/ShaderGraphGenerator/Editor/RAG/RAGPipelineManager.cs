@@ -55,6 +55,7 @@ namespace ShaderGraphGenerator.RAG
 
                 result.fileName = llmResponse.file_name;
                 result.hlslCode = llmResponse.hlsl_code;
+                result.properties = llmResponse.properties;
 
                 // Step 2: Save HLSL
                 string hlslPath = Path.Combine(RAG_OUTPUT_DIR, $"{llmResponse.file_name}.hlsl");
@@ -291,10 +292,11 @@ namespace ShaderGraphGenerator.RAG
         
         public string fileName;
         public string hlslCode;
+        public List<LLMShaderProperty> properties;
         public string shaderGraphPath;
         public string materialPath;
         public string previewImagePath;
-        
+
         public int vmlScore;
         public string vmlFeedback;
     }
