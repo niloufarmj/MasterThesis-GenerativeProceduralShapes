@@ -31,7 +31,7 @@ namespace ShaderGraphGenerator.RAG
         // ─────────────────────────────────────────────────────────────────────
         //  Menu
         // ─────────────────────────────────────────────────────────────────────
-        [MenuItem("Tools/ShaderGraph Generator/2.4 RAG Pipeline with Auto-Learning")]
+        [MenuItem("Tools/ShaderGraph Generator/4 RAG Pipeline with Auto-Learning")]
         public static void ShowWindow()
         {
             var window = GetWindow<RAGAutoLearnWindow>("2.4 RAG Auto-Learn");

@@ -193,6 +193,8 @@ namespace ShaderGraphGenerator.Editor
         /// Downsamples a PNG on disk to targetSize x targetSize and returns it as a base64 data-URL.
         /// Keeps the original file untouched. Uses Unity's built-in Texture2D for the resize.
         /// </summary>
+        public static string ImageToResizedBase64Public(string absolutePath, int targetSize = 256) => ImageToResizedBase64(absolutePath, targetSize);
+
         private static string ImageToResizedBase64(string absolutePath, int targetSize = 256)
         {
             byte[] raw = File.ReadAllBytes(absolutePath);
@@ -439,6 +441,212 @@ namespace ShaderGraphGenerator.Editor
                 string jsonText = parsed.content[0].text;
 
                 return jsonText;
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  GEMINI VISION (Image + Text → HLSL generation)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Calls Gemini with both a text prompt and an inline image (base64 PNG/JPEG).
+        /// Used by the Image→Shader pipeline for direct visual generation.
+        /// absoluteImagePath must be an absolute filesystem path.
+        /// </summary>
+        public static async Task<string> CallGeminiWithImageAsync(
+            string textPrompt,
+            string absoluteImagePath,
+            string apiKey)
+        {
+            const string model = "gemini-3-pro-preview";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+
+            if (!File.Exists(absoluteImagePath))
+            {
+                Debug.LogError($"[Gemini Vision] Image not found: {absoluteImagePath}");
+                return null;
+            }
+
+            byte[] imgBytes = File.ReadAllBytes(absoluteImagePath);
+            string b64 = Convert.ToBase64String(imgBytes);
+            string mimeType = absoluteImagePath.ToLowerInvariant().EndsWith(".jpg") ||
+                              absoluteImagePath.ToLowerInvariant().EndsWith(".jpeg")
+                ? "image/jpeg" : "image/png";
+
+            Debug.Log($"[Gemini Vision] Sending image ({imgBytes.Length / 1024} KB, {mimeType}) + prompt ({textPrompt.Length} chars)");
+
+            var bodyObj = new
+            {
+                contents = new object[]
+                {
+                    new
+                    {
+                        parts = new object[]
+                        {
+                            new { text = textPrompt },
+                            new
+                            {
+                                inline_data = new
+                                {
+                                    mime_type = mimeType,
+                                    data = b64
+                                }
+                            }
+                        }
+                    }
+                }
+            };
+
+            string jsonBody = JsonConvert.SerializeObject(bodyObj);
+            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+            {
+                www.uploadHandler   = new UploadHandlerRaw(bodyRaw);
+                www.downloadHandler = new DownloadHandlerBuffer();
+                www.SetRequestHeader("Content-Type", "application/json");
+
+                var op = www.SendWebRequest();
+                while (!op.isDone) await Task.Yield();
+
+                if (www.result == UnityWebRequest.Result.ConnectionError ||
+                    www.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogError($"[Gemini Vision] API Error: {www.error}\n{www.downloadHandler.text}");
+                    return null;
+                }
+
+                string raw = www.downloadHandler.text;
+                try
+                {
+                    dynamic parsed = JsonConvert.DeserializeObject(raw);
+                    string text = parsed.candidates[0].content.parts[0].text;
+                    return text;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[Gemini Vision] Parse error: {ex.Message}\nRaw: {raw.Substring(0, System.Math.Min(500, raw.Length))}");
+                    return null;
+                }
+            }
+        }
+
+        // ═══════════════════════════════════════════════════════════════════════
+        //  OPENAI VISION — Image description for decomposition
+        // ═══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Sends an image to GPT-4o Vision and asks it to produce a detailed structured
+        /// description of what it sees. The description is then used as the text input
+        /// for decomposition + KB retrieval in the image-to-shader pipeline.
+        /// absoluteImagePath must be an absolute filesystem path.
+        /// userEditableHints: optional user note about which parts should be editable
+        ///   (e.g. "I want the scarf color and body size to be editable properties").
+        /// Returns a plain-text structured description, or null on failure.
+        /// </summary>
+        public static async Task<string> CallOpenAIDescribeImageAsync(
+            string absoluteImagePath,
+            string userEditableHints,
+            string apiKey)
+        {
+            const string url = "https://api.openai.com/v1/chat/completions";
+
+            if (!File.Exists(absoluteImagePath))
+            {
+                Debug.LogError($"[Image Describe] Image not found: {absoluteImagePath}");
+                return null;
+            }
+
+            // Resize to 512×512 for description (good enough resolution, keeps cost low)
+            string dataUrl;
+            try { dataUrl = ImageToResizedBase64(absoluteImagePath, 512); }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[Image Describe] Failed to encode: {ex.Message}");
+                return null;
+            }
+
+            string hintsSection = string.IsNullOrWhiteSpace(userEditableHints)
+                ? ""
+                : $"\n\nThe user specifically wants these aspects to be editable shader properties: {userEditableHints}";
+
+            string systemPrompt =
+                "You are an expert at analyzing 2D illustrations and translating them into structured descriptions " +
+                "for procedural shader generation. Be precise about shapes, colors, sizes, and spatial relationships.";
+
+            string userPrompt =
+                "Analyze this image and produce a detailed structured description for generating it as a 2D procedural HLSL shader.\n\n" +
+                "Your description must cover:\n" +
+                "1. OVERALL SHAPE: What is the subject? What is its overall silhouette?\n" +
+                "2. COMPONENTS: List every distinct visual part (e.g. body, head, hat, scarf, arms, buttons). For each:\n" +
+                "   - Geometric primitive it resembles (circle, rectangle, ellipse, triangle, etc.)\n" +
+                "   - Approximate position relative to center (top-left, center, etc.)\n" +
+                "   - Approximate relative size (small/medium/large fraction of whole)\n" +
+                "   - Color (as RGB approximation or common name)\n" +
+                "   - Any special visual effect (gradient, stripe, outline, etc.)\n" +
+                "3. COLORS: List all distinct colors used with approximate RGB values\n" +
+                "4. STYLE: Cartoon? Realistic? Flat? Outlined? Shadowed?\n" +
+                "5. SHADER PARAMETERS: Based on the image and user hints, suggest which visual properties " +
+                "would make the most useful editable shader parameters (e.g. body size, hat color, stripe count)." +
+                hintsSection +
+                "\n\nBe specific and thorough. This description will be used to generate HLSL shader code.";
+
+            var bodyObject = new
+            {
+                model = "gpt-4o",
+                max_tokens = 1500,
+                messages = new object[]
+                {
+                    new { role = "system", content = systemPrompt },
+                    new
+                    {
+                        role = "user",
+                        content = new object[]
+                        {
+                            new { type = "text",      text = userPrompt },
+                            new { type = "image_url", image_url = new { url = dataUrl } }
+                        }
+                    }
+                }
+            };
+
+            string jsonBody = JsonConvert.SerializeObject(bodyObject);
+            byte[] bodyRaw  = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+            {
+                www.uploadHandler   = new UploadHandlerRaw(bodyRaw);
+                www.downloadHandler = new DownloadHandlerBuffer();
+                www.SetRequestHeader("Content-Type",  "application/json");
+                www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+
+                var op = www.SendWebRequest();
+                while (!op.isDone) await Task.Yield();
+
+                if (www.result == UnityWebRequest.Result.ConnectionError ||
+                    www.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogError($"[Image Describe] OpenAI Error: {www.error}\n{www.downloadHandler.text}");
+                    return null;
+                }
+
+                string raw = www.downloadHandler.text;
+                Debug.Log($"[Image Describe] Raw response (first 300): {raw.Substring(0, System.Math.Min(300, raw.Length))}");
+                try
+                {
+                    var parsed = JsonConvert.DeserializeObject<dynamic>(raw);
+                    if (parsed.error != null)
+                    {
+                        Debug.LogError($"[Image Describe] OpenAI error: {parsed.error.message}");
+                        return null;
+                    }
+                    return (string)parsed.choices[0].message.content;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[Image Describe] Parse error: {ex.Message}\nRaw: {raw}");
+                    return null;
+                }
             }
         }
     }

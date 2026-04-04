@@ -122,6 +122,193 @@ namespace ShaderGraphGenerator.RAG
             }
         }
 
+
+        /// <summary>
+        /// Image-to-Shader RAG pipeline.
+        /// 1. GPT-4o Vision describes the image in detail (for decomposition + KB retrieval).
+        /// 2. Decompose the description into components and retrieve KB examples.
+        /// 3. Gemini Vision generates HLSL with BOTH the text prompt AND the original image,
+        ///    so it can see exactly what to recreate.
+        /// absoluteImagePath must be an absolute filesystem path.
+        /// editableHints: user's note about what should be editable properties (can be empty).
+        /// </summary>
+        public static async Task<LLMShaderResponse> GenerateWithRAGFromImageAsync(
+            string absoluteImagePath,
+            string editableHints,
+            ShapeKnowledgeBase knowledgeBase,
+            ShaderGraphGeneratorConfig config,
+            bool useTransparency = true)
+        {
+            Debug.Log($"[RAG Image] Starting image-to-shader pipeline for: {absoluteImagePath}");
+
+            // ── Step 1: VLM describes the image ──────────────────────────────
+            Debug.Log("[RAG Image] Step 1: GPT-4o Vision describing image...");
+            string visualDescription = await LLMApiService.CallOpenAIDescribeImageAsync(
+                absoluteImagePath, editableHints, config.openAIKey);
+
+            if (string.IsNullOrEmpty(visualDescription))
+            {
+                Debug.LogError("[RAG Image] Image description failed");
+                return null;
+            }
+
+            Debug.Log($"[RAG Image] Visual description ({visualDescription.Length} chars):\n{visualDescription.Substring(0, System.Math.Min(300, visualDescription.Length))}...");
+
+            // ── Step 2: Decompose visual description into components ───────────
+            Debug.Log("[RAG Image] Step 2: Decomposing visual description...");
+            var decomposition = await ShapeDecompositionService.DecomposeShapeAsync(
+                visualDescription, knowledgeBase, config.geminiKey);
+
+            if (decomposition == null)
+            {
+                Debug.LogError("[RAG Image] Decomposition failed");
+                return null;
+            }
+
+            Debug.Log($"[RAG Image] Decomposed into {decomposition.total_components} components");
+
+            // ── Step 3: Retrieve KB examples per component ───────────────────
+            Debug.Log("[RAG Image] Step 3: Retrieving primitives...");
+            var retrievedExamples = new List<RetrievedExample>();
+
+            foreach (var component in decomposition.components)
+            {
+                var searchResults = await SemanticShapeSearch.SearchAsync(
+                    component.description, knowledgeBase, config.openAIKey, topK: 2);
+
+                foreach (var candidate in searchResults)
+                {
+                    if (!File.Exists(candidate.shape.filePath)) continue;
+                    retrievedExamples.Add(new RetrievedExample
+                    {
+                        componentRole           = component.role,
+                        componentDescription    = component.description,
+                        matchedShapeName        = candidate.shape.fileName,
+                        matchedShapePrompt      = candidate.shape.originalPrompt,
+                        matchedShapeDescription = candidate.shape.visualDescription,
+                        hlslCode                = File.ReadAllText(candidate.shape.filePath),
+                        similarityScore         = candidate.similarity
+                    });
+                    Debug.Log($"[RAG Image]   {component.role}: {candidate.shape.fileName} (sim={candidate.similarity:F3})");
+                    break; // top-1 per component
+                }
+            }
+
+            // ── Step 4: Build prompt + call Gemini Vision ─────────────────────
+            // The text prompt tells Gemini exactly what to generate (from the description).
+            // The image gives it the ground truth visual reference. Best of both worlds.
+            Debug.Log("[RAG Image] Step 4: Generating HLSL with Gemini Vision...");
+
+            string editableSection = string.IsNullOrWhiteSpace(editableHints)
+                ? ""
+                : $"\n\n## USER-REQUESTED EDITABLE PROPERTIES\n{editableHints}\n" +
+                  "Make sure each of these aspects has a corresponding shader parameter.";
+
+            string ragPrompt = BuildRAGPromptFromImage(
+                visualDescription, editableSection, decomposition, retrievedExamples, useTransparency);
+
+            string jsonResponse = await LLMApiService.CallGeminiWithImageAsync(
+                ragPrompt, absoluteImagePath, config.geminiKey);
+
+            if (string.IsNullOrEmpty(jsonResponse))
+            {
+                Debug.LogError("[RAG Image] Gemini Vision returned null");
+                return null;
+            }
+
+            jsonResponse = StripMarkdownCodeBlock(jsonResponse);
+
+            try
+            {
+                var response = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
+                Debug.Log($"[RAG Image] ✓ Generated: {response.file_name}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[RAG Image] Failed to parse response: {ex.Message}\n{jsonResponse}");
+                return null;
+            }
+        }
+
+        private static string BuildRAGPromptFromImage(
+            string visualDescription,
+            string editableSection,
+            ShapeDecomposition decomposition,
+            List<RetrievedExample> retrievedExamples,
+            bool useTransparency)
+        {
+            var sb = new System.Text.StringBuilder();
+
+            sb.AppendLine(GetMasterPromptHeader());
+            sb.AppendLine();
+
+            sb.AppendLine("## YOUR TASK: IMAGE-TO-SHADER GENERATION");
+            sb.AppendLine("An image has been provided alongside this prompt. Your goal is to recreate it as a 2D procedural HLSL shader.");
+            sb.AppendLine("Study the image carefully — it is the ground truth visual reference.");
+            sb.AppendLine();
+
+            sb.AppendLine("## VISUAL DESCRIPTION (from image analysis)");
+            sb.AppendLine("A vision model analyzed the reference image and produced this structured description:");
+            sb.AppendLine();
+            sb.AppendLine(visualDescription);
+            sb.AppendLine();
+
+            if (!string.IsNullOrWhiteSpace(editableSection))
+            {
+                sb.AppendLine(editableSection);
+                sb.AppendLine();
+            }
+
+            sb.AppendLine("## DECOMPOSITION STRATEGY");
+            sb.AppendLine($"Reasoning: {decomposition.reasoning}");
+            sb.AppendLine($"Strategy: {decomposition.composition_strategy}");
+            sb.AppendLine($"Components: {decomposition.total_components}");
+            sb.AppendLine();
+
+            if (retrievedExamples.Count > 0)
+            {
+                sb.AppendLine("## RETRIEVED LIBRARY EXAMPLES (technique reference)");
+                foreach (var ex in retrievedExamples)
+                {
+                    sb.AppendLine($"### {ex.componentRole}: {ex.matchedShapeName} (sim={ex.similarityScore:F2})");
+                    sb.AppendLine($"Description: {ex.matchedShapeDescription}");
+                    sb.AppendLine("```hlsl");
+                    sb.AppendLine(ex.hlslCode);
+                    sb.AppendLine("```");
+                    sb.AppendLine();
+                }
+            }
+
+            sb.AppendLine("## INSTRUCTIONS");
+            sb.AppendLine("1. Look at the provided reference image as your primary visual target.");
+            sb.AppendLine("2. Use the visual description and retrieved examples as supporting context.");
+            sb.AppendLine("3. Generate a SINGLE HLSL function that reproduces the image as closely as possible.");
+            sb.AppendLine("4. Every visually distinct colored region should have a corresponding float4 Color parameter.");
+            sb.AppendLine("5. Important sizes (body radius, hat height, etc.) should be float parameters.");
+            sb.AppendLine("6. Match the spatial layout, proportions, and colors from the reference image.");
+            sb.AppendLine("7. Use SDF composition (union, subtraction, smoothstep AA) for clean edges.");
+            sb.AppendLine();
+            sb.AppendLine("## CRITICAL — DEFAULT VALUES (THIS IS MANDATORY)");
+            sb.AppendLine("Every property in the 'properties' array MUST have a meaningful non-zero default_value.");
+            sb.AppendLine("The default values will be applied directly to the material at generation time.");
+            sb.AppendLine("If default values are zero, the rendered output will be completely invisible (white/black).");
+            sb.AppendLine("RULES:");
+            sb.AppendLine("- float4 colors: set RGBA from the reference image. NEVER return {x:0,y:0,z:0,w:0}.");
+            sb.AppendLine("  Always set w (alpha) to 1.0 for opaque colors. E.g. red = {x:1,y:0,z:0,w:1}");
+            sb.AppendLine("- float sizes: use realistic values visible on a 0-1 UV quad. E.g. 0.3 for a body.");
+            sb.AppendLine("  NEVER return 0 for a size. The shape must be visible.");
+            sb.AppendLine("- float2 positions: default to center {x:0.5,y:0.5} unless offset is needed.");
+            sb.AppendLine("BAD:  {\"name\":\"StarColor\",\"type\":\"float4\",\"default_value\":{\"x\":0,\"y\":0,\"z\":0,\"w\":0}}");
+            sb.AppendLine("GOOD: {\"name\":\"StarColor\",\"type\":\"float4\",\"default_value\":{\"x\":1,\"y\":0.8,\"z\":0,\"w\":1}}");
+            sb.AppendLine("BAD:  {\"name\":\"StarSize\",\"type\":\"float\",\"default_value\":0}");
+            sb.AppendLine("GOOD: {\"name\":\"StarSize\",\"type\":\"float\",\"default_value\":0.35}");
+            sb.AppendLine();
+            sb.AppendLine("Return ONLY the JSON with file_name, hlsl_code, and properties. No markdown fences.");
+
+            return sb.ToString();
+        }
+
         /// <summary>
         /// Build RAG-enhanced prompt with retrieved examples
         /// </summary>

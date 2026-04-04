@@ -16,10 +16,11 @@ namespace ShaderGraphGenerator.RAG
         public static HLSLFunctionInfo BuildShaderGraphFromLLMResponse(
             string hlslPath,
             string outputPath,
-            bool useTransparency = true)
+            bool useTransparency = true,
+            bool usePixelation   = false)
         {
             string hlslGuid = AssetDatabase.AssetPathToGUID(hlslPath);
-            return ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, hlslGuid, outputPath, useTransparency, usePixelation: false);
+            return ShaderGraphJSONGenerator.GenerateFromHLSL(hlslPath, hlslGuid, outputPath, useTransparency, usePixelation);
         }
     }
 }

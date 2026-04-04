@@ -37,10 +37,10 @@ namespace ShaderGraphGenerator.RAG
         private Vector2 scrollPos;
 
         // ─── menu ─────────────────────────────────────────────────────────────
-        [MenuItem("Tools/ShaderGraph Generator/2.5 Manual Add to Library")]
+        [MenuItem("Tools/ShaderGraph Generator/5 Manual Add to Library")]
         public static void ShowWindow()
         {
-            var w = GetWindow<ManualLibraryAddWindow>("2.5 Manual Add to Library");
+            var w = GetWindow<ManualLibraryAddWindow>("5 Manual Add to Library");
             w.minSize = new Vector2(700, 560);
         }
 

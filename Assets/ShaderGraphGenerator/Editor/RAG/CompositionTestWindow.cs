@@ -25,7 +25,7 @@ namespace ShaderGraphGenerator.RAG
         private bool isProcessing = false;
         private Vector2 scrollPos;
 
-        [MenuItem("Tools/ShaderGraph Generator/2.3 Test Full RAG Pipeline")]
+        [MenuItem("Tools/ShaderGraph Generator/3 Test Full RAG Pipeline")]
         public static void ShowWindow()
         {
             var window = GetWindow<CompositionTestWindow>("RAG Pipeline Test");

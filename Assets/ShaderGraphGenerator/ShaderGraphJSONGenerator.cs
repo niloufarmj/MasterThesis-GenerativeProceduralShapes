@@ -627,10 +627,17 @@ namespace ShaderGraphGenerator
             if (inTan != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(vertexTangentNodeGuid), 0), new SlotRef(new NodeRef(customFunctionNodeGuid), inTan.SlotId)));
 
             // UV -> custom function input (the first float2 input)
+            // When pixelation is active, feed the quantised UV (Divide output) instead of raw UV.
+            // This makes the HLSL SDF itself render in blocky pixels, not just the MainTex sample.
+            // NOTE: divideNodeGuid is only valid when usePixelation=true (guarded below).
             if (!string.IsNullOrEmpty(uvParamName))
             {
+                // Pixelation path: Divide.Out (slot 2) is the floor(UV*N)/N quantised UV
+                // Standard path:   UVNode.Out  (slot 0) is the raw UV
+                string uvSourceId   = (usePixelation && divideNodeGuid != null) ? divideNodeGuid : uvNodeGuid;
+                int    uvSourceSlot = (usePixelation && divideNodeGuid != null) ? 2 : 0;
                 graph.Edges.Add(new EdgeModel(
-                    new SlotRef(new NodeRef(uvNodeGuid), 0),
+                    new SlotRef(new NodeRef(uvSourceId), uvSourceSlot),
                     new SlotRef(new NodeRef(customFunctionNodeGuid), GetSlotId(functionInfo, uvParamName))));
             }
 
@@ -646,9 +653,12 @@ namespace ShaderGraphGenerator
                     var ms = colorTexMulSlots[p.Name];
                     var ss = colorTexSampleSlots[p.Name];
 
-                    // UV -> color SampleTex UV input
+                    // UV (or pixelated UV) -> color SampleTex UV input
+                    string uvSrcId   = (usePixelation && divideNodeGuid != null) ? divideNodeGuid : uvNodeGuid;
+                    int    uvSrcSlot = (usePixelation && divideNodeGuid != null) ? 2 : 0;
+                    var uvSrcNode  = new NodeRef(uvSrcId);
                     graph.Edges.Add(new EdgeModel(
-                        new SlotRef(new NodeRef(uvNodeGuid), 0),
+                        new SlotRef(uvSrcNode, uvSrcSlot),
                         new SlotRef(new NodeRef(colorTexSampleNodeGuids[p.Name]), 2)));
 
                     // Tex property -> color SampleTex Texture input

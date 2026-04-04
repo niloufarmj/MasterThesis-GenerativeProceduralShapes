@@ -48,10 +48,10 @@ namespace ShaderGraphGenerator.RAG
         private Vector2 scrollPos;
 
         // ─── menu ─────────────────────────────────────────────────────────────
-        [MenuItem("Tools/ShaderGraph Generator/2.6 RAG Pipeline + Human Review")]
+        [MenuItem("Tools/ShaderGraph Generator/6 RAG Pipeline + Human Review")]
         public static void ShowWindow()
         {
-            var w = GetWindow<RAGHumanReviewWindow>("2.6 RAG + Human Review");
+            var w = GetWindow<RAGHumanReviewWindow>("6 RAG + Human Review");
             w.minSize = new Vector2(880, 680);
         }
 

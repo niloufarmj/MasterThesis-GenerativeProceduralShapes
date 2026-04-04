@@ -25,7 +25,7 @@ namespace ShaderGraphGenerator.RAG
     public class RAGUpdateWindow : EditorWindow
     {
         // ─── constants ────────────────────────────────────────────────────────
-        private const int    MAX_VLM_ITERATIONS   = 1;
+        private const int    MAX_VLM_ITERATIONS   = 4;
         private const int    MAX_HUMAN_ITERATIONS = 4;
         private const int    KB_THRESHOLD         = 8;
         private const int    HUMAN_REJECT_BELOW   = 7;
@@ -62,10 +62,10 @@ namespace ShaderGraphGenerator.RAG
         private Vector2 scrollPos;
 
         // ─── menu ─────────────────────────────────────────────────────────────
-        [MenuItem("Tools/ShaderGraph Generator/2.7 RAG HLSL Updater + Human Review")]
+        [MenuItem("Tools/ShaderGraph Generator/7 RAG HLSL Updater + Human Review")]
         public static void ShowWindow()
         {
-            var w = GetWindow<RAGUpdateWindow>("2.7 RAG HLSL Updater");
+            var w = GetWindow<RAGUpdateWindow>("7 RAG HLSL Updater");
             w.minSize = new Vector2(1000, 700);
         }
 

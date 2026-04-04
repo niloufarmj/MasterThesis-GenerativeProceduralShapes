@@ -582,6 +582,12 @@ namespace ShaderGraphGenerator.Editor
                     switch (type)
                     {
                         case "float":
+                            // Skip zero floats — LLM returned no value; let random fallback stand.
+                            if (Mathf.Abs(val.x) < 0.0001f)
+                            {
+                                Debug.LogWarning($"[SetDefaultProps] Skipping float '{prop.name}' = 0 (random fallback kept).");
+                                break;
+                            }
                             material.SetFloat(propName, val.x);
                             break;
 
@@ -599,11 +605,20 @@ namespace ShaderGraphGenerator.Editor
                         case "float4":
                         case "color":
                         {
-                            // If the LLM forgot to set alpha (w=0) but the color has RGB values,
-                            // treat it as fully opaque. This fixes the common case where the LLM
-                            // returns a scalar or omits w, causing FlexibleValueConverter to set w=0.
+                            // If ALL components are zero the LLM had no opinion — skip so the
+                            // random fallback from SetRandomMaterialProperties stays visible.
+                            bool allZero = val.x < 0.001f && val.y < 0.001f &&
+                                           val.z < 0.001f && val.w < 0.001f;
+                            if (allZero)
+                            {
+                                Debug.LogWarning(
+                                    $"[SetDefaultProps] Skipping '{prop.name}' — all components are zero " +
+                                    "(LLM returned no value). Random fallback will be used.");
+                                break;
+                            }
+                            // Alpha rescue: LLM forgot w but RGB is meaningful → force opaque.
                             float alpha = val.w;
-                            if (alpha < 0.001f && (val.x > 0.001f || val.y > 0.001f || val.z > 0.001f))
+                            if (alpha < 0.001f)
                                 alpha = 1f;
                             material.SetColor(propName, new Color(val.x, val.y, val.z, alpha));
                             break;
