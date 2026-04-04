@@ -598,9 +598,16 @@ namespace ShaderGraphGenerator.Editor
                         case "vector4":
                         case "float4":
                         case "color":
-                            // Treat as generic float4 / color
-                            material.SetVector(propName, new Vector4(val.x, val.y, val.z, val.w));
+                        {
+                            // If the LLM forgot to set alpha (w=0) but the color has RGB values,
+                            // treat it as fully opaque. This fixes the common case where the LLM
+                            // returns a scalar or omits w, causing FlexibleValueConverter to set w=0.
+                            float alpha = val.w;
+                            if (alpha < 0.001f && (val.x > 0.001f || val.y > 0.001f || val.z > 0.001f))
+                                alpha = 1f;
+                            material.SetColor(propName, new Color(val.x, val.y, val.z, alpha));
                             break;
+                        }
 
                         default:
                             Debug.LogWarning(

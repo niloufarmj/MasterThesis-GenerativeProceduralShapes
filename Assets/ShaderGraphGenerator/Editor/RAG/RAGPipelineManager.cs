@@ -66,7 +66,7 @@ namespace ShaderGraphGenerator.RAG
                 // Step 3: Build ShaderGraph JSON
                 Debug.Log("[RAG Pipeline] Building ShaderGraph JSON...");
                 string sgPath = Path.Combine(RAG_OUTPUT_DIR, $"{llmResponse.file_name}.shadergraph");
-                ShaderGraphBuilder.BuildShaderGraphFromLLMResponse(hlslPath, sgPath, useTransparency: true);
+                var functionInfo = ShaderGraphBuilder.BuildShaderGraphFromLLMResponse(hlslPath, sgPath, useTransparency: true);
                 AssetDatabase.Refresh();
                 Debug.Log($"[RAG Pipeline] ✓ ShaderGraph saved: {sgPath}");
 
@@ -95,7 +95,9 @@ namespace ShaderGraphGenerator.RAG
                 AssetDatabase.SaveAssets();
                 AssetDatabase.Refresh();
 
-                // Apply LLM default property values so shape is visible at render time
+                // Apply random sensible defaults first, then overlay with LLM values
+                if (functionInfo != null)
+                    ShaderGraphGeneratorEditorUtility.SetRandomMaterialProperties(material, functionInfo);
                 ShaderGraphGeneratorEditorUtility.SetDefaultMaterialProperties(material, llmResponse.properties);
 
                 Debug.Log($"[RAG Pipeline] ✓ Material created: {matPath}");
@@ -179,6 +181,7 @@ namespace ShaderGraphGenerator.RAG
             }
 
             GameObject cameraGO  = null;
+            Camera     cam       = null;
             RenderTexture rt     = null;
             Texture2D screenshot = null;
 
@@ -199,7 +202,7 @@ namespace ShaderGraphGenerator.RAG
 
                 // ── Off-screen camera (destroyed after render) ────────────────
                 cameraGO = new GameObject("_RAGPreviewCamera");
-                var cam  = cameraGO.AddComponent<Camera>();
+                cam      = cameraGO.AddComponent<Camera>();
                 cam.transform.position    = new Vector3(0f, 0f, -2f);
                 cam.transform.LookAt(quad.transform);
                 cam.clearFlags            = CameraClearFlags.SolidColor;
@@ -249,6 +252,8 @@ namespace ShaderGraphGenerator.RAG
             {
                 // ── Cleanup: destroy only the temporary camera & GPU resources ──
                 RenderTexture.active = null;
+                // Detach RT from camera before releasing to avoid Unity warning.
+                if (cam != null) cam.targetTexture = null;
                 if (rt != null)         { rt.Release(); UnityEngine.Object.DestroyImmediate(rt); }
                 if (screenshot != null) { UnityEngine.Object.DestroyImmediate(screenshot); }
                 if (cameraGO != null)   { UnityEngine.Object.DestroyImmediate(cameraGO); }
