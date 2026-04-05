@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-9138867426539896763
+--- !u!114 &-2732171900563146215
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CartoonCarSDF
-  m_Shader: {fileID: -6465566751694194690, guid: 5592420478a08f141831eb8eed0a65af, type: 3}
+  m_Name: ProceduralHotDog.hlsl
+  m_Shader: {fileID: -6465566751694194690, guid: 31221ff5b8602b446b8e4262926141d1, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -41,31 +41,19 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _BodyColorTex:
+    - _BunColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _DetailColorTex:
+    - _InnerBunColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _HeadlightColorTex:
+    - _MustardColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _RimColorTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _TaillightColorTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _TireColorTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _WindowColorTex:
+    - _SausageColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -83,26 +71,23 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BodyHeight: 0.42
-    - _BodyWidth: 1.05
-    - _CabinHeight: 0.37
-    - _CabinWidth: 0.63
-    - _DoorHeight: 0.18
-    - _DoorRadius: 0.02
-    - _DoorWidth: 0.36
+    - _BunLength: 0.5
+    - _BunWidth: 0.22
+    - _GlobalRotation: -0.785
+    - _InnerBunLength: 0.48
+    - _InnerBunWidth: 0.15
+    - _MustardLength: 0.55
+    - _MustardWaveAmplitude: 0.04
+    - _MustardWaveFrequency: 18
+    - _MustardWidth: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Scale: 0.78
-    - _WheelRadius: 0.11
-    - _WheelSpacing: 0.63
+    - _SausageLength: 0.65
+    - _SausageWidth: 0.09
     m_Colors:
-    - _BodyColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
-    - _Center: {r: 0.5, g: 0.5, b: 0, a: 0}
-    - _DetailColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
-    - _HeadlightColor: {r: 1, g: 0.95, b: 0.4, a: 1}
-    - _RimColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
-    - _TaillightColor: {r: 1, g: 0.2, b: 0.2, a: 1}
-    - _TireColor: {r: 0.15, g: 0.15, b: 0.18, a: 1}
-    - _WindowColor: {r: 0.8, g: 0.9, b: 0.95, a: 1}
+    - _BunColor: {r: 0.847, g: 0.616, b: 0.475, a: 1}
+    - _InnerBunColor: {r: 0.769, g: 0.51, b: 0.412, a: 1}
+    - _MustardColor: {r: 0.949, g: 0.718, b: 0.02, a: 1}
+    - _SausageColor: {r: 0.824, g: 0.294, b: 0.251, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

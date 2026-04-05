@@ -106,7 +106,8 @@ namespace ShaderGraphGenerator.RAG
 
                 // Step 5: Apply to Quad and Render Preview
                 Debug.Log("[RAG Pipeline] Rendering preview...");
-                string previewPath = Path.Combine(PREVIEW_DIR, $"{llmResponse.file_name}_{maxIterations}.png");
+                string projectRoot = Path.GetDirectoryName(Application.dataPath);
+                string previewPath = Path.GetFullPath(Path.Combine(projectRoot, PREVIEW_DIR, $"{llmResponse.file_name}_{maxIterations}.png"));
                 
                 bool renderSuccess = await RenderPreviewAsync(material, previewPath);
                 
