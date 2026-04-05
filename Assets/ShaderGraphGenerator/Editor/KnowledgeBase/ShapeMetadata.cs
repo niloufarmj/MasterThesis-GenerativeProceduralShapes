@@ -4,12 +4,38 @@ using UnityEngine;
 
 namespace ShaderGraphGenerator.KnowledgeBase
 {
+    // ─── Animator entry (nested inside a ShapeMetadata) ─────────────────────
+
+    /// <summary>
+    /// A saved animation script linked to a specific shape in the knowledge base.
+    /// Stored in ShapeMetadata.animators so each shape owns its proven animations.
+    /// </summary>
+    [Serializable]
+    public class AnimatorEntry
+    {
+        public string id;                  // short unique id
+        public string fileName;            // C# class name, e.g. "CartoonSnowmanPulse"
+        public string scriptPath;          // asset path to the .cs file
+        public string animationDescription;// original user request
+        public string animationSummary;    // one-line LLM summary
+        public string sourceMaterialName;  // material the animation was created for
+        public List<string> propertiesUsed = new List<string>();
+        public List<string> tags           = new List<string>();
+        public string dateAdded;
+        public int    humanScore;
+        public float[] embedding;          // on animation summary, for future retrieval
+    }
+
+    // ─── Shape metadata ───────────────────────────────────────────────────────
+
     /// <summary>
     /// Metadata for a single SDF shape primitive
     /// </summary>
     [Serializable]
     public class ShapeMetadata
     {
+        // Animations written for this specific shape
+        public List<AnimatorEntry> animators = new List<AnimatorEntry>();
         public string id;
         public string fileName;
         public string filePath;
