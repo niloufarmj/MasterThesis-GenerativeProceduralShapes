@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PineTree.hlsl
-  m_Shader: {fileID: -6465566751694194690, guid: 9cfdf2b22b7f9f24b9ec769068f9ef8f, type: 3}
+  m_Name: ProceduralSword.hlsl
+  m_Shader: {fileID: -6465566751694194690, guid: fd02a7ebb32237446af7098d5cd09708, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -28,39 +28,51 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorBotLeftTex:
+    - _BladeInnerColorLeftTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorBotRightTex:
+    - _BladeInnerColorRightTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorMidLeftTex:
+    - _BladeOuterColorLeftTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorMidRightTex:
+    - _BladeOuterColorRightTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorRimTex:
+    - _GripColorLeftTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorTopLeftTex:
+    - _GripColorRightTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorTopRightTex:
+    - _GuardColorLeftTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorTrunkLeftTex:
+    - _GuardColorRightTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorTrunkRightTex:
+    - _PommelInnerColorLeftTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PommelInnerColorRightTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PommelOuterColorLeftTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PommelOuterColorRightTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -78,35 +90,35 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BotH: 0.35
-    - _BotW: 0.28
-    - _BotY: 0.06
-    - _CornerRadius: 0.09
-    - _MidH: 0.28
-    - _MidW: 0.12
-    - _MidY: 0.28
+    - _BladeInset: 0.03
+    - _BladeLength: 0.7
+    - _BladeTipHeight: 0.32
+    - _BladeWidth: 0.21
+    - _GripLength: 0.18
+    - _GripWidth: 0.13
+    - _GuardHeight: 0.11
+    - _GuardWidth: 0.32
+    - _PommelInnerRadius: 0.06
+    - _PommelOuterRadius: 0.08
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RimHeight: 0.03
-    - _TopH: 0.22
-    - _TopW: 0.12
-    - _TopY: 0.4
-    - _TrunkH: 0.06
-    - _TrunkW: 0.04
-    - _TrunkY: -0.35
     m_Colors:
-    - _ColorBotLeft: {r: 0.55, g: 0.85, b: 0.35, a: 1}
-    - _ColorBotRight: {r: 0.45, g: 0.75, b: 0.3, a: 1}
-    - _ColorMidLeft: {r: 0.26, g: 0.65, b: 0.16, a: 1}
-    - _ColorMidRight: {r: 0.2, g: 0.55, b: 0.12, a: 1}
-    - _ColorRim: {r: 0.12, g: 0.45, b: 0.1, a: 1}
-    - _ColorTopLeft: {r: 0.61, g: 0.88, b: 0.41, a: 1}
-    - _ColorTopRight: {r: 0.5, g: 0.75, b: 0.35, a: 1}
-    - _ColorTrunkLeft: {r: 0.3, g: 0.15, b: 0.05, a: 1}
-    - _ColorTrunkRight: {r: 0.55, g: 0.3, b: 0.15, a: 1}
+    - _BladeInnerColorLeft: {r: 0.43, g: 0.81, b: 0.95, a: 1}
+    - _BladeInnerColorRight: {r: 0.31, g: 0.65, b: 0.82, a: 1}
+    - _BladeOuterColorLeft: {r: 0.77, g: 0.95, b: 1, a: 1}
+    - _BladeOuterColorRight: {r: 0.52, g: 0.8, b: 0.92, a: 1}
+    - _Center: {r: 0.5, g: 0.3, b: 0, a: 0}
+    - _GripColorLeft: {r: 0.839, g: 0.475, b: 0.098, a: 1}
+    - _GripColorRight: {r: 0.651, g: 0.341, b: 0.039, a: 1}
+    - _GuardColorLeft: {r: 1, g: 0.761, b: 0.341, a: 1}
+    - _GuardColorRight: {r: 0.953, g: 0.612, b: 0.071, a: 1}
+    - _PommelInnerColorLeft: {r: 1, g: 0.882, b: 0.51, a: 1}
+    - _PommelInnerColorRight: {r: 1, g: 0.761, b: 0.341, a: 1}
+    - _PommelOuterColorLeft: {r: 1, g: 0.761, b: 0.341, a: 1}
+    - _PommelOuterColorRight: {r: 0.953, g: 0.612, b: 0.071, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &6623944515090623868
+--- !u!114 &1984547592963838159
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}

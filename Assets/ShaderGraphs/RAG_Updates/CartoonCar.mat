@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: PineTree.hlsl
-  m_Shader: {fileID: -6465566751694194690, guid: 9cfdf2b22b7f9f24b9ec769068f9ef8f, type: 3}
+  m_Name: CartoonCar
+  m_Shader: {fileID: -6465566751694194690, guid: cec13226adf607f4289e3eda07b21e81, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -28,39 +28,31 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorBotLeftTex:
+    - _BodyColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorBotRightTex:
+    - _DetailColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorMidLeftTex:
+    - _HeadlightColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorMidRightTex:
+    - _RimColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorRimTex:
+    - _TaillightColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorTopLeftTex:
+    - _TireColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorTopRightTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _ColorTrunkLeftTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _ColorTrunkRightTex:
+    - _WindowColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -78,35 +70,30 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BotH: 0.35
-    - _BotW: 0.28
-    - _BotY: 0.06
-    - _CornerRadius: 0.09
-    - _MidH: 0.28
-    - _MidW: 0.12
-    - _MidY: 0.28
+    - _BodyHeight: 0.25
+    - _BodyWidth: 0.79
+    - _CabinHeight: 0.27
+    - _CabinWidth: 0.44
+    - _DoorHeight: 0.275
+    - _DoorRadius: 0.064
+    - _DoorWidth: 0.237
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _RimHeight: 0.03
-    - _TopH: 0.22
-    - _TopW: 0.12
-    - _TopY: 0.4
-    - _TrunkH: 0.06
-    - _TrunkW: 0.04
-    - _TrunkY: -0.35
+    - _Scale: 0.92
+    - _WheelRadius: 0.11
+    - _WheelSpacing: 0.29
     m_Colors:
-    - _ColorBotLeft: {r: 0.55, g: 0.85, b: 0.35, a: 1}
-    - _ColorBotRight: {r: 0.45, g: 0.75, b: 0.3, a: 1}
-    - _ColorMidLeft: {r: 0.26, g: 0.65, b: 0.16, a: 1}
-    - _ColorMidRight: {r: 0.2, g: 0.55, b: 0.12, a: 1}
-    - _ColorRim: {r: 0.12, g: 0.45, b: 0.1, a: 1}
-    - _ColorTopLeft: {r: 0.61, g: 0.88, b: 0.41, a: 1}
-    - _ColorTopRight: {r: 0.5, g: 0.75, b: 0.35, a: 1}
-    - _ColorTrunkLeft: {r: 0.3, g: 0.15, b: 0.05, a: 1}
-    - _ColorTrunkRight: {r: 0.55, g: 0.3, b: 0.15, a: 1}
+    - _BodyColor: {r: 0.2, g: 0.6, b: 0.9, a: 1}
+    - _Center: {r: 0.5, g: 0.5, b: 0, a: 0}
+    - _DetailColor: {r: 0.95, g: 0.95, b: 0.95, a: 1}
+    - _HeadlightColor: {r: 1, g: 0.95, b: 0.4, a: 1}
+    - _RimColor: {r: 0.85, g: 0.85, b: 0.85, a: 1}
+    - _TaillightColor: {r: 1, g: 0.2, b: 0.2, a: 1}
+    - _TireColor: {r: 0.15, g: 0.15, b: 0.18, a: 1}
+    - _WindowColor: {r: 0.8, g: 0.9, b: 0.95, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &6623944515090623868
+--- !u!114 &4006011481461150060
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
