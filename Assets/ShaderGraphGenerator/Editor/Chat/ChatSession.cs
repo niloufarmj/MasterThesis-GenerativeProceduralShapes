@@ -297,8 +297,9 @@ namespace ShaderGraphGenerator.Chat
                     {
                         QuickReplies = new[]
                         {
-                            new QuickReply { Label = "Pixelation.",              Value = "effect_pixel" },
-                            new QuickReply { Label = "I want to do something else.", Value = "back"     },
+                            new QuickReply { Label = "Pixelation.",                  Value = "effect_pixel" },
+                            new QuickReply { Label = "Glow (HDR + Bloom).",          Value = "effect_glow"  },
+                            new QuickReply { Label = "I want to do something else.", Value = "back"         },
                         }
                     };
 

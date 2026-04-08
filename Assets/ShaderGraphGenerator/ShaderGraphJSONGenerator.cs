@@ -128,7 +128,7 @@ namespace ShaderGraphGenerator
         public string GenerateShaderGraphJSON(string hlslCode, string hlslFileGUID, bool usePixelation, bool useTransparency)
             => GenerateShaderGraphJSON(ParseHLSLFunction(hlslCode), hlslFileGUID, usePixelation, useTransparency);
 
-        public string GenerateShaderGraphJSON(HLSLFunctionInfo functionInfo, string hlslFileGUID, bool usePixelation, bool useTransparency)
+        public string GenerateShaderGraphJSON(HLSLFunctionInfo functionInfo, string hlslFileGUID, bool usePixelation, bool useTransparency, bool useGlow = false)
         {
             if (functionInfo == null) throw new ArgumentNullException(nameof(functionInfo));
             if (functionInfo.OutputParameters == null || functionInfo.OutputParameters.Count == 0)
@@ -220,6 +220,29 @@ namespace ShaderGraphGenerator
                 divideSlotA = GetOrCreateGuid("divide_slot_a");
                 divideSlotB = GetOrCreateGuid("divide_slot_b");
                 divideSlotOut = GetOrCreateGuid("divide_slot_out");
+            }
+
+            // Glow (optional) — adds a GlowDensity float property + a Multiply node in the
+            // output path that amplifies colour above 1, triggering URP Bloom.
+            // All colour properties are switched to HDR mode (colorMode=1) with default
+            // values > 1 so bloom is immediately visible at default settings.
+            string glowDensityPropDefGuid  = null;
+            string glowDensityPropNodeGuid = null;
+            string glowDensityPropSlotGuid = null;
+            string glowMultiplyNodeGuid    = null;
+            string glowMultiplySlotA       = null;
+            string glowMultiplySlotB       = null;
+            string glowMultiplySlotOut     = null;
+
+            if (useGlow)
+            {
+                glowDensityPropDefGuid  = GetOrCreateGuid("glow_density_prop_def");
+                glowDensityPropNodeGuid = GetOrCreateGuid("glow_density_prop_node");
+                glowDensityPropSlotGuid = GetOrCreateGuid("glow_density_prop_slot");
+                glowMultiplyNodeGuid    = GetOrCreateGuid("glow_multiply_node");
+                glowMultiplySlotA       = GetOrCreateGuid("glow_multiply_slot_a");
+                glowMultiplySlotB       = GetOrCreateGuid("glow_multiply_slot_b");
+                glowMultiplySlotOut     = GetOrCreateGuid("glow_multiply_slot_out");
             }
 
             // Transparency (optional) only when first output is float4
@@ -341,10 +364,22 @@ namespace ShaderGraphGenerator
                 graph.Definitions.Add(pixelCountProp);
             }
 
+            ShaderPropertyModel glowDensityProp = null;
+            if (useGlow)
+            {
+                // GlowDensity: float, default 2, range 0..10.
+                // Multiplies the final colour so it exceeds 1 (HDR) and triggers URP Bloom.
+                glowDensityProp = propFactory.CreateGlowDensity(glowDensityPropDefGuid, defaultValue: 2f);
+                graph.PropertyRefs.Add(glowDensityProp.AsRef());
+                graph.Definitions.Add(glowDensityProp);
+            }
+
             foreach (var kvp in propertyDefGuids)
             {
                 var p = functionInfo.InputParameters.First(x => x.Name == kvp.Key);
-                var prop = CreatePropertyForParam(propFactory, kvp.Value, p);
+                // When glow is active, colour properties are created in HDR mode
+                // (colorMode=1) with default values > 1 so Bloom fires immediately.
+                var prop = CreatePropertyForParam(propFactory, kvp.Value, p, useGlow);
                 graph.PropertyRefs.Add(prop.AsRef());
                 graph.Definitions.Add(prop);
             }
@@ -362,7 +397,8 @@ namespace ShaderGraphGenerator
             // --- Category (properties list) ---
             var category = new CategoryDataModel(categoryGuid, name: "", sgVersion: 0);
             category.AddProperty(mainTexProp.AsRef());
-            if (pixelCountProp != null) category.AddProperty(pixelCountProp.AsRef());
+            if (pixelCountProp  != null) category.AddProperty(pixelCountProp.AsRef());
+            if (glowDensityProp != null) category.AddProperty(glowDensityProp.AsRef());
             foreach (var kvp in propertyDefGuids)
             {
                 category.AddProperty(new PropertyRef(kvp.Value));
@@ -478,6 +514,28 @@ namespace ShaderGraphGenerator
             graph.Definitions.Add(slotFactory.CreateMultiplyA(multiplySlotA));
             graph.Definitions.Add(slotFactory.CreateMultiplyB(multiplySlotB));
             graph.Definitions.Add(slotFactory.CreateMultiplyOut(multiplySlotOut));
+
+            // Glow chain: GlowDensity property node + GlowMultiply node
+            // These are placed to the right of the split/vec3 output nodes.
+            // Topology: FinalColor.Out → GlowMul.A, GlowDensity → GlowMul.B, GlowMul.Out → BaseColor
+            if (useGlow)
+            {
+                var glowDensNode = nodeFactory.CreatePropertyNode(
+                    glowDensityPropNodeGuid, glowDensityPropSlotGuid, glowDensityPropDefGuid,
+                    x: 340f, y: 196.8f);
+                graph.NodeRefs.Add(glowDensNode.AsRef());
+                graph.Definitions.Add(glowDensNode);
+                graph.Definitions.Add(slotFactory.CreatePropertyVector1Out(glowDensityPropSlotGuid, "GlowDensity"));
+
+                var glowMulNode = nodeFactory.CreateMultiplyNode(
+                    glowMultiplyNodeGuid, glowMultiplySlotA, glowMultiplySlotB, glowMultiplySlotOut,
+                    x: 540f, y: 196.8f);
+                graph.NodeRefs.Add(glowMulNode.AsRef());
+                graph.Definitions.Add(glowMulNode);
+                graph.Definitions.Add(slotFactory.CreateMultiplyA(glowMultiplySlotA));
+                graph.Definitions.Add(slotFactory.CreateMultiplyB(glowMultiplySlotB));
+                graph.Definitions.Add(slotFactory.CreateMultiplyOut(glowMultiplySlotOut));
+            }
 
             // Function input property nodes + per-color texture chains
             float propY = 600f;
@@ -722,6 +780,8 @@ namespace ShaderGraphGenerator
             graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(customFunctionNodeGuid), mainOut.SlotId), new SlotRef(new NodeRef(multiplyNodeGuid), 0)));
 
             // Multiply Out -> BaseColor OR Split/Alpha pipeline
+            // When glow is active, the final colour node feeds GlowMultiply (A=colour, B=GlowDensity)
+            // before reaching BaseColor, boosting values above 1 to trigger URP Bloom.
             if (splitAlpha)
             {
                 graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(multiplyNodeGuid), 2), new SlotRef(new NodeRef(outputSplitNodeGuid), 0)));
@@ -731,15 +791,39 @@ namespace ShaderGraphGenerator
                 graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputSplitNodeGuid), 2), new SlotRef(new NodeRef(outputVec3NodeGuid), 2)));
                 graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputSplitNodeGuid), 3), new SlotRef(new NodeRef(outputVec3NodeGuid), 3)));
 
-                // Vec3 Out -> BaseColor
-                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputVec3NodeGuid), 0), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid), 0)));
+                if (useGlow)
+                {
+                    // Vec3.Out → GlowMul.A (slot 0)
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputVec3NodeGuid),    0), new SlotRef(new NodeRef(glowMultiplyNodeGuid),       0)));
+                    // GlowDensity → GlowMul.B (slot 1)
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(glowDensityPropNodeGuid), 0), new SlotRef(new NodeRef(glowMultiplyNodeGuid),       1)));
+                    // GlowMul.Out (slot 2) → BaseColor
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(glowMultiplyNodeGuid),   2), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid),   0)));
+                }
+                else
+                {
+                    // Vec3 Out -> BaseColor (standard path)
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputVec3NodeGuid), 0), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid), 0)));
+                }
 
                 // Split A -> Alpha block
                 graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(outputSplitNodeGuid), 4), new SlotRef(new NodeRef(alphaBlockNodeGuid), 0)));
             }
             else
             {
-                graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(multiplyNodeGuid), 2), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid), 0)));
+                if (useGlow)
+                {
+                    // Multiply.Out → GlowMul.A (slot 0)
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(multiplyNodeGuid),       2), new SlotRef(new NodeRef(glowMultiplyNodeGuid),     0)));
+                    // GlowDensity → GlowMul.B (slot 1)
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(glowDensityPropNodeGuid), 0), new SlotRef(new NodeRef(glowMultiplyNodeGuid),     1)));
+                    // GlowMul.Out (slot 2) → BaseColor
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(glowMultiplyNodeGuid),   2), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid), 0)));
+                }
+                else
+                {
+                    graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(multiplyNodeGuid), 2), new SlotRef(new NodeRef(fragmentBaseColorNodeGuid), 0)));
+                }
             }
 
             return ShaderGraphJsonWriter.Write(graph);
@@ -758,7 +842,8 @@ namespace ShaderGraphGenerator
             string hlslFileGUID,
             string outputPath,
             bool useTransparency,
-            bool usePixelation)
+            bool usePixelation,
+            bool useGlow = false)
         {
             try
             {
@@ -786,7 +871,8 @@ namespace ShaderGraphGenerator
                     functionInfo,
                     hlslFileGUID,
                     usePixelation,
-                    useTransparency);
+                    useTransparency,
+                    useGlow);
 
                 // 5. Write to disk
                 File.WriteAllText(outputPath, json);
@@ -870,12 +956,24 @@ namespace ShaderGraphGenerator
             }
         }
 
-        private static ShaderPropertyModel CreatePropertyForParam(ShaderGraphPropertyFactory propFactory, string propertyObjectId, FunctionParameter param)
+        private static ShaderPropertyModel CreatePropertyForParam(
+            ShaderGraphPropertyFactory propFactory,
+            string propertyObjectId,
+            FunctionParameter param,
+            bool useGlow = false)
         {
             string refName = "_" + param.Name;
 
             if (param.IsColorProperty())
-                return propFactory.CreateColor(propertyObjectId, param.Name, refName, r: 0f, g: 0f, b: 0f, a: 1f, colorMode: 0, isMainColor: false);
+            {
+                if (useGlow)
+                    // HDR mode: colorMode=1, default values > 1 so Bloom fires immediately.
+                    // Warm golden (3, 1.5, 0.2, 1) looks like a classic magic/fire glow.
+                    return propFactory.CreateColorHDR(propertyObjectId, param.Name, refName,
+                        r: 3f, g: 1.5f, b: 0.2f, a: 1f);
+                else
+                    return propFactory.CreateColor(propertyObjectId, param.Name, refName, r: 0f, g: 0f, b: 0f, a: 1f, colorMode: 0, isMainColor: false);
+            }
 
             switch (param.Type.ToLower())
             {

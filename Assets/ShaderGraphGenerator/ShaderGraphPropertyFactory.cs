@@ -243,5 +243,37 @@ namespace ShaderGraphGenerator
                 floatType: 0,
                 rangeMin: rangeMin,
                 rangeMax: rangeMax);
+
+        /// <summary>
+        /// GlowDensity property for the glow effect:
+        /// Float that multiplies the final colour before BaseColor, amplifying it above 1
+        /// so URP Bloom picks it up. Default 2 with range [0..10].
+        /// </summary>
+        public ShaderPropertyModel CreateGlowDensity(string propertyObjectId, float defaultValue = 2.0f, float rangeMin = 0.0f, float rangeMax = 10.0f)
+            => CreateVector1(
+                propertyObjectId: propertyObjectId,
+                displayName: "GlowDensity",
+                referenceName: "_GlowDensity",
+                defaultValue: defaultValue,
+                floatType: 0,
+                rangeMin: rangeMin,
+                rangeMax: rangeMax);
+
+        /// <summary>
+        /// Creates a Color property in HDR mode (colorMode = 1) with default values
+        /// intentionally above 1 so URP Bloom fires immediately.
+        /// The warm golden default (3, 1.5, 0.2, 1) is visually clear at GlowDensity=2.
+        /// Users can change it to any HDR colour they want.
+        /// </summary>
+        public ShaderPropertyModel CreateColorHDR(
+            string propertyObjectId,
+            string displayName,
+            string referenceName,
+            float r = 3f, float g = 1.5f, float b = 0.2f, float a = 1f,
+            bool isMainColor = false)
+            => CreateColor(propertyObjectId, displayName, referenceName,
+                r: r, g: g, b: b, a: a,
+                colorMode: 1,         // 1 = HDR in ShaderGraph JSON
+                isMainColor: isMainColor);
     }
 }
