@@ -392,6 +392,184 @@ The asset is located anywhere in the project; all pipelines find it via `AssetDa
 
 ---
 
+## API Cost Analysis
+
+> **Pricing basis** — costs use April 2026 list prices:
+> `gemini-3-pro-preview` (treated as Gemini Pro tier): **$1.25 / 1M input tokens, $5.00 / 1M output tokens**
+> `gpt-4o`: **$2.50 / 1M input tokens, $10.00 / 1M output tokens**
+> `text-embedding-3-small`: **$0.02 / 1M tokens**
+> Image tokens (GPT-4o): 512 × 512 px ≈ **255 tokens**, 256 × 256 px ≈ **85 tokens**
+>
+> Verify current prices at [platform.openai.com/pricing](https://platform.openai.com/pricing) and [ai.google.dev/pricing](https://ai.google.dev/pricing).
+
+---
+
+### Building Blocks — Cost per API Call
+
+| Call | Model | Typical Tokens In | Typical Tokens Out | Min Cost | Max Cost |
+|---|---|---|---|---|---|
+| **Gemini: decompose request** | Gemini Pro | 1,550–2,600 | 300–600 | $0.003 | $0.006 |
+| **Gemini: compose HLSL (text)** | Gemini Pro | 2,100–5,100 | 800–3,000 | $0.007 | $0.021 |
+| **Gemini: compose HLSL (+ image)** | Gemini Pro | 2,350–5,350 | 800–3,000 | $0.007 | $0.022 |
+| **Gemini: classify edit / anim** | Gemini Pro | 600–1,200 | 100–200 | $0.001 | $0.003 |
+| **Gemini: update HLSL** | Gemini Pro | 2,700–5,000 | 600–2,000 | $0.007 | $0.017 |
+| **Gemini: generate anim script** | Gemini Pro | 1,400–3,000 | 500–1,200 | $0.004 | $0.010 |
+| **Gemini: suggest prop values** | Gemini Pro | 600–1,800 | 100–200 | $0.001 | $0.003 |
+| **GPT-4o: describe image** | GPT-4o | 755–1,000 + 255 img | 500–1,000 | $0.007 | $0.013 |
+| **GPT-4o: VLM eval (1 image)** | GPT-4o | 1,500–2,500 + 255 img | 100 | $0.005 | $0.008 |
+| **GPT-4o: before/after eval (2 images)** | GPT-4o | 300 + 2×85 img | 100 | $0.002 | $0.003 |
+| **Embedding query (per component)** | text-embedding-3-small | 50–200 | — | <$0.001 | <$0.001 |
+
+> **Decompose prompt size note**: The decomposition prompt includes a summary of all 184 KB shapes (names + tags, up to 20 per category) which adds ≈ 800–1,000 tokens to every decomposition call.
+>
+> **HLSL composition prompt note**: Each retrieved KB example includes the full HLSL source file (≈ 300–800 tokens per file). With 2 examples retrieved, this adds ≈ 600–1,600 tokens per composition call.
+
+---
+
+### Per-Path Cost Breakdown
+
+#### Path 1 — Generate Shape from Text
+
+| Step | Calls per iteration | Cost per iteration |
+|---|---|---|
+| Gemini: decompose request | ×1 | $0.003–$0.006 |
+| Embedding searches (1–3 components) | ×1–3 | < $0.001 |
+| Gemini: compose HLSL | ×1 | $0.007–$0.021 |
+| GPT-4o: VLM eval | ×1 | $0.005–$0.008 |
+| **Total per iteration** | | **$0.015–$0.035** |
+
+| Scenario | Iterations | **Min cost** | **Max cost** |
+|---|---|---|---|
+| Best case (simple shape, passes first VLM) | 1 | **$0.015** | **$0.035** |
+| Typical (medium complexity, 1–2 refinements) | 2 | **$0.030** | **$0.070** |
+| Worst case (complex shape, 3 refinements) | 3 | **$0.045** | **$0.105** |
+
+---
+
+#### Path 2 — Generate Shape from Image
+
+| Step | Calls | Cost |
+|---|---|---|
+| GPT-4o: describe reference image | ×1 | $0.007–$0.013 |
+| Gemini: decompose description | ×1 per iter | $0.003–$0.006 |
+| Embedding searches | ×1–3 per iter | < $0.001 |
+| Gemini Vision: compose HLSL | ×1 per iter | $0.007–$0.022 |
+| GPT-4o: VLM eval | ×1 per iter | $0.005–$0.008 |
+
+| Scenario | Iterations | **Min cost** | **Max cost** |
+|---|---|---|---|
+| Best case (image is simple, passes first VLM) | 1 | **$0.022** | **$0.049** |
+| Typical (1–2 refinements) | 2 | **$0.037** | **$0.084** |
+| Worst case (3 refinements) | 3 | **$0.052** | **$0.119** |
+
+---
+
+#### Path 3 — HLSL Import (Upload `.hlsl` file)
+
+| Step | Cost |
+|---|---|
+| Gemini: suggest property values | $0.001–$0.003 |
+| **Total** | **$0.001–$0.003** |
+
+This path has no VLM evaluation — result is immediate.
+
+---
+
+#### Path 4 — Edit Shape
+
+**Sub-path A — Property change only** (no shader rewrite):
+
+| Step | Cost |
+|---|---|
+| Gemini: classify edit request | $0.001–$0.003 |
+| **Total** | **$0.001–$0.003** |
+
+**Sub-path B — HLSL rewrite needed:**
+
+| Step | Calls | Cost |
+|---|---|---|
+| Gemini: classify edit | ×1 | $0.001–$0.003 |
+| Gemini: update HLSL | ×1–2 | $0.007–$0.017 per iter |
+| GPT-4o: before/after VLM eval | ×1–2 | $0.002–$0.003 per iter |
+
+| Scenario | Iterations | **Min cost** | **Max cost** |
+|---|---|---|---|
+| Best case (property change only) | — | **$0.001** | **$0.003** |
+| HLSL update, passes first try | 1 | **$0.010** | **$0.023** |
+| HLSL update, 2 VLM iterations | 2 | **$0.017** | **$0.043** |
+
+---
+
+#### Path 5 — Animate Shape
+
+**Sub-path A — C# script only** (existing properties sufficient):
+
+| Step | Cost |
+|---|---|
+| Gemini: classify animation | $0.001–$0.003 |
+| Embedding search (animation KB) | < $0.001 |
+| Gemini: generate C# animation script | $0.004–$0.010 |
+| **Total** | **$0.005–$0.013** |
+
+**Sub-path B — HLSL update required first** (new shader properties needed):
+
+| Step | Calls | Cost |
+|---|---|---|
+| Gemini: classify animation | ×1 | $0.001–$0.003 |
+| Gemini: update HLSL | ×1–2 | $0.007–$0.017 per iter |
+| GPT-4o: before/after VLM eval | ×1–2 | $0.002–$0.003 per iter |
+| Embedding search (animation KB) | ×1 | < $0.001 |
+| Gemini: generate C# animation script | ×1 | $0.004–$0.010 |
+
+| Scenario | **Min cost** | **Max cost** |
+|---|---|---|
+| C# only (no HLSL needed) | **$0.005** | **$0.013** |
+| HLSL update needed, 1 VLM iteration | **$0.014** | **$0.033** |
+| HLSL update needed, 2 VLM iterations | **$0.021** | **$0.053** |
+
+---
+
+#### Path 6 — Pixelation Effect
+
+No API calls. ShaderGraph nodes are injected deterministically (UV quantisation via Floor/Divide).
+
+| **Total** | **$0.000** |
+|---|---|
+
+---
+
+### Typical Session Estimates
+
+| Session type | Paths used | **Estimated total** |
+|---|---|---|
+| **Light** — one simple shape, one property edit, one animation (C# only) | Text gen (1 iter) + Edit A + Anim A | **~$0.021–$0.051** |
+| **Standard** — image gen with 1 refinement, HLSL edit, animation (C# only) | Image gen (2 iter) + Edit B (1 iter) + Anim A | **~$0.059–$0.119** |
+| **Heavy** — complex shape (3 iters), HLSL edit (2 iters), HLSL-needed animation (2 iters) | Text gen (3 iter) + Edit B (2 iter) + Anim B (2 iter) | **~$0.083–$0.201** |
+| **Exploration** — 5 text generations + 2 edits + 2 animations | 5×Text(avg 2 iter) + 2×Edit(mix) + 2×Anim(mix) | **~$0.200–$0.550** |
+
+---
+
+### One-Time Costs
+
+| Activity | Cost |
+|---|---|
+| Generate embeddings for all 184 KB shapes | ~$0.001 (one-time) |
+| Each new shape added to KB (embedding) | ~$0.000004 per shape |
+
+Knowledge base embedding is essentially **free** — the entire 184-shape KB costs less than $0.001 to fully re-embed.
+
+---
+
+### Cost Optimisation Tips
+
+- **Reduce VLM iterations**: Lower `maxVlmIterations` from 3 to 1 in `RAGPipelineManager` and `HLSLUpdatePipelineManager` if speed/cost matters more than quality.
+- **Use text prompts over images**: The image path costs $0.007–$0.013 more per session due to the GPT-4o image description call.
+- **Simple edits are cheap**: If your shape already has the right properties exposed, editing is just one Gemini classification call (~$0.002).
+- **Pixelation is free**: The pixelation effect uses no LLM calls at all.
+- **Animation without HLSL changes**: Sub-path A (C# only) costs ~$0.005–$0.013 vs ~$0.021–$0.053 for the HLSL-update path.
+
+---
+
 ## Project Structure
 
 ```
