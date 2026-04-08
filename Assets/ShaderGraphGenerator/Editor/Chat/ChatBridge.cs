@@ -153,8 +153,8 @@ namespace ShaderGraphGenerator.Chat
                             botReplies.Add("Perfect. I can create a shape for you with ShaderGraph and HLSL. You can easily define what specific features you want to be editable in your shape. Now tell me, do you have an image reference for your shape? Or do you want to fully define it as text?");
                             break;
                         case "edit":
-                            ChatSession.State = ChatState.Edit_Describe;
-                            botReplies.Add("Oh I see. First of all, please note that you can always change editable features manually in material props. If you can't achieve what you need there, let me know how you want to update the current shape.");
+                            ChatSession.State = ChatState.Edit_Attach;
+                            botReplies.Add("Please attach the material you want to edit.");
                             break;
                         case "animate":
                             ChatSession.State = ChatState.Animate_Attach;
@@ -293,10 +293,19 @@ namespace ShaderGraphGenerator.Chat
                     }
                     break;
 
+                // ── edit: attach material (main-menu entry) ───────────
+                case ChatState.Edit_Attach:
+                    if (msg == "back") { ChatSession.State = ChatState.MainMenu; botReplies.Add("Ok, back to main menu."); break; }
+                    if (msg == "material_attached")
+                    {
+                        ChatSession.State = ChatState.Edit_Describe;
+                        botReplies.Add("Got it. What changes do you want to make to this material?");
+                    }
+                    break;
+
                 // ── edit ──────────────────────────────────────────────
                 case ChatState.Edit_Describe:
                     if (msg == "back") { ChatSession.State = ChatState.MainMenu; botReplies.Add("Ok, back to main menu."); break; }
-                    botReplies.Add("Let me first see how I should achieve this.");
                     ChatSession.State = ChatState.Edit_Running;
                     TriggerEdit(msg);
                     break;
@@ -531,22 +540,159 @@ namespace ShaderGraphGenerator.Chat
         
         private static void TriggerEdit(string description)
         {
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
             EditorApplication.delayCall += async () =>
             {
                 try
                 {
+                    // ── Step 1: inform user we're analysing ───────────────────
+                    ChatSession.AddBot("Let me first see how I should achieve this.");
                     _statusMsg = "thinking...";
-                    // TODO: wire to your existing edit logic in UnifiedGeneratorWindow
-                    // For now: re-run generation with the edit as extra context
-                    await Task.Delay(500);
-                    _statusMsg = "crafting...";
-                    await Task.Delay(1000);
-                    _statusMsg = "";
-                    ChatSession.State = ChatState.PostGen;
-                    ChatSession.AddBot("Good news. I was able to achieve this by changing some material props.");
+
+                    var config = LoadConfig();
+                    var kb     = LoadKB();
+                    if (config == null) { PushError("Config asset not found."); return; }
+
+                    // ── Step 2: resolve material ──────────────────────────────
+                    string matPath = ChatSession.PendingMaterialPath;
+                    if (!string.IsNullOrEmpty(matPath) && matPath.StartsWith(Application.dataPath))
+                        matPath = "Assets" + matPath.Substring(Application.dataPath.Length);
+
+                    Material sourceMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                    if (sourceMat == null) { PushError($"Could not load material at: {matPath}"); return; }
+
+                    // ── Step 3: classify ──────────────────────────────────────
+                    var properties = AnimationScriptGenerator.ExtractMaterialProperties(sourceMat);
+                    var cls = await EditClassifier.ClassifyEditRequestAsync(
+                        description, sourceMat.name, properties, config.geminiKey);
+                    if (token.IsCancellationRequested) return;
+
+                    if (!cls.needs_hlsl_change)
+                    {
+                        // ── PATH A: change existing property values only ───────
+                        string summary = BuildEditSummary(cls.material_changes);
+                        ChatSession.AddBot($"Good news! This edit can be achieved by simply updating {summary} in your material. Let me apply that for you.");
+                        _statusMsg = "crafting...";
+
+                        ApplyMaterialPropertyChanges(sourceMat, cls.material_changes);
+                        EditorUtility.SetDirty(sourceMat);
+                        AssetDatabase.SaveAssets();
+                        if (token.IsCancellationRequested) return;
+
+                        // Show the updated material on a quad so the user can see it
+                        var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                        quad.name = $"Edit Preview — {sourceMat.name}";
+                        quad.GetComponent<Renderer>().material = sourceMat;
+                        Selection.activeGameObject = quad;
+                        if (SceneView.lastActiveSceneView != null)
+                            SceneView.lastActiveSceneView.FrameSelected();
+
+                        _statusMsg = "";
+                        ChatSession.State = ChatState.PostGen;
+                        ChatSession.AddBot(
+                            $"Done! I've updated the material. A preview quad '{quad.name}' has been added to your scene.\n" +
+                            $"Material path: {matPath}");
+                    }
+                    else
+                    {
+                        // ── PATH B: HLSL update needed ────────────────────────
+                        ChatSession.AddBot($"This edit requires changes to the shader itself. {cls.reason} This might take a few minutes — please be patient.");
+                        _statusMsg = "crafting...";
+
+                        string updateRequest = !string.IsNullOrWhiteSpace(cls.hlsl_update_request)
+                            ? cls.hlsl_update_request
+                            : description;
+
+                        var result = await HLSLUpdatePipelineManager.RunUpdatePipelineAsync(
+                            originalMaterial: sourceMat,
+                            updateRequest:    updateRequest,
+                            knowledgeBase:    kb,
+                            config:           config,
+                            maxVlmIterations: 2);
+                        if (token.IsCancellationRequested) return;
+
+                        _statusMsg = "";
+
+                        // Use updated material if available, else fall back to original
+                        Material resultMat     = sourceMat;
+                        string   resultMatPath = matPath;
+                        if (!string.IsNullOrEmpty(result.materialPath))
+                        {
+                            var m = AssetDatabase.LoadAssetAtPath<Material>(result.materialPath);
+                            if (m != null) { resultMat = m; resultMatPath = result.materialPath; }
+                        }
+
+                        // Remove the generic UpdatePreview quad and replace with a named one
+                        var tempQuad = GameObject.Find($"UpdatePreview — {resultMat.name}");
+                        if (tempQuad != null) GameObject.DestroyImmediate(tempQuad);
+
+                        var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                        quad.name = $"Edit Result — {resultMat.name}";
+                        quad.GetComponent<Renderer>().material = resultMat;
+                        Selection.activeGameObject = quad;
+                        if (SceneView.lastActiveSceneView != null)
+                            SceneView.lastActiveSceneView.FrameSelected();
+
+                        string previewPath = result.afterImagePath ?? _lastPreview;
+                        _lastPreview                    = previewPath ?? "";
+                        ChatSession.PendingMaterialPath = resultMatPath;
+                        ChatSession.State               = ChatState.PostGen;
+
+                        ChatSession.AddBot(
+                            $"Done! Updated material saved at:\n{resultMatPath}\n\n" +
+                            $"A preview quad '{quad.name}' has been added to your scene.",
+                            _lastPreview);
+                    }
                 }
-                catch (Exception e) { PushError(e.Message); }
+                catch (OperationCanceledException) { }
+                catch (Exception e) { PushError($"Edit failed: {e.Message}"); }
             };
+        }
+
+        /// <summary>Applies LLM-specified property changes directly to the material.</summary>
+        private static void ApplyMaterialPropertyChanges(Material mat, List<MaterialPropertyChange> changes)
+        {
+            if (changes == null || changes.Count == 0) return;
+            foreach (var c in changes)
+            {
+                if (!mat.HasProperty(c.property_name))
+                {
+                    Debug.LogWarning($"[EditApply] Property '{c.property_name}' not found on material '{mat.name}' — skipping.");
+                    continue;
+                }
+                switch (c.property_type?.ToLower())
+                {
+                    case "float":
+                    case "range":
+                        mat.SetFloat(c.property_name, c.float_value);
+                        Debug.Log($"[EditApply] SetFloat({c.property_name}, {c.float_value})");
+                        break;
+                    case "color":
+                        mat.SetColor(c.property_name, new Color(c.r, c.g, c.b, c.a));
+                        Debug.Log($"[EditApply] SetColor({c.property_name}, rgba({c.r},{c.g},{c.b},{c.a}))");
+                        break;
+                    case "vector":
+                        mat.SetVector(c.property_name, new Vector4(c.x, c.y, c.z, c.w));
+                        Debug.Log($"[EditApply] SetVector({c.property_name}, ({c.x},{c.y},{c.z},{c.w}))");
+                        break;
+                    default:
+                        Debug.LogWarning($"[EditApply] Unknown property type '{c.property_type}' for '{c.property_name}' — skipping.");
+                        break;
+                }
+            }
+        }
+
+        /// <summary>Builds a short human-readable summary of the property changes for the bot message.</summary>
+        private static string BuildEditSummary(List<MaterialPropertyChange> changes)
+        {
+            if (changes == null || changes.Count == 0) return "the material properties";
+            var parts = new List<string>();
+            foreach (var c in changes)
+                parts.Add(!string.IsNullOrEmpty(c.description) ? c.description : $"'{c.property_name}'");
+            if (parts.Count == 1) return parts[0];
+            return string.Join(", ", parts.GetRange(0, parts.Count - 1)) + " and " + parts[parts.Count - 1];
         }
 
         private static void TriggerAnimation(string description)
@@ -850,6 +996,73 @@ namespace ShaderGraphGenerator.Chat
             return JsonConvert.DeserializeObject<ShapeKnowledgeBase>(json);
         }
 
+        /// <summary>
+        /// Reads the HLSL code and asks Gemini to suggest sensible default values for
+        /// each input parameter. Returns a list in the LLMShaderProperty format so
+        /// MaterialPreviewHelper.SetDefaultMaterialProperties can apply them directly.
+        /// </summary>
+        private static async Task<List<LLMShaderProperty>> SuggestMaterialPropertiesAsync(
+            string hlslCode,
+            HLSLFunctionInfo functionInfo,
+            string geminiKey,
+            CancellationToken token)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("You are a Unity shader expert. Read this HLSL shader function and suggest sensible, visually pleasing default values for its material properties.");
+            sb.AppendLine("The values must make the shape clearly visible — never use zeros, fully-transparent, or extreme values that would hide or break the shape.");
+            sb.AppendLine();
+            sb.AppendLine("## HLSL CODE");
+            sb.AppendLine(hlslCode);
+            sb.AppendLine();
+            sb.AppendLine("## INPUT PARAMETERS TO SET (ignore UV, ignore output params):");
+            foreach (var p in functionInfo.InputParameters)
+            {
+                if (string.Equals(p.Name, "UV", StringComparison.OrdinalIgnoreCase)) continue;
+                sb.AppendLine($"  {p.Name}  ({p.Type})");
+            }
+            sb.AppendLine();
+            sb.AppendLine("## RULES");
+            sb.AppendLine("- Colors (float4 whose name contains 'Color'): vivid RGBA in 0-1 range, alpha = 1.0.");
+            sb.AppendLine("  Example: a fill color → warm or vivid hue; a stroke color → contrasting hue.");
+            sb.AppendLine("- Sizes / widths / heights / radius (float): values that make the shape fill most of the 0-1 UV space, typically 0.3-0.8.");
+            sb.AppendLine("- Positions / centers (float2): 0.5, 0.5 (centered) unless name implies edge/offset.");
+            sb.AppendLine("- Counts / segment counts / petal counts (float): small positive integers 3-8.");
+            sb.AppendLine("- Stroke / border widths (float): thin, 0.01-0.05.");
+            sb.AppendLine("- Opacity / alpha standalone (float): 1.0.");
+            sb.AppendLine("- Rotation / angle (float): 0.0.");
+            sb.AppendLine("- Generic float4 non-color: sensible (x, y, z, w) based on context.");
+            sb.AppendLine("- Skip UV parameters and output parameters.");
+            sb.AppendLine();
+            sb.AppendLine("## OUTPUT FORMAT — return ONLY valid JSON, no markdown, no preamble:");
+            sb.AppendLine(@"{
+  ""properties"": [
+    { ""name"": ""Width"",       ""type"": ""float"",  ""default_value"": 0.6 },
+    { ""name"": ""FillColor"",   ""type"": ""float4"", ""default_value"": { ""x"": 1.0, ""y"": 0.75, ""z"": 0.1, ""w"": 1.0 } },
+    { ""name"": ""Center"",      ""type"": ""float2"", ""default_value"": { ""x"": 0.5, ""y"": 0.5 } },
+    { ""name"": ""StrokeWidth"", ""type"": ""float"",  ""default_value"": 0.02 }
+  ]
+}");
+
+            string raw = await GeminiApiService.CallGeminiAsync(sb.ToString(), geminiKey);
+            if (string.IsNullOrEmpty(raw) || token.IsCancellationRequested) return null;
+
+            var mFence = Regex.Match(raw, @"```(?:json)?\s*([\s\S]*?)```", RegexOptions.Multiline);
+            raw = mFence.Success ? mFence.Groups[1].Value.Trim() : raw.Trim();
+
+            try
+            {
+                var response = JsonConvert.DeserializeObject<LLMShaderResponse>(raw);
+                if (response?.properties != null)
+                    Debug.Log($"[PropSuggest] LLM suggested {response.properties.Count} property values.");
+                return response?.properties;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[PropSuggest] JSON parse failed: {ex.Message}");
+                return null;
+            }
+        }
+
         private static void TriggerHLSLGeneration(string absolutePath)
         {
             _cts = new CancellationTokenSource();
@@ -889,10 +1102,25 @@ namespace ShaderGraphGenerator.Chat
                     // 4. Create the Material and set properties so it's visible
                     Material mat = MaterialPreviewHelper.CreateMaterialForShaderGraph(graphPath);
                     if (mat == null) throw new Exception("Failed to create material.");
-                    
+
                     if (functionInfo != null)
                     {
+                        // Apply random values first as a safe baseline (shape visible even if LLM fails)
                         MaterialPreviewHelper.SetRandomMaterialProperties(mat, functionInfo);
+
+                        // Ask LLM to read the HLSL and suggest sensible values, then override
+                        _statusMsg = "choosing good property values...";
+                        var config = LoadConfig();
+                        if (config != null)
+                        {
+                            string hlslContent = File.ReadAllText(relativeHlslPath);
+                            var suggested = await SuggestMaterialPropertiesAsync(
+                                hlslContent, functionInfo, config.geminiKey, token);
+                            if (suggested != null && suggested.Count > 0)
+                                MaterialPreviewHelper.SetDefaultMaterialProperties(mat, suggested);
+                        }
+                        EditorUtility.SetDirty(mat);
+                        AssetDatabase.SaveAssets();
                     }
 
                     // 5. Create Preview Quad & Capture Screenshot

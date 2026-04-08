@@ -11,6 +11,7 @@ namespace ShaderGraphGenerator.Chat
         Generating,
         Reviewing,
         PostGen,
+        Edit_Attach,
         Edit_Describe,
         Edit_Running,
         Animate_Attach,
@@ -191,6 +192,18 @@ namespace ShaderGraphGenerator.Chat
                             new QuickReply { Label = "I want to animate it.",                              Value = "animate"},
                             new QuickReply { Label = "I want to add an effect (for example pixelation).", Value = "effect" },
                             new QuickReply { Label = "I want to do something else.",                      Value = "back"   },
+                        }
+                    };
+
+                // ── edit: attach material (main-menu entry) ─────────────────
+                case ChatState.Edit_Attach:
+                    return new StateConfig
+                    {
+                        AllowMaterial = true,
+                        Placeholder   = "Attach material.",
+                        QuickReplies  = new[]
+                        {
+                            new QuickReply { Label = "I want to do something else.", Value = "back" }
                         }
                     };
 

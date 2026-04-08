@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: FoxFace.hlsl_Pixelated
-  m_Shader: {fileID: -6465566751694194690, guid: bc29bf9a8fe5e0040ac13c991ff0e8b7, type: 3}
+  m_Name: CuteStar.hlsl_Pixelated
+  m_Shader: {fileID: -6465566751694194690, guid: c7ab5324e4ca5884ba33d6b68299d37d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -28,23 +28,19 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorBeigeTex:
+    - _FeatureColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorDarkOrangeTex:
+    - _HighlightColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorDarkTex:
+    - _OutlineColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _ColorOrangeTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _ColorWhiteTex:
+    - _StarColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -62,20 +58,26 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - PixelCount: 42.72
-    - _FaceSize: 0.7
+    - PixelCount: 64
+    - _EyeDistance: 0.12
+    - _InnerRadius: 0.55
+    - _LengthOfLegs: 0.38
+    - _MouthCurve: 0.035
+    - _MouthThickness: 0.008
+    - _OutlineThickness: 0.025
+    - _OverallShapeCurvature: 0.06
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - _Center: {r: 0.5, g: 0.5, b: 0, a: 0}
-    - _ColorBeige: {r: 0.965, g: 0.878, b: 0.792, a: 1}
-    - _ColorDark: {r: 0.24999997, g: 0.24999997, b: 0.24999997, a: 1}
-    - _ColorDarkOrange: {r: 0.698, g: 0.34899998, b: 0.26299998, a: 1}
-    - _ColorOrange: {r: 1, g: 0.541, b: 0.39599997, a: 1}
-    - _ColorWhite: {r: 1, g: 1, b: 1, a: 1}
+    - _EyeSize: {r: 0.02, g: 0.035, b: 0, a: 0}
+    - _FaceOffset: {r: 0, g: -0.02, b: 0, a: 0}
+    - _FeatureColor: {r: 0.24999997, g: 0.11999995, b: 0.049999982, a: 1}
+    - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
+    - _OutlineColor: {r: 0.24999997, g: 0.11999995, b: 0.049999982, a: 1}
+    - _StarColor: {r: 1, g: 0.85, b: 0.14999998, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &1749027315123751
+--- !u!114 &5845656606615659214
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
