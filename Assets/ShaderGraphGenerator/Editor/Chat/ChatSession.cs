@@ -16,6 +16,7 @@ namespace ShaderGraphGenerator.Chat
         Animate_Attach,
         Animate_Describe,
         Animate_Running,
+        Effect_Attach,
         Effect_Pick,
         HLSL_Attach,
         HLSL_Running,
@@ -86,12 +87,13 @@ namespace ShaderGraphGenerator.Chat
                     {
                         QuickReplies = new[]
                         {
-                            new QuickReply { Label = "I want a new 2D shape with shader.",                    Value = "new_shape"  },
-                            new QuickReply { Label = "I have a shape (material) and I want to edit it.",      Value = "edit"       },
-                            new QuickReply { Label = "I have a shape and I want to animate it.",              Value = "animate"    },
-                            new QuickReply { Label = "I have a hlsl file and want to turn it into material.", Value = "hlsl"       },
-                            new QuickReply { Label = "Explain to me, how does this work?",                    Value = "explain"    },
-                            new QuickReply { Label = "I want to contact the developer.",                      Value = "contact"    },
+                            new QuickReply { Label = "I want a new 2D shape with shader.",                         Value = "new_shape"  },
+                            new QuickReply { Label = "I have a shape (material) and I want to edit it.",           Value = "edit"       },
+                            new QuickReply { Label = "I have a shape and I want to animate it.",                   Value = "animate"    },
+                            new QuickReply { Label = "I have a material and I want to add a special effect to it.", Value = "effect"     },
+                            new QuickReply { Label = "I have a hlsl file and want to turn it into material.",      Value = "hlsl"       },
+                            new QuickReply { Label = "Explain to me, how does this work?",                         Value = "explain"    },
+                            new QuickReply { Label = "I want to contact the developer.",                           Value = "contact"    },
                         }
                     };
 
@@ -243,9 +245,22 @@ namespace ShaderGraphGenerator.Chat
                 {
                     QuickReplies = new[]
                     {
-                        new QuickReply { Label = "Thanks!", Value = "back" }
+                        new QuickReply { Label = "I want to add a special effect to it.", Value = "effect" },
+                        new QuickReply { Label = "Thanks, I'm done!",                     Value = "back"   },
                     }
                 };
+
+                // ── effect: attach material (main-menu entry) ────────────────
+                case ChatState.Effect_Attach:
+                    return new StateConfig
+                    {
+                        AllowMaterial = true,
+                        Placeholder   = "Attach material.",
+                        QuickReplies  = new[]
+                        {
+                            new QuickReply { Label = "I want to do something else.", Value = "back" }
+                        }
+                    };
 
                 // ── explain ──────────────────────────────────────────────────
                 case ChatState.Explain:

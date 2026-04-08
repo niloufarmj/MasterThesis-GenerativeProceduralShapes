@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEditor;
 using UnityEngine;
+using ShaderGraphGenerator;
 using ShaderGraphGenerator.RAG;
 using ShaderGraphGenerator.Editor;
 using ShaderGraphGenerator.KnowledgeBase;
@@ -156,8 +157,12 @@ namespace ShaderGraphGenerator.Chat
                             botReplies.Add("Oh I see. First of all, please note that you can always change editable features manually in material props. If you can't achieve what you need there, let me know how you want to update the current shape.");
                             break;
                         case "animate":
-                            ChatSession.State = ChatState.Animate_Attach; // Go to Attach state first
+                            ChatSession.State = ChatState.Animate_Attach;
                             botReplies.Add("Please attach the material.");
+                            break;
+                        case "effect":
+                            ChatSession.State = ChatState.Effect_Attach;
+                            botReplies.Add("Please attach the material you want to apply an effect to.");
                             break;
                         case "hlsl":
                             ChatSession.State = ChatState.HLSL_Attach;
@@ -193,10 +198,16 @@ namespace ShaderGraphGenerator.Chat
                     break;
 
                 case ChatState.HLSL_Done:
-                    if (msg == "back") 
-                    { 
-                        ChatSession.State = ChatState.MainMenu; 
-                        botReplies.Add("You're welcome! What else can I help you with?"); 
+                    switch (msg)
+                    {
+                        case "effect":
+                            ChatSession.State = ChatState.Effect_Pick;
+                            botReplies.Add("Good idea. There are some effects you can choose from. Adding an effect can make your asset ready for a specific game style.");
+                            break;
+                        case "back":
+                            ChatSession.State = ChatState.MainMenu;
+                            botReplies.Add("You're welcome! What else can I help you with?");
+                            break;
                     }
                     break;
 
@@ -307,12 +318,22 @@ namespace ShaderGraphGenerator.Chat
                     TriggerAnimation(msg);
                     break;
 
+                // ── effect: attach material (main-menu entry) ────────
+                case ChatState.Effect_Attach:
+                    if (msg == "back") { ChatSession.State = ChatState.MainMenu; botReplies.Add("Ok, back to main menu."); break; }
+                    if (msg == "material_attached")
+                    {
+                        ChatSession.State = ChatState.Effect_Pick;
+                        botReplies.Add("Good idea. There are some effects you can choose from. Adding an effect can make your asset ready for a specific game style.");
+                    }
+                    break;
+
                 // ── effect ────────────────────────────────────────────
                 case ChatState.Effect_Pick:
                     if (msg == "effect_pixel")
                     {
-                        botReplies.Add("Applying pixelation effect…");
-                        ChatSession.State = ChatState.Generating;
+                        botReplies.Add("Applying pixelation effect… This might take a few minutes, please be patient.");
+                        ChatSession.State = ChatState.Animate_Running; // reuse running state (abort button)
                         TriggerEffect("pixelation");
                     }
                     else if (msg == "back") { ChatSession.State = ChatState.MainMenu; botReplies.Add("Ok!"); }
@@ -638,18 +659,140 @@ namespace ShaderGraphGenerator.Chat
 
         private static void TriggerEffect(string effectName)
         {
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+
             EditorApplication.delayCall += async () =>
             {
                 try
                 {
                     _statusMsg = "crafting...";
-                    await Task.Delay(500); // TODO: re-run with usePixelation=true
-                    _statusMsg = "";
-                    ChatSession.State = ChatState.PostGen;
-                    ChatSession.AddBot("Your material is ready with the requested effect.", _lastPreview);
+
+                    // Resolve material
+                    string matPath = ChatSession.PendingMaterialPath;
+                    if (!string.IsNullOrEmpty(matPath) && matPath.StartsWith(Application.dataPath))
+                        matPath = "Assets" + matPath.Substring(Application.dataPath.Length);
+
+                    Material sourceMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                    if (sourceMat == null) { PushError($"Could not load material at: {matPath}"); return; }
+
+                    switch (effectName.ToLower())
+                    {
+                        case "pixelation":
+                            await ApplyPixelationEffect(sourceMat, token);
+                            break;
+                        default:
+                            PushError($"Unknown effect: {effectName}");
+                            break;
+                    }
                 }
-                catch (Exception e) { PushError(e.Message); }
+                catch (OperationCanceledException) { }
+                catch (Exception e) { PushError($"Effect failed: {e.Message}"); }
             };
+        }
+
+        /// <summary>
+        /// Applies pixelation by regenerating the ShaderGraph with usePixelation=true.
+        /// No LLM calls — purely client-side ShaderGraph node injection.
+        /// </summary>
+        private static async Task ApplyPixelationEffect(Material sourceMat, CancellationToken token)
+        {
+            // ── 1. Find the HLSL source behind this material's shadergraph ────
+            string hlslPath = HLSLUpdatePipelineManager.ExtractHlslPathFromMaterial(sourceMat);
+            if (string.IsNullOrEmpty(hlslPath))
+            {
+                PushError("Could not find the HLSL source for this material. Make sure it was generated by this tool.");
+                return;
+            }
+
+            string hlslGuid = AssetDatabase.AssetPathToGUID(hlslPath);
+            if (string.IsNullOrEmpty(hlslGuid)) { PushError($"Could not get GUID for: {hlslPath}"); return; }
+
+            // ── 2. Regenerate the shadergraph with pixelation nodes injected ──
+            // This reuses the exact same pixelation logic already in
+            // ShaderGraphJSONGenerator (PixelCount property → Multiply → Floor → Divide → UV).
+            const string EFFECT_DIR = "Assets/ShaderGraphs/Effects";
+            if (!Directory.Exists(EFFECT_DIR)) Directory.CreateDirectory(EFFECT_DIR);
+
+            string baseName    = Path.GetFileNameWithoutExtension(hlslPath) + "_Pixelated";
+            string newGraphPath = $"{EFFECT_DIR}/{baseName}.shadergraph";
+
+            ShaderGraphJSONGenerator.GenerateFromHLSL(
+                hlslPath, hlslGuid, newGraphPath,
+                useTransparency: true, usePixelation: true);
+
+            AssetDatabase.Refresh();
+            await Task.Delay(1200);
+            AssetDatabase.Refresh();
+            await Task.Delay(400);
+            if (token.IsCancellationRequested) return;
+
+            // ── 3. Create material from the new shadergraph ───────────────────
+            Material effectMat = MaterialPreviewHelper.CreateMaterialForShaderGraph(newGraphPath);
+            if (effectMat == null) { PushError("Failed to create pixelated material."); return; }
+
+            // ── 4. Copy all matching properties from original, then set PixelCount
+            CopyMatchingMaterialProperties(sourceMat, effectMat);
+            string pixelProp = effectMat.HasProperty("PixelCount") ? "PixelCount" : "_PixelCount";
+            if (effectMat.HasProperty(pixelProp)) effectMat.SetFloat(pixelProp, 64f);
+            EditorUtility.SetDirty(effectMat);
+            AssetDatabase.SaveAssets();
+            if (token.IsCancellationRequested) return;
+
+            // ── 5. Create named preview quad in scene ─────────────────────────
+            string previewDir  = "Assets/ShaderGraphs/Previews";
+            if (!Directory.Exists(previewDir)) Directory.CreateDirectory(previewDir);
+            string previewPath = $"{previewDir}/{baseName}.png";
+
+            GameObject quad = MaterialPreviewHelper.CreatePreviewQuad(effectMat, true, previewPath);
+            quad.name = $"Pixelation Effect — {sourceMat.name}";
+            Selection.activeGameObject = quad;
+            if (SceneView.lastActiveSceneView != null)
+                SceneView.lastActiveSceneView.FrameSelected();
+
+            // Wait for screenshot
+            double t0 = EditorApplication.timeSinceStartup;
+            while (!File.Exists(previewPath) && (EditorApplication.timeSinceStartup - t0) < 5.0)
+                await Task.Delay(200);
+            await Task.Delay(100);
+
+            // ── 6. Push result to chat ────────────────────────────────────────
+            string savedMatPath             = AssetDatabase.GetAssetPath(effectMat);
+            _lastPreview                    = File.Exists(previewPath) ? previewPath : _lastPreview;
+            ChatSession.PendingMaterialPath = savedMatPath;
+            ChatSession.State               = ChatState.PostGen;
+            _statusMsg                      = "";
+
+            ChatSession.AddBot(
+                $"Done! Pixelated material saved at:\n{savedMatPath}\n\n" +
+                $"A preview quad '{quad.name}' has been added to your scene.",
+                _lastPreview);
+        }
+
+        private static void CopyMatchingMaterialProperties(Material src, Material dst)
+        {
+            if (src == null || dst == null) return;
+            try
+            {
+                var props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { src });
+                foreach (var p in props)
+                {
+                    if (!dst.HasProperty(p.name)) continue;
+                    switch (p.type)
+                    {
+                        case MaterialProperty.PropType.Float:
+                        case MaterialProperty.PropType.Range:
+                            dst.SetFloat(p.name, p.floatValue);  break;
+                        case MaterialProperty.PropType.Color:
+                            dst.SetColor(p.name, p.colorValue);  break;
+                        case MaterialProperty.PropType.Vector:
+                            dst.SetVector(p.name, p.vectorValue); break;
+                        case MaterialProperty.PropType.Texture:
+                            if (p.textureValue != null) dst.SetTexture(p.name, p.textureValue); break;
+                    }
+                }
+            }
+            catch (Exception ex) { Debug.LogWarning($"[CopyProps] {ex.Message}"); }
         }
 
         // ── helpers ───────────────────────────────────────────────────────────
@@ -773,7 +916,8 @@ namespace ShaderGraphGenerator.Chat
                     ChatSession.State = ChatState.HLSL_Done;
                     _lastPreview = previewPath;
                     string matPath = AssetDatabase.GetAssetPath(mat);
-                    
+                    ChatSession.PendingMaterialPath = matPath;
+
                     string responseText = $"Here is the result. You can find the shadergraph in {graphPath} and the material in {matPath}.";
                     ChatSession.AddBot(responseText, _lastPreview);
                 }

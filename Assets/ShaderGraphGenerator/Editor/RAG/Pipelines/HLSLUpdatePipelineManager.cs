@@ -235,7 +235,7 @@ namespace ShaderGraphGenerator.RAG
         /// Reads the .shadergraph asset referenced by the material's shader,
         /// finds the CustomFunctionNode's m_FunctionSource GUID, and resolves it to an HLSL path.
         /// </summary>
-        private static string ExtractHlslPathFromMaterial(Material material)
+        public static string ExtractHlslPathFromMaterial(Material material)
         {
             string sgPath = AssetDatabase.GetAssetPath(material.shader);
             if (string.IsNullOrEmpty(sgPath) || !File.Exists(sgPath))
