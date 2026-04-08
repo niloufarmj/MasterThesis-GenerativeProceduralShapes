@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-2732171900563146215
+--- !u!114 &-2395322234743253486
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: ProceduralHotDog.hlsl
-  m_Shader: {fileID: -6465566751694194690, guid: 31221ff5b8602b446b8e4262926141d1, type: 3}
+  m_Name: CartoonBiscuitShape 1
+  m_Shader: {fileID: -6465566751694194690, guid: 0c0cd8b302fccbb45bd7b9eb860f056d, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -41,19 +41,11 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _BunColorTex:
+    - _FillColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _InnerBunColorTex:
-        m_Texture: {fileID: 2800000, guid: 33ba5140ff8350742a9be1b79eeefd82, type: 3}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _MustardColorTex:
-        m_Texture: {fileID: 0}
-        m_Scale: {x: 1, y: 1}
-        m_Offset: {x: 0, y: 0}
-    - _SausageColorTex:
+    - _StrokeColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -71,23 +63,19 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _BunLength: 0.33
-    - _BunWidth: 0.29
-    - _GlobalRotation: -0.71
-    - _InnerBunLength: 0.47
-    - _InnerBunWidth: 0.17
-    - _MustardLength: 0.65
-    - _MustardWaveAmplitude: 0.05
-    - _MustardWaveFrequency: 17.7
-    - _MustardWidth: 0.02
+    - _HoleCount: 0.35426253
+    - _HoleDist: 0.1940288
+    - _HoleSize: 0.19997188
+    - _LobeCount: 0.1708296
+    - _LobeDepth: 0.16902286
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _SausageLength: 0.65
-    - _SausageWidth: 0.115
+    - _Radius: 0.31431177
+    - _Rotation: 0.29435852
+    - _StrokeWidth: 0.20011012
     m_Colors:
-    - _BunColor: {r: 0.847, g: 0.616, b: 0.475, a: 1}
-    - _InnerBunColor: {r: 0.769, g: 0.51, b: 0.412, a: 1}
-    - _MustardColor: {r: 0.949, g: 0.718, b: 0.02, a: 1}
-    - _SausageColor: {r: 0.824, g: 0.294, b: 0.251, a: 1}
+    - _Center: {r: 0.36456344, g: 0.5567367, b: 0, a: 0}
+    - _FillColor: {r: 0.2513622, g: 1, b: 0.19805425, a: 1}
+    - _StrokeColor: {r: 1, g: 0.19917595, b: 0.96409726, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

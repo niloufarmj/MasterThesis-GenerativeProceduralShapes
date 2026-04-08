@@ -11,6 +11,7 @@ using UnityEngine;
 using ShaderGraphGenerator.RAG;
 using ShaderGraphGenerator.Editor;
 using ShaderGraphGenerator.KnowledgeBase;
+using System.Text.RegularExpressions;
 
 namespace ShaderGraphGenerator.Chat
 {
@@ -155,13 +156,14 @@ namespace ShaderGraphGenerator.Chat
                             botReplies.Add("Oh I see. First of all, please note that you can always change editable features manually in material props. If you can't achieve what you need there, let me know how you want to update the current shape.");
                             break;
                         case "animate":
-                            ChatSession.State = ChatState.Animate_Describe;
-                            botReplies.Add("Ok for sure. Let me know what and how do you want this shape to be animated.");
+                            ChatSession.State = ChatState.Animate_Attach; // Go to Attach state first
+                            botReplies.Add("Please attach the material.");
                             break;
                         case "hlsl":
                             ChatSession.State = ChatState.HLSL_Attach;
                             ChatSession.AddBot("No problem. Please attach the file.");
                             break;
+                        
                         case "explain":
                             ChatSession.State = ChatState.Explain;
                             botReplies.Add(GetExplanationText());
@@ -188,6 +190,14 @@ namespace ShaderGraphGenerator.Chat
 
                 case ChatState.HLSL_Running:
                     if (msg == "abort") { HandleAbort(); break; }
+                    break;
+
+                case ChatState.HLSL_Done:
+                    if (msg == "back") 
+                    { 
+                        ChatSession.State = ChatState.MainMenu; 
+                        botReplies.Add("You're welcome! What else can I help you with?"); 
+                    }
                     break;
 
                 // ── new shape: pick mode ───────────────────────────────
@@ -281,6 +291,15 @@ namespace ShaderGraphGenerator.Chat
                     break;
 
                 // ── animate ───────────────────────────────────────────
+                case ChatState.Animate_Attach:
+                    if (msg == "back") { ChatSession.State = ChatState.MainMenu; botReplies.Add("Ok, back to main menu."); break; }
+                    if (msg == "material_attached")
+                    {
+                        ChatSession.State = ChatState.Animate_Describe;
+                        botReplies.Add("Ok for sure. Let me know what and how do you want this shape to be animated. [some animate prompt guide]");
+                    }
+                    break;
+                
                 case ChatState.Animate_Describe:
                     if (msg == "back") { ChatSession.State = ChatState.MainMenu; botReplies.Add("Ok, back to main menu."); break; }
                     botReplies.Add("Let me first see how I should achieve this.");
@@ -508,19 +527,75 @@ namespace ShaderGraphGenerator.Chat
 
         private static void TriggerAnimation(string description)
         {
+            _cts = new CancellationTokenSource();
+            var token = _cts.Token;
+            
             EditorApplication.delayCall += async () =>
             {
                 try
                 {
+                    _statusMsg = "thinking...";
+                    
+                    // 1. Add a small delay to simulate "thinking" before sending the follow-up message
+                    await Task.Delay(1500, token);
+                    if (token.IsCancellationRequested) return;
+
+                    // 2. Push the message exactly as shown in your Figma mockup
+                    ChatSession.AddBot("Hmm. It seems I have to change some stuff inside hlsl and then I can do the animating. This might take up to few minutes. please be patient until your result is ready.");
+                    
                     _statusMsg = "crafting...";
-                    await Task.Delay(500); // TODO: wire to MaterialAnimatorPipelineManager
+
+                    // 3. Load configurations
+                    var config = LoadConfig();
+                    var kb     = LoadKB();
+                    if (config == null) { PushError("Config asset not found."); return; }
+                    // Note: KB can be null if it doesn't exist, the pipeline handles useKB=false safely
+
+                    // 4. Resolve the attached material path
+                    string matPath = ChatSession.PendingMaterialPath;
+                    
+                    // Convert absolute OS path to Unity relative path (e.g. "Assets/...")
+                    if (!string.IsNullOrEmpty(matPath) && matPath.StartsWith(Application.dataPath))
+                    {
+                        matPath = "Assets" + matPath.Substring(Application.dataPath.Length);
+                    }
+                    
+                    Material sourceMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+                    if (sourceMat == null)
+                    {
+                        PushError($"Could not load attached material at: {matPath}");
+                        return;
+                    }
+
+                    // 5. Run the actual Animation Pipeline!
+                    var result = await MaterialAnimatorPipelineManager.RunPipelineAsync(
+                        sourceMaterial: sourceMat,
+                        animationRequest: description,
+                        config: config,
+                        kb: kb,
+                        useKB: true,
+                        userFeedback: null,
+                        onProgress: (status) => { _statusMsg = status; } // Maps pipeline progress to UI status
+                    );
+
+                    if (token.IsCancellationRequested) return;
+
                     _statusMsg = "";
+                    
+                    if (!result.success)
+                    {
+                        PushError($"Animation generation failed: {result.errorMessage}");
+                        return;
+                    }
+
+                    // 6. Final success state
                     ChatSession.State = ChatState.PostGen;
-                    ChatSession.AddBot("Animation complete! You can find the script in Assets/ShaderGraphs/Animations.");
+                    ChatSession.AddBot($"Animation complete! I generated the script '{result.fileName}' at {result.scriptAssetPath}. Unity will now recompile to apply it.");
                 }
-                catch (Exception e) { PushError(e.Message); }
+                catch (OperationCanceledException) { }
+                catch (Exception e) { PushError($"Animation failed: {e.Message}"); }
             };
-        }
+}
 
         private static void TriggerEffect(string effectName)
         {
@@ -593,7 +668,7 @@ namespace ShaderGraphGenerator.Chat
             return JsonConvert.DeserializeObject<ShapeKnowledgeBase>(json);
         }
 
-        private static void TriggerHLSLGeneration(string hlslPath)
+        private static void TriggerHLSLGeneration(string absolutePath)
         {
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
@@ -602,15 +677,76 @@ namespace ShaderGraphGenerator.Chat
                 try
                 {
                     _statusMsg = "crafting...";
-                    await Task.Delay(500, token); // TODO: wire to ShaderGenerationPipeline.ExecutePipelineAsync
-                    if (token.IsCancellationRequested) return;
+                    
+                    // 1. Extract the exact name of the file
+                    string baseName = Path.GetFileNameWithoutExtension(absolutePath);
+                    
+                    // 2. Import the HLSL file into the Unity project so AssetDatabase can process it
+                    string relativeHlslFolder = "Assets/ShaderGraphs/Generated/HLSL";
+                    Directory.CreateDirectory(relativeHlslFolder);
+                    string relativeHlslPath = $"{relativeHlslFolder}/{baseName}.hlsl";
+                    
+                    // Only copy if it's not already exactly the same file path
+                    if (Path.GetFullPath(absolutePath) != Path.GetFullPath(Path.Combine(Application.dataPath, "..", relativeHlslPath)))
+                    {
+                        File.Copy(absolutePath, relativeHlslPath, true);
+                        AssetDatabase.ImportAsset(relativeHlslPath, ImportAssetOptions.ForceUpdate);
+                    }
+
+                    string guid = AssetDatabase.AssetPathToGUID(relativeHlslPath);
+                    if (string.IsNullOrEmpty(guid)) throw new Exception("Failed to get GUID for HLSL file.");
+
+                    // 3. Generate the ShaderGraph using your actual generator
+                    string graphFolder = "Assets/ShaderGraphs/Generated/Graphs";
+                    Directory.CreateDirectory(graphFolder);
+                    string graphPath = $"{graphFolder}/{baseName}.shadergraph";
+                    
+                    var functionInfo = ShaderGraphJSONGenerator.GenerateFromHLSL(relativeHlslPath, guid, graphPath, true, false);
+                    AssetDatabase.Refresh();
+
+                    // 4. Create the Material and set properties so it's visible
+                    Material mat = MaterialPreviewHelper.CreateMaterialForShaderGraph(graphPath);
+                    if (mat == null) throw new Exception("Failed to create material.");
+                    
+                    if (functionInfo != null)
+                    {
+                        MaterialPreviewHelper.SetRandomMaterialProperties(mat, functionInfo);
+                    }
+
+                    // 5. Create Preview Quad & Capture Screenshot
+                    string previewFolder = "Assets/ShaderGraphs/Generated/Previews";
+                    Directory.CreateDirectory(previewFolder);
+                    string previewPath = $"{previewFolder}/{baseName}.png";
+                    
+                    GameObject quad = MaterialPreviewHelper.CreatePreviewQuad(mat, true, previewPath);
+                    
+                    // Critical: Wait for your Editor update loop to actually save the screenshot to disk
+                    double start = EditorApplication.timeSinceStartup;
+                    while (!File.Exists(previewPath) && (EditorApplication.timeSinceStartup - start) < 5.0)
+                    {
+                        await Task.Delay(200, token);
+                        if (token.IsCancellationRequested) return;
+                    }
+                    await Task.Delay(100, token); // tiny buffer to let the OS release the file handle
+
+                    // 6. Update the Chat UI with the real paths
                     _statusMsg = "";
-                    ChatSession.State = ChatState.MainMenu;
-                    ChatSession.AddBot("Here is the result. You can find the shadergraph and the material in Assets/ShaderGraphs/Generated.");
+                    ChatSession.State = ChatState.HLSL_Done;
+                    _lastPreview = previewPath;
+                    string matPath = AssetDatabase.GetAssetPath(mat);
+                    
+                    string responseText = $"Here is the result. You can find the shadergraph in {graphPath} and the material in {matPath}.";
+                    ChatSession.AddBot(responseText, _lastPreview);
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception e) { PushError($"HLSL processing failed: {e.Message}"); }
             };
         }
     }
+
+    class AnimationClassification
+    {
+        public bool needs_hlsl_change { get; set; }
+    }
+    
 }

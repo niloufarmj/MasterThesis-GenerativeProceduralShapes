@@ -13,11 +13,13 @@ namespace ShaderGraphGenerator.Chat
         PostGen,
         Edit_Describe,
         Edit_Running,
+        Animate_Attach,
         Animate_Describe,
         Animate_Running,
         Effect_Pick,
         HLSL_Attach,
         HLSL_Running,
+        HLSL_Done,
         Explain,
         Contact_Name,
         Contact_Intent,
@@ -48,17 +50,19 @@ namespace ShaderGraphGenerator.Chat
         public static string PendingPrompt      = null;
         public static int    LastScore          = -1;
         public static string PendingHLSLPath = null;
+        public static string PendingMaterialPath = null;
 
         // ── public API ──────────────────────────────────────────────────────
 
         public static void Reset()
         {
-            State              = ChatState.MainMenu;
-            History            = new List<ChatMessage>();
-            PendingImageBase64 = null;
-            PendingPrompt      = null;
-            LastScore          = -1;
-            PendingHLSLPath    = null;
+            State               = ChatState.MainMenu;
+            History             = new List<ChatMessage>();
+            PendingImageBase64  = null;
+            PendingPrompt       = null;
+            LastScore           = -1;
+            PendingHLSLPath     = null;
+            PendingMaterialPath = null;
         }
 
         public static void AddBot(string text, string imageBase64 = null)
@@ -82,11 +86,12 @@ namespace ShaderGraphGenerator.Chat
                     {
                         QuickReplies = new[]
                         {
-                            new QuickReply { Label = "I want a new 2D shape with shader.",          Value = "new_shape"  },
-                            new QuickReply { Label = "I have a shape and I want to edit it.",       Value = "edit"       },
-                            new QuickReply { Label = "I have a shape and I want to animate it.",    Value = "animate"    },
-                            new QuickReply { Label = "Explain to me, how does this work?",          Value = "explain"    },
-                            new QuickReply { Label = "I want to contact the developer.",            Value = "contact"    },
+                            new QuickReply { Label = "I want a new 2D shape with shader.",                    Value = "new_shape"  },
+                            new QuickReply { Label = "I have a shape (material) and I want to edit it.",      Value = "edit"       },
+                            new QuickReply { Label = "I have a shape and I want to animate it.",              Value = "animate"    },
+                            new QuickReply { Label = "I have a hlsl file and want to turn it into material.", Value = "hlsl"       },
+                            new QuickReply { Label = "Explain to me, how does this work?",                    Value = "explain"    },
+                            new QuickReply { Label = "I want to contact the developer.",                      Value = "contact"    },
                         }
                     };
 
@@ -200,6 +205,17 @@ namespace ShaderGraphGenerator.Chat
                     };
 
                 // ── animate ──────────────────────────────────────────────────
+                case ChatState.Animate_Attach:
+                    return new StateConfig
+                    {
+                        AllowMaterial = true, // We'll use this in ChatbotWindow to show the picker
+                        Placeholder   = "attach material.",
+                        QuickReplies  = new[]
+                        {
+                            new QuickReply { Label = "I want to do something else.", Value = "back" }
+                        }
+                    };
+                
                 case ChatState.Animate_Describe:
                     return new StateConfig
                     {
@@ -221,6 +237,15 @@ namespace ShaderGraphGenerator.Chat
                             new QuickReply { Label = "I want to do something else.", Value = "back"     },
                         }
                     };
+
+                case ChatState.HLSL_Done:
+                return new StateConfig
+                {
+                    QuickReplies = new[]
+                    {
+                        new QuickReply { Label = "Thanks!", Value = "back" }
+                    }
+                };
 
                 // ── explain ──────────────────────────────────────────────────
                 case ChatState.Explain:
@@ -294,7 +319,8 @@ namespace ShaderGraphGenerator.Chat
         public bool         AllowFreeText = false;
         public bool         AllowImage    = false;
         public bool         AllowAbort    = false;
-        public bool         AllowFile = false;
+        public bool         AllowFile     = false;
+        public bool         AllowMaterial = false;
         public bool         ShowRating    = false;
         public string       Placeholder   = "Choose one of the options above.";
     }

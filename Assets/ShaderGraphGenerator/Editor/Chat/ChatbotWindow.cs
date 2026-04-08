@@ -236,11 +236,12 @@ namespace ShaderGraphGenerator.Chat
 
             var cfg    = ChatSession.GetConfig();
             float qH   = cfg.QuickReplies.Length * (BTN_H + 6f) + (cfg.QuickReplies.Length > 0 ? 10f : 0f);
+            bool showInputRow = cfg.AllowFreeText || cfg.AllowFile || cfg.AllowImage || cfg.AllowMaterial;
             float botH = (cfg.ShowRating ? 48f : 0f)
-                       + qH
-                       + (cfg.AllowFreeText ? INPUT_H + 8f : 0f)
-                       + (_pendingThumb != null ? 52f : 0f)
-                       + 8f;
+                    + qH
+                    + (showInputRow ? INPUT_H + 8f : 0f)
+                    + (_pendingThumb != null ? 52f : 0f)
+                    + 8f;
             float scrollH = Mathf.Max(40f, H - HEADER_H - botH);
 
             // ── background ──────────────────────────────────────────────────
@@ -291,7 +292,7 @@ namespace ShaderGraphGenerator.Chat
             if (cfg.ShowRating)        DrawRating();
             if (cfg.QuickReplies.Length > 0) DrawQuickReplies(cfg);
             if (_pendingThumb != null) DrawThumbRow();
-            if (cfg.AllowFreeText)     DrawInputRow(cfg);
+            if (showInputRow)     DrawInputRow(cfg);
 
             GUILayout.EndArea();
 
@@ -473,6 +474,22 @@ namespace ShaderGraphGenerator.Chat
             GUILayout.Space(10);
 
             
+            if (cfg.AllowMaterial)
+            {
+                var matBtnStyle = new GUIStyle(_stAbort)
+                {
+                    fontSize  = 12,
+                    alignment = TextAnchor.MiddleCenter,
+                    padding   = new RectOffset(0, 0, 0, 0),
+                    normal    = { background = _txInput,
+                                textColor  = ChatSession.PendingMaterialPath != null
+                                            ? C_ONLINE : C_STATUS_TXT }
+                };
+                if (GUILayout.Button("📎", matBtnStyle,
+                    GUILayout.Width(INPUT_H - 2), GUILayout.Height(INPUT_H - 2)))
+                    PickMaterialFile();
+                GUILayout.Space(4);
+            }
 
             if (cfg.AllowImage)
             {
@@ -509,7 +526,6 @@ namespace ShaderGraphGenerator.Chat
             }
 
 
-            // Only show text input and send when free text is allowed
             if (cfg.AllowFreeText)
             {
                 GUI.SetNextControlName("ChatInput");
@@ -533,16 +549,14 @@ namespace ShaderGraphGenerator.Chat
                     DoSendText();
                 }
             }
-            else if (!cfg.AllowFile)
+            else
             {
-                // Placeholder label when no input allowed
-                GUILayout.Label("Choose one of the options above.", 
+                // Use the custom placeholder defined in ChatSession (e.g. "Attach file.")
+                GUILayout.Label(cfg.Placeholder, 
                     new GUIStyle(_stStatus) { padding = new RectOffset(4,0,10,0) });
                 GUILayout.FlexibleSpace();
             }
 
-            
-            
 
             GUILayout.Space(10);
             GUILayout.EndHorizontal();
@@ -639,8 +653,18 @@ namespace ShaderGraphGenerator.Chat
             if (string.IsNullOrEmpty(path)) return;
             ChatSession.PendingHLSLPath = path;
             string fileName = System.IO.Path.GetFileName(path);
-            ChatSession.AddUser($"[file: {fileName}]");
             ChatBridgeLocal.ProcessMessage("file_attached", $"[file: {fileName}]");
+            _scrollBottom = true;
+            Repaint();
+        }
+
+        private void PickMaterialFile()
+        {
+            string path = EditorUtility.OpenFilePanel("Select Material", "Assets", "mat");
+            if (string.IsNullOrEmpty(path)) return;
+            ChatSession.PendingMaterialPath = path;
+            string fileName = System.IO.Path.GetFileName(path);
+            ChatBridgeLocal.ProcessMessage("material_attached", $"[file: {fileName}]");
             _scrollBottom = true;
             Repaint();
         }
