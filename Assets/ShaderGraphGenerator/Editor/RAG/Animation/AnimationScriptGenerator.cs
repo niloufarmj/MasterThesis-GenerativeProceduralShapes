@@ -11,8 +11,132 @@ using ShaderGraphGenerator.KnowledgeBase;
 
 namespace ShaderGraphGenerator.RAG
 {
+    /// <summary>Describes a single HLSL property that is missing and must be added.</summary>
+    public class MissingShaderProperty
+    {
+        public string name        { get; set; }   // e.g. "_CornerRadius"
+        public string hlsl_type   { get; set; }   // "float", "float4", "float2"
+        public string range       { get; set; }   // e.g. "0.0 to 0.5"
+        public string description { get; set; }   // what it controls in the shader
+    }
+
+    /// <summary>LLM classification of whether an animation needs HLSL shader changes.</summary>
+    public class AnimationClassification
+    {
+        public bool   needs_hlsl_change  { get; set; }
+        public string reason             { get; set; }
+        /// <summary>
+        /// Populated only when needs_hlsl_change==true.
+        /// Each entry names a property the shader is missing for this animation.
+        /// </summary>
+        public List<MissingShaderProperty> missing_properties { get; set; } = new List<MissingShaderProperty>();
+        /// <summary>
+        /// A precise, self-contained update request for HLSLUpdatePipelineManager.
+        /// Describes exactly what to add/change in the HLSL and why.
+        /// Populated only when needs_hlsl_change==true.
+        /// </summary>
+        public string hlsl_update_request { get; set; }
+    }
+
     public static class AnimationScriptGenerator
     {
+        /// <summary>
+        /// Asks Gemini whether the requested animation can be done purely via C# animating
+        /// existing material properties, or whether new HLSL properties are required.
+        /// When HLSL changes are needed, it also identifies exactly what is missing and
+        /// produces a precise update request for the HLSL update pipeline.
+        /// </summary>
+        public static async Task<AnimationClassification> ClassifyAnimationRequirementsAsync(
+            string animationRequest,
+            string materialName,
+            List<MaterialPropertyInfo> properties,
+            string geminiKey)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("You are a Unity shader and animation expert.");
+            sb.AppendLine("Analyse a material's existing properties and an animation request.");
+            sb.AppendLine("Your job: decide whether the animation can be achieved purely by a C# MonoBehaviour");
+            sb.AppendLine("that drives the EXISTING material properties (SetFloat/SetColor/SetVector), or whether");
+            sb.AppendLine("the HLSL shader must be modified to expose new properties first.");
+            sb.AppendLine();
+            sb.AppendLine("## MATERIAL");
+            sb.AppendLine($"Name: {materialName}");
+            sb.AppendLine("### Existing Shader Properties (the ONLY ones a C# script could animate):");
+            if (properties.Count == 0)
+                sb.AppendLine("  (none)");
+            else
+                foreach (var p in properties)
+                    sb.AppendLine($"  {p.name}  ({p.type})  current = {p.currentValue}");
+            sb.AppendLine();
+            sb.AppendLine("## ANIMATION REQUEST");
+            sb.AppendLine(animationRequest);
+            sb.AppendLine();
+            sb.AppendLine("## DECISION RULES");
+            sb.AppendLine("Set needs_hlsl_change: FALSE when:");
+            sb.AppendLine("  - Every value the animation needs to drive already exists in the property list above.");
+            sb.AppendLine("  - Example: 'pulse the color' → _Color exists → C# only.");
+            sb.AppendLine();
+            sb.AppendLine("Set needs_hlsl_change: TRUE when:");
+            sb.AppendLine("  - The animation requires controlling a visual aspect that has NO corresponding property above.");
+            sb.AppendLine("  - Example: 'animate corner radius' → no _CornerRadius property exists → HLSL must be updated.");
+            sb.AppendLine("  - When TRUE you MUST fill in missing_properties and hlsl_update_request.");
+            sb.AppendLine();
+            sb.AppendLine("When in doubt, prefer FALSE (C# only).");
+            sb.AppendLine();
+            sb.AppendLine("## OUTPUT FORMAT — return ONLY valid JSON, no markdown, no preamble:");
+            sb.AppendLine(@"{
+  ""needs_hlsl_change"": false,
+  ""reason"": ""One sentence: why C# alone is sufficient OR why HLSL must change."",
+  ""missing_properties"": [],
+  ""hlsl_update_request"": """"
+}");
+            sb.AppendLine();
+            sb.AppendLine("When needs_hlsl_change is TRUE, populate missing_properties and hlsl_update_request like this example:");
+            sb.AppendLine(@"{
+  ""needs_hlsl_change"": true,
+  ""reason"": ""The animation requires a corner-radius property that does not exist in the current shader."",
+  ""missing_properties"": [
+    {
+      ""name"": ""_CornerRadius"",
+      ""hlsl_type"": ""float"",
+      ""range"": ""0.0 to 0.5"",
+      ""description"": ""Controls how rounded the rectangle corners are; 0 = sharp, 0.5 = fully circular.""
+    }
+  ],
+  ""hlsl_update_request"": ""Add a '_CornerRadius' float uniform (range 0.0–0.5, default 0.0) to the HLSL shader. It should smoothly blend the rectangle corners from sharp (0.0) to fully rounded (0.5) using a signed-distance-field or smooth-step approach. The rest of the shape (color, size, rotation) must remain unchanged.""
+}");
+            sb.AppendLine();
+            sb.AppendLine("RULES for hlsl_update_request:");
+            sb.AppendLine("- Be specific: name the exact properties to add and describe their visual effect.");
+            sb.AppendLine("- Explain clearly what the shader must look like AFTER the update so the VLM can verify it.");
+            sb.AppendLine("- Keep it focused — only describe what needs to change, not the whole shader.");
+
+            string raw = await GeminiApiService.CallGeminiAsync(sb.ToString(), geminiKey);
+            if (string.IsNullOrEmpty(raw))
+            {
+                Debug.LogWarning("[AnimClass] Gemini returned null — defaulting to C#-only path.");
+                return new AnimationClassification { needs_hlsl_change = false, reason = "LLM unavailable." };
+            }
+
+            raw = StripMarkdown(raw);
+            try
+            {
+                var cls = JsonConvert.DeserializeObject<AnimationClassification>(raw);
+                if (cls.missing_properties == null) cls.missing_properties = new List<MissingShaderProperty>();
+                Debug.Log($"[AnimClass] needs_hlsl_change={cls.needs_hlsl_change}  reason={cls.reason}");
+                if (cls.needs_hlsl_change && cls.missing_properties.Count > 0)
+                    Debug.Log($"[AnimClass] Missing properties: {string.Join(", ", cls.missing_properties.ConvertAll(p => p.name))}");
+                if (cls.needs_hlsl_change)
+                    Debug.Log($"[AnimClass] hlsl_update_request: {cls.hlsl_update_request}");
+                return cls;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[AnimClass] JSON parse failed ({ex.Message}) — defaulting to C#-only.\nRaw: {raw.Substring(0, Math.Min(300, raw.Length))}");
+                return new AnimationClassification { needs_hlsl_change = false };
+            }
+        }
+
         /// <summary>
         /// Extracts all animatable properties (float, color, vector) from a material.
         /// Skips Unity internals and texture properties.

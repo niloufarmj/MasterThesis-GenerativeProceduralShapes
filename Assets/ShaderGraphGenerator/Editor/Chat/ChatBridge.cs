@@ -422,6 +422,7 @@ namespace ShaderGraphGenerator.Chat
                     }
 
                     _lastPreview = result.previewImagePath ?? "";
+                    ChatSession.PendingMaterialPath = result.materialPath ?? "";
                     ChatSession.State = ChatState.Reviewing;
                     ChatSession.AddBot("Here is the result, how do you rate it on a scale of 1 to 10?", _lastPreview);
                 }
@@ -460,6 +461,7 @@ namespace ShaderGraphGenerator.Chat
                     }
 
                     _lastPreview = result.previewImagePath ?? "";
+                    ChatSession.PendingMaterialPath = result.materialPath ?? "";
                     ChatSession.State = ChatState.Reviewing;
                     ChatSession.AddBot("Here is the result, how do you rate it on a scale of 1 to 10?", _lastPreview);
                 }
@@ -497,6 +499,7 @@ namespace ShaderGraphGenerator.Chat
                     }
 
                     _lastPreview = result.previewImagePath ?? "";
+                    ChatSession.PendingMaterialPath = result.materialPath ?? "";
                     ChatSession.State = ChatState.Reviewing;
                     ChatSession.AddBot("Here is the updated result. How do you rate it on a scale of 1 to 10?", _lastPreview);
                 }
@@ -529,73 +532,109 @@ namespace ShaderGraphGenerator.Chat
         {
             _cts = new CancellationTokenSource();
             var token = _cts.Token;
-            
+
             EditorApplication.delayCall += async () =>
             {
                 try
                 {
+                    // ── Step 1: Inform the user we're analysing the request ────
+                    ChatSession.AddBot("Let me first see how I should achieve this.");
                     _statusMsg = "thinking...";
-                    
-                    // 1. Add a small delay to simulate "thinking" before sending the follow-up message
-                    await Task.Delay(1500, token);
-                    if (token.IsCancellationRequested) return;
 
-                    // 2. Push the message exactly as shown in your Figma mockup
-                    ChatSession.AddBot("Hmm. It seems I have to change some stuff inside hlsl and then I can do the animating. This might take up to few minutes. please be patient until your result is ready.");
-                    
-                    _statusMsg = "crafting...";
-
-                    // 3. Load configurations
                     var config = LoadConfig();
                     var kb     = LoadKB();
                     if (config == null) { PushError("Config asset not found."); return; }
-                    // Note: KB can be null if it doesn't exist, the pipeline handles useKB=false safely
 
-                    // 4. Resolve the attached material path
+                    // ── Step 2: Resolve the attached material ─────────────────
                     string matPath = ChatSession.PendingMaterialPath;
-                    
-                    // Convert absolute OS path to Unity relative path (e.g. "Assets/...")
                     if (!string.IsNullOrEmpty(matPath) && matPath.StartsWith(Application.dataPath))
-                    {
                         matPath = "Assets" + matPath.Substring(Application.dataPath.Length);
-                    }
-                    
+
                     Material sourceMat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-                    if (sourceMat == null)
-                    {
-                        PushError($"Could not load attached material at: {matPath}");
-                        return;
-                    }
+                    if (sourceMat == null) { PushError($"Could not load material at: {matPath}"); return; }
 
-                    // 5. Run the actual Animation Pipeline!
-                    var result = await MaterialAnimatorPipelineManager.RunPipelineAsync(
-                        sourceMaterial: sourceMat,
-                        animationRequest: description,
-                        config: config,
-                        kb: kb,
-                        useKB: true,
-                        userFeedback: null,
-                        onProgress: (status) => { _statusMsg = status; } // Maps pipeline progress to UI status
-                    );
-
+                    // ── Step 3: Classify — C# only vs HLSL change needed ──────
+                    var properties = AnimationScriptGenerator.ExtractMaterialProperties(sourceMat);
+                    var cls = await AnimationScriptGenerator.ClassifyAnimationRequirementsAsync(
+                        description, sourceMat.name, properties, config.geminiKey);
                     if (token.IsCancellationRequested) return;
 
-                    _statusMsg = "";
-                    
-                    if (!result.success)
+                    if (!cls.needs_hlsl_change)
                     {
-                        PushError($"Animation generation failed: {result.errorMessage}");
-                        return;
-                    }
+                        // ── PATH A: animate existing properties with C# only ──
+                        ChatSession.AddBot("Good news. I can achieve this only by animating the existing material properties. Let me craft the animation script.");
+                        _statusMsg = "crafting...";
 
-                    // 6. Final success state
-                    ChatSession.State = ChatState.PostGen;
-                    ChatSession.AddBot($"Animation complete! I generated the script '{result.fileName}' at {result.scriptAssetPath}. Unity will now recompile to apply it.");
+                        var result = await MaterialAnimatorPipelineManager.RunPipelineAsync(
+                            sourceMaterial:   sourceMat,
+                            animationRequest: description,
+                            config:           config,
+                            kb:               kb,
+                            useKB:            true,
+                            userFeedback:     null,
+                            onProgress:       s => { _statusMsg = s; });
+                        if (token.IsCancellationRequested) return;
+
+                        _statusMsg = "";
+                        if (!result.success) { PushError($"Animation generation failed: {result.errorMessage}"); return; }
+
+                        ChatSession.State = ChatState.PostGen;
+                        ChatSession.AddBot($"Animation complete! I generated the script '{result.fileName}' at {result.scriptAssetPath}. Unity will now recompile to apply it.");
+                    }
+                    else
+                    {
+                        // ── PATH B: update HLSL first, then animate ───────────
+                        // Build a human-readable summary of what's missing for the bot message
+                        string missingSummary = cls.missing_properties != null && cls.missing_properties.Count > 0
+                            ? string.Join(", ", cls.missing_properties.ConvertAll(p => $"'{p.name}'"))
+                            : "some shader properties";
+                        ChatSession.AddBot($"Hmm. To achieve this animation I first need to update the HLSL shader — specifically, {missingSummary} {(cls.missing_properties?.Count == 1 ? "is" : "are")} missing. Let me do that first, then generate the animation script. This might take a few minutes — please be patient.");
+                        _statusMsg = "crafting...";
+
+                        // Step B-1: update the material/HLSL using the precise request from the classifier
+                        // cls.hlsl_update_request describes exactly what property to add and how it should behave,
+                        // so the VLM comparison can correctly verify the change was applied.
+                        string updateRequest = !string.IsNullOrWhiteSpace(cls.hlsl_update_request)
+                            ? cls.hlsl_update_request
+                            : $"Add the shader properties needed to support this animation: {description}";
+                        var updateResult = await HLSLUpdatePipelineManager.RunUpdatePipelineAsync(
+                            originalMaterial: sourceMat,
+                            updateRequest:    updateRequest,
+                            knowledgeBase:    kb,
+                            config:           config,
+                            maxVlmIterations: 2);
+                        if (token.IsCancellationRequested) return;
+
+                        // Use updated material if available, otherwise fall back to original
+                        Material animMat = sourceMat;
+                        if (!string.IsNullOrEmpty(updateResult.materialPath))
+                        {
+                            var updatedMat = AssetDatabase.LoadAssetAtPath<Material>(updateResult.materialPath);
+                            if (updatedMat != null) animMat = updatedMat;
+                        }
+
+                        // Step B-2: generate the C# animation script for the (updated) material
+                        var animResult = await MaterialAnimatorPipelineManager.RunPipelineAsync(
+                            sourceMaterial:   animMat,
+                            animationRequest: description,
+                            config:           config,
+                            kb:               kb,
+                            useKB:            true,
+                            userFeedback:     null,
+                            onProgress:       s => { _statusMsg = s; });
+                        if (token.IsCancellationRequested) return;
+
+                        _statusMsg = "";
+                        if (!animResult.success) { PushError($"Animation generation failed: {animResult.errorMessage}"); return; }
+
+                        ChatSession.State = ChatState.PostGen;
+                        ChatSession.AddBot($"Animation complete! I generated the script '{animResult.fileName}' at {animResult.scriptAssetPath}. Unity will now recompile to apply it.");
+                    }
                 }
                 catch (OperationCanceledException) { }
                 catch (Exception e) { PushError($"Animation failed: {e.Message}"); }
             };
-}
+        }
 
         private static void TriggerEffect(string effectName)
         {
@@ -744,9 +783,4 @@ namespace ShaderGraphGenerator.Chat
         }
     }
 
-    class AnimationClassification
-    {
-        public bool needs_hlsl_change { get; set; }
-    }
-    
 }
