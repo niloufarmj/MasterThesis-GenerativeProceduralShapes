@@ -275,6 +275,48 @@ namespace ShaderGraphGenerator
                 propertySlotGuids[p.Name] = GetOrCreateGuid($"prop_slot_{p.Name}");
             }
 
+            // ── Per-color-param texture support ──────────────────────────────
+            // For every float4 color input, we add a paired Texture2D property so the user
+            // can assign a texture that gets multiplied with the color (tinting). When no
+            // texture is assigned Unity defaults to white, so color-only still works as before.
+            var colorTexPropDefGuids  = new Dictionary<string, string>(); // paramName -> tex prop def guid
+            var colorTexPropNodeGuids = new Dictionary<string, string>(); // paramName -> tex prop node guid
+            var colorTexPropSlotGuids = new Dictionary<string, string>(); // paramName -> tex prop node out slot guid
+            var colorTexSampleNodeGuids = new Dictionary<string, string>(); // paramName -> SampleTex2D node guid
+            var colorTexSampleSlots   = new Dictionary<string, (string rgba, string tex, string uv, string r1, string r2, string r3, string r4, string r5)>();
+            var colorTexMulNodeGuids  = new Dictionary<string, string>(); // paramName -> Multiply(color×tex) node guid
+            var colorTexMulSlots      = new Dictionary<string, (string a, string b, string outSlot)>(); // paramName -> multiply slots
+
+            foreach (var p in functionInfo.InputParameters)
+            {
+                if (p.Name == uvParamName) continue;
+                if (!p.IsColorProperty()) continue;
+
+                string pn = p.Name;
+                colorTexPropDefGuids[pn]  = GetOrCreateGuid($"ctex_prop_def_{pn}");
+                colorTexPropNodeGuids[pn] = GetOrCreateGuid($"ctex_prop_node_{pn}");
+                colorTexPropSlotGuids[pn] = GetOrCreateGuid($"ctex_prop_slot_{pn}");
+
+                colorTexSampleNodeGuids[pn] = GetOrCreateGuid($"ctex_sample_node_{pn}");
+                colorTexSampleSlots[pn] = (
+                    rgba: GetOrCreateGuid($"ctex_sample_rgba_{pn}"),
+                    tex:  GetOrCreateGuid($"ctex_sample_tex_{pn}"),
+                    uv:   GetOrCreateGuid($"ctex_sample_uv_{pn}"),
+                    r1:   GetOrCreateGuid($"ctex_sample_r1_{pn}"),
+                    r2:   GetOrCreateGuid($"ctex_sample_r2_{pn}"),
+                    r3:   GetOrCreateGuid($"ctex_sample_r3_{pn}"),
+                    r4:   GetOrCreateGuid($"ctex_sample_r4_{pn}"),
+                    r5:   GetOrCreateGuid($"ctex_sample_r5_{pn}")
+                );
+
+                colorTexMulNodeGuids[pn] = GetOrCreateGuid($"ctex_mul_node_{pn}");
+                colorTexMulSlots[pn] = (
+                    a:       GetOrCreateGuid($"ctex_mul_a_{pn}"),
+                    b:       GetOrCreateGuid($"ctex_mul_b_{pn}"),
+                    outSlot: GetOrCreateGuid($"ctex_mul_out_{pn}")
+                );
+            }
+
             // -----------------------------------------------------------------
             //  Build in-memory model (factories) then serialize (writer)
             // -----------------------------------------------------------------
@@ -307,11 +349,27 @@ namespace ShaderGraphGenerator
                 graph.Definitions.Add(prop);
             }
 
+            // Per-color-param texture properties
+            foreach (var kvp in colorTexPropDefGuids)
+            {
+                string texPropName = kvp.Key + "Tex"; // e.g. "ScarfColorTex"
+                var texProp = propFactory.CreateTexture2D(kvp.Value, texPropName, "_" + texPropName,
+                    useTilingAndOffset: false, isMainTexture: false, defaultType: 0);
+                graph.PropertyRefs.Add(texProp.AsRef());
+                graph.Definitions.Add(texProp);
+            }
+
             // --- Category (properties list) ---
             var category = new CategoryDataModel(categoryGuid, name: "", sgVersion: 0);
             category.AddProperty(mainTexProp.AsRef());
             if (pixelCountProp != null) category.AddProperty(pixelCountProp.AsRef());
-            foreach (var kvp in propertyDefGuids) category.AddProperty(new PropertyRef(kvp.Value));
+            foreach (var kvp in propertyDefGuids)
+            {
+                category.AddProperty(new PropertyRef(kvp.Value));
+                // Add its paired texture property right after the color, so they sit together in the inspector
+                if (colorTexPropDefGuids.ContainsKey(kvp.Key))
+                    category.AddProperty(new PropertyRef(colorTexPropDefGuids[kvp.Key]));
+            }
             graph.Categories.Add(category);
             graph.Definitions.Add(category);
 
@@ -421,7 +479,7 @@ namespace ShaderGraphGenerator
             graph.Definitions.Add(slotFactory.CreateMultiplyB(multiplySlotB));
             graph.Definitions.Add(slotFactory.CreateMultiplyOut(multiplySlotOut));
 
-            // Function input property nodes
+            // Function input property nodes + per-color texture chains
             float propY = 600f;
             foreach (var kvp in propertyNodeGuids)
             {
@@ -430,8 +488,53 @@ namespace ShaderGraphGenerator
                 var pn = nodeFactory.CreatePropertyNode(kvp.Value, propertySlotGuids[kvp.Key], propertyDefGuids[kvp.Key], x: -580f, y: propY);
                 graph.NodeRefs.Add(pn.AsRef());
                 graph.Definitions.Add(pn);
-
                 graph.Definitions.Add(CreatePropertyNodeOutSlot(slotFactory, propertySlotGuids[kvp.Key], param));
+
+                // If this is a color param, add the paired tex-property node + SampleTex2D + Multiply(color×tex)
+                if (colorTexPropDefGuids.ContainsKey(kvp.Key))
+                {
+                    string pName = kvp.Key;
+                    float texY = propY + 130f;
+
+                    // Texture2D property node
+                    string texPropName = pName + "Tex";
+                    var texPropNode = nodeFactory.CreatePropertyNode(
+                        colorTexPropNodeGuids[pName],
+                        colorTexPropSlotGuids[pName],
+                        colorTexPropDefGuids[pName],
+                        x: -580f, y: texY);
+                    graph.NodeRefs.Add(texPropNode.AsRef());
+                    graph.Definitions.Add(texPropNode);
+                    graph.Definitions.Add(slotFactory.CreatePropertyTexture2DOut(colorTexPropSlotGuids[pName], texPropName));
+
+                    // SampleTexture2D node for this color
+                    var ss = colorTexSampleSlots[pName];
+                    var sampleSlotsListColor = new System.Collections.Generic.List<string>
+                    {
+                        ss.rgba, ss.r1, ss.r2, ss.r3, ss.r4, ss.tex, ss.uv, ss.r5
+                    };
+                    var sampleNodeColor = nodeFactory.CreateSampleTexture2DNode(
+                        colorTexSampleNodeGuids[pName], sampleSlotsListColor,
+                        x: -360f, y: texY, width: 208f, height: 437f);
+                    graph.NodeRefs.Add(sampleNodeColor.AsRef());
+                    graph.Definitions.Add(sampleNodeColor);
+                    graph.Definitions.Add(slotFactory.CreateSampleTexture2DRGBAOut(ss.rgba));
+                    graph.Definitions.Add(slotFactory.CreateSampleTexture2DTextureIn(ss.tex));
+                    graph.Definitions.Add(slotFactory.CreateSampleTexture2DUVIn(ss.uv, channel: 0));
+
+                    // Multiply node: color × sampled_texture
+                    var ms = colorTexMulSlots[pName];
+                    var mulColorTex = nodeFactory.CreateMultiplyNode(
+                        colorTexMulNodeGuids[pName], ms.a, ms.b, ms.outSlot,
+                        x: -120f, y: texY);
+                    graph.NodeRefs.Add(mulColorTex.AsRef());
+                    graph.Definitions.Add(mulColorTex);
+                    graph.Definitions.Add(slotFactory.CreateMultiplyA(ms.a));
+                    graph.Definitions.Add(slotFactory.CreateMultiplyB(ms.b));
+                    graph.Definitions.Add(slotFactory.CreateMultiplyOut(ms.outSlot));
+
+                    propY += 130f; // extra space for the tex chain row
+                }
 
                 propY += 120f;
             }
@@ -524,21 +627,67 @@ namespace ShaderGraphGenerator
             if (inTan != null) graph.Edges.Add(new EdgeModel(new SlotRef(new NodeRef(vertexTangentNodeGuid), 0), new SlotRef(new NodeRef(customFunctionNodeGuid), inTan.SlotId)));
 
             // UV -> custom function input (the first float2 input)
+            // When pixelation is active, feed the quantised UV (Divide output) instead of raw UV.
+            // This makes the HLSL SDF itself render in blocky pixels, not just the MainTex sample.
+            // NOTE: divideNodeGuid is only valid when usePixelation=true (guarded below).
             if (!string.IsNullOrEmpty(uvParamName))
             {
+                // Pixelation path: Divide.Out (slot 2) is the floor(UV*N)/N quantised UV
+                // Standard path:   UVNode.Out  (slot 0) is the raw UV
+                string uvSourceId   = (usePixelation && divideNodeGuid != null) ? divideNodeGuid : uvNodeGuid;
+                int    uvSourceSlot = (usePixelation && divideNodeGuid != null) ? 2 : 0;
                 graph.Edges.Add(new EdgeModel(
-                    new SlotRef(new NodeRef(uvNodeGuid), 0),
+                    new SlotRef(new NodeRef(uvSourceId), uvSourceSlot),
                     new SlotRef(new NodeRef(customFunctionNodeGuid), GetSlotId(functionInfo, uvParamName))));
             }
 
             // Other property nodes -> custom function inputs
+            // For color params: color -> MulColorTex.A, SampleTex.RGBA -> MulColorTex.B, MulColorTex.Out -> CF
+            // For non-color params: PropNode -> CF directly (unchanged)
             foreach (var p in functionInfo.InputParameters)
             {
                 if (p.Name == uvParamName) continue;
 
-                graph.Edges.Add(new EdgeModel(
-                    new SlotRef(new NodeRef(propertyNodeGuids[p.Name]), 0),
-                    new SlotRef(new NodeRef(customFunctionNodeGuid), GetSlotId(functionInfo, p.Name))));
+                if (colorTexMulNodeGuids.ContainsKey(p.Name))
+                {
+                    var ms = colorTexMulSlots[p.Name];
+                    var ss = colorTexSampleSlots[p.Name];
+
+                    // UV (or pixelated UV) -> color SampleTex UV input
+                    string uvSrcId   = (usePixelation && divideNodeGuid != null) ? divideNodeGuid : uvNodeGuid;
+                    int    uvSrcSlot = (usePixelation && divideNodeGuid != null) ? 2 : 0;
+                    var uvSrcNode  = new NodeRef(uvSrcId);
+                    graph.Edges.Add(new EdgeModel(
+                        new SlotRef(uvSrcNode, uvSrcSlot),
+                        new SlotRef(new NodeRef(colorTexSampleNodeGuids[p.Name]), 2)));
+
+                    // Tex property -> color SampleTex Texture input
+                    graph.Edges.Add(new EdgeModel(
+                        new SlotRef(new NodeRef(colorTexPropNodeGuids[p.Name]), 0),
+                        new SlotRef(new NodeRef(colorTexSampleNodeGuids[p.Name]), 1)));
+
+                    // Color property -> MulColorTex A (slot 0)
+                    graph.Edges.Add(new EdgeModel(
+                        new SlotRef(new NodeRef(propertyNodeGuids[p.Name]), 0),
+                        new SlotRef(new NodeRef(colorTexMulNodeGuids[p.Name]), 0)));
+
+                    // SampleTex RGBA (slot 4) -> MulColorTex B (slot 1)
+                    graph.Edges.Add(new EdgeModel(
+                        new SlotRef(new NodeRef(colorTexSampleNodeGuids[p.Name]), 4),
+                        new SlotRef(new NodeRef(colorTexMulNodeGuids[p.Name]), 1)));
+
+                    // MulColorTex Out (slot 2) -> CustomFunction input
+                    graph.Edges.Add(new EdgeModel(
+                        new SlotRef(new NodeRef(colorTexMulNodeGuids[p.Name]), 2),
+                        new SlotRef(new NodeRef(customFunctionNodeGuid), GetSlotId(functionInfo, p.Name))));
+                }
+                else
+                {
+                    // Non-color param: wire directly as before
+                    graph.Edges.Add(new EdgeModel(
+                        new SlotRef(new NodeRef(propertyNodeGuids[p.Name]), 0),
+                        new SlotRef(new NodeRef(customFunctionNodeGuid), GetSlotId(functionInfo, p.Name))));
+                }
             }
 
             // UV pipeline into Sample Texture UV
