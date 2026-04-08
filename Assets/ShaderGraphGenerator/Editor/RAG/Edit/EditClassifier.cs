@@ -1,3 +1,17 @@
+// EditClassifier.cs
+// Classifies a user's edit request into one of two paths:
+//   A) Property-only: the edit can be achieved by calling SetFloat/SetColor/SetVector
+//      on the existing material — no shader code changes needed.
+//   B) HLSL update: the edit requires new geometry, new parameters, or structural
+//      shader changes — routed to HLSLUpdatePipelineManager.
+//
+// The classification is performed by a single Gemini call with a structured JSON
+// prompt. On success it returns either a list of exact material property changes
+// (path A) or a precise, targeted HLSL update request string (path B).
+//
+// Used by: ChatBridge.TriggerEdit
+// See also: AnimationScriptGenerator.ClassifyAnimationRequirementsAsync (same pattern for animation)
+
 using System;
 using System.Collections.Generic;
 using System.Text;

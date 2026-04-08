@@ -2,6 +2,25 @@ using System.Collections.Generic;
 
 namespace ShaderGraphGenerator.Chat
 {
+    /// <summary>
+    /// All possible states in the chatbot conversation state machine.
+    ///
+    /// State groups and their transitions:
+    ///
+    ///   MainMenu
+    ///   ├─ new_shape  → NewShape_InputMode → NewShape_Text / NewShape_Image
+    ///   │                                  → Generating → Reviewing → PostGen
+    ///   ├─ edit       → Edit_Attach   → Edit_Describe   → Edit_Running   → PostGen
+    ///   ├─ animate    → Animate_Attach → Animate_Describe → Animate_Running → PostGen
+    ///   ├─ effect     → Effect_Attach  → Effect_Pick → Animate_Running → PostGen
+    ///   ├─ hlsl       → HLSL_Attach    → HLSL_Running   → HLSL_Done
+    ///   ├─ explain    → Explain → MainMenu
+    ///   └─ contact    → Contact_Name → Contact_Intent → Contact_Email
+    ///                              → Contact_Message → MainMenu
+    ///
+    /// Any running/waiting state exposes an "Abort" quick reply that cancels the
+    /// current CancellationToken and returns to MainMenu.
+    /// </summary>
     public enum ChatState
     {
         MainMenu,
@@ -30,28 +49,58 @@ namespace ShaderGraphGenerator.Chat
         Done
     }
 
+    /// <summary>A button shown below bot messages that the user can tap to advance the conversation.</summary>
     public class QuickReply
     {
+        /// <summary>Human-readable button label shown in the UI.</summary>
         public string Label;
+        /// <summary>Machine-readable value sent to ChatBridge.HandleSend on click.</summary>
         public string Value;
     }
 
+    /// <summary>A single message in the conversation history (user or bot).</summary>
     public class ChatMessage
     {
-        public string Role;          // "bot" or "user"
+        /// <summary>"user" or "bot".</summary>
+        public string Role;
         public string Text;
-        public string ImageBase64;   // optional — preview image path or base64
+        /// <summary>Optional: absolute file path or base64 data URI of a preview image to display inline.</summary>
+        public string ImageBase64;
     }
 
+    /// <summary>
+    /// Static singleton that holds all shared chatbot state across the session.
+    ///
+    /// Because this is a Unity EditorWindow tool, state survives window repaints but is
+    /// reset on <see cref="Reset"/> (e.g., user clicks the restart button).
+    ///
+    /// Key fields:
+    ///   <see cref="State"/>               — Current position in the state machine.
+    ///   <see cref="History"/>             — Full conversation transcript.
+    ///   <see cref="PendingMaterialPath"/> — Asset path of the material currently being worked on;
+    ///                                       set by generation, HLSL import, and attachment flows so
+    ///                                       downstream pipelines (edit, animate, effect) can load it.
+    ///   <see cref="PendingImageBase64"/>  — Base64-encoded reference image waiting to be submitted.
+    ///   <see cref="PendingHLSLPath"/>     — Absolute OS path of a user-uploaded .hlsl file.
+    /// </summary>
     public static class ChatSession
     {
-        public static ChatState        State   = ChatState.MainMenu;
+        public static ChatState         State   = ChatState.MainMenu;
         public static List<ChatMessage> History = new List<ChatMessage>();
 
-        public static string PendingImageBase64 = null;
-        public static string PendingPrompt      = null;
-        public static int    LastScore          = -1;
-        public static string PendingHLSLPath = null;
+        /// <summary>Base64-encoded reference image attached in the NewShape_Image flow.</summary>
+        public static string PendingImageBase64  = null;
+        /// <summary>The last natural-language prompt used for generation (kept for retry/refinement).</summary>
+        public static string PendingPrompt       = null;
+        /// <summary>Last human rating score (1–10); -1 means not yet rated.</summary>
+        public static int    LastScore           = -1;
+        /// <summary>Absolute OS path to a user-uploaded .hlsl file; consumed by TriggerHLSLGeneration.</summary>
+        public static string PendingHLSLPath     = null;
+        /// <summary>
+        /// Unity-relative (Assets/…) path to the material currently in scope.
+        /// Set by all generation, import, edit, and attachment flows so that
+        /// animate / effect / edit pipelines always know which material to operate on.
+        /// </summary>
         public static string PendingMaterialPath = null;
 
         // ── public API ──────────────────────────────────────────────────────

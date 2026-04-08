@@ -33,21 +33,55 @@ namespace ShaderGraphGenerator.RAG
 
     // ─── pipeline ─────────────────────────────────────────────────────────────
 
+    /// <summary>
+    /// Applies an update request to an existing material's HLSL shader using a
+    /// VLM-validated before/after comparison loop.
+    ///
+    /// This pipeline is used for:
+    ///   - Shape editing when the edit requires HLSL changes (e.g. "add stripes to the scarf")
+    ///   - Animation setup when new shader properties must be added before animating
+    ///   - Effect application (when LLM-driven; pixelation uses the client-side path instead)
+    ///
+    /// Pipeline steps:
+    ///   1. Locate the HLSL source file referenced by the material's ShaderGraph.
+    ///   2. Extract all current material property values.
+    ///   3. Render a BEFORE screenshot of the original material.
+    ///   4. Retrieve relevant KB shapes via semantic search.
+    ///   5. For each VLM iteration:
+    ///      a. Gemini generates updated HLSL based on the update request + retrieved examples.
+    ///      b. New ShaderGraph + Material are built from the updated HLSL.
+    ///      c. An AFTER screenshot is rendered.
+    ///      d. GPT-4o Vision compares before/after and scores whether the update was applied (1–10).
+    ///      e. If score &gt; 7, accept and return; otherwise feed VLM feedback into the next iteration.
+    ///
+    /// Output assets are written to Assets/ShaderGraphs/RAG_Updates/.
+    /// </summary>
     public static class HLSLUpdatePipelineManager
     {
         private const string UPDATE_DIR  = "Assets/ShaderGraphs/RAG_Updates";
         private const string PREVIEW_DIR = "Assets/ShaderGraphs/Previews";
 
-        private const int VLM_ACCEPT_THRESHOLD = 7; // score must be > this to accept
+        /// <summary>VLM score (exclusive) above which a generated update is accepted.</summary>
+        private const int VLM_ACCEPT_THRESHOLD = 7;
 
         /// <summary>
-        /// Full update pipeline:
-        ///   1. Extract HLSL and current property values from the source material.
-        ///   2. Render BEFORE screenshot directly from the original material.
-        ///   3. Retrieve relevant KB examples.
-        ///   4. LLM loop (up to maxVlmIterations): generate updated HLSL → render AFTER → VLM compare.
-        ///   5. Return result. Score > 7 = success.
+        /// Runs the full HLSL update pipeline with VLM-guided validation.
         /// </summary>
+        /// <param name="originalMaterial">The Unity Material whose ShaderGraph contains the HLSL to update.</param>
+        /// <param name="updateRequest">
+        /// A precise, self-contained description of what to change in the shader.
+        /// The more specific this is (exact property names, visual outcomes), the more
+        /// reliably the VLM can verify success in the before/after comparison.
+        /// </param>
+        /// <param name="knowledgeBase">KB for retrieving relevant HLSL examples.</param>
+        /// <param name="config">API key config.</param>
+        /// <param name="maxVlmIterations">Maximum refinement iterations (default 1).</param>
+        /// <param name="userFeedback">Optional extra context from the user (e.g. from a retry).</param>
+        /// <returns>
+        /// <see cref="HLSLUpdateResult"/> with before/after image paths, VLM score, and
+        /// paths to the updated HLSL, ShaderGraph, and Material.
+        /// <c>success</c> is true only when VLM score &gt; <see cref="VLM_ACCEPT_THRESHOLD"/>.
+        /// </returns>
         public static async Task<HLSLUpdateResult> RunUpdatePipelineAsync(
             Material originalMaterial,
             string   updateRequest,

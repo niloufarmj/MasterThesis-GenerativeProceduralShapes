@@ -11,16 +11,44 @@ using ShaderGraphGenerator.Editor;
 namespace ShaderGraphGenerator.RAG
 {
     /// <summary>
-    /// Complete RAG pipeline: Decompose → Retrieve → Generate → Build → Render → Evaluate
+    /// Orchestrates the full text-to-shape RAG pipeline.
+    ///
+    /// Pipeline steps:
+    ///   1. Decompose the user request into visual components (ShapeDecompositionService).
+    ///   2. Retrieve the top-2 most similar KB shapes per component (SemanticShapeSearch).
+    ///   3. Build an augmented prompt combining the request with retrieved HLSL examples.
+    ///   4. Call Gemini to generate new HLSL code + property list.
+    ///   5. Save the HLSL file and convert it to a Unity ShaderGraph JSON.
+    ///   6. Create a Unity Material and apply LLM-specified property default values.
+    ///   7. Render a 512×512 PNG preview using an off-screen orthographic camera.
+    ///   8. Send the preview to GPT-4o Vision for a quality score (1–10).
+    ///   9. If score &lt; 7 and iterations remain, refine with VLM feedback and repeat from step 4.
+    ///
+    /// Output assets are written to:
+    ///   HLSL        → Assets/ShaderGraphs/RAG_Generated/{name}.hlsl
+    ///   ShaderGraph → Assets/ShaderGraphs/RAG_Generated/{name}.shadergraph
+    ///   Material    → Assets/ShaderGraphs/RAG_Generated/{name}.mat
+    ///   Preview     → Assets/ShaderGraphs/Previews/{name}_{iter}.png
     /// </summary>
     public static class RAGPipelineManager
     {
         private const string RAG_OUTPUT_DIR = "Assets/ShaderGraphs/RAG_Generated";
-        private const string PREVIEW_DIR = "Assets/ShaderGraphs/Previews";
+        private const string PREVIEW_DIR    = "Assets/ShaderGraphs/Previews";
 
         /// <summary>
-        /// Run complete RAG pipeline with visual feedback
+        /// Entry point for the full RAG text-to-shape pipeline.
         /// </summary>
+        /// <param name="userRequest">Natural-language description of the desired 2D shape.</param>
+        /// <param name="knowledgeBase">The loaded shape knowledge base for RAG retrieval.</param>
+        /// <param name="config">Config asset containing API keys.</param>
+        /// <param name="maxIterations">
+        /// Maximum number of VLM-guided refinement iterations (default 3).
+        /// The pipeline stops early if a VLM score &gt; 7 is achieved.
+        /// </param>
+        /// <returns>
+        /// A <see cref="RAGPipelineResult"/> containing paths to all generated assets,
+        /// the VLM score, and a success flag. On failure, <c>errorMessage</c> is set.
+        /// </returns>
         public static async Task<RAGPipelineResult> RunCompletePipelineAsync(
             string userRequest,
             ShapeKnowledgeBase knowledgeBase,

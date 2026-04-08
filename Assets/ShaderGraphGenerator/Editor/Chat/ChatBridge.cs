@@ -16,10 +16,33 @@ using System.Text.RegularExpressions;
 
 namespace ShaderGraphGenerator.Chat
 {
+    /// <summary>
+    /// HTTP bridge between the chatbot UI and Unity's editor pipelines.
+    ///
+    /// Responsibilities:
+    ///   • Runs a local HTTP server on <see cref="PORT"/> (localhost:7723) so that
+    ///     the web-based chat UI (chat.html) can communicate with the Unity editor.
+    ///   • Routes incoming /send messages through <see cref="ChatSession"/>'s state machine.
+    ///   • Triggers all generation, edit, animation, and effect pipelines.
+    ///   • Manages a shared <see cref="CancellationTokenSource"/> so any in-flight
+    ///     pipeline can be aborted via the /abort endpoint.
+    ///
+    /// HTTP endpoints:
+    ///   GET  /          → Serve chat.html (web UI)
+    ///   POST /send      → Main message handler; drives state transitions and pipeline launches
+    ///   POST /image     → Accept base64-encoded reference image
+    ///   GET  /status    → Return current status message and last preview image path
+    ///   GET  /abort     → Cancel the current pipeline and return to MainMenu
+    ///   GET  /history   → Return full chat history, current state, and state config (quick replies)
+    ///
+    /// The [InitializeOnLoad] attribute ensures the HTTP listener starts automatically
+    /// when Unity loads the editor (or after domain reloads).
+    /// </summary>
     [InitializeOnLoad]
     public static class ChatBridge
     {
         // ── config ──────────────────────────────────────────────────────────
+        /// <summary>Local port the HTTP server listens on. Change if 7723 is in use.</summary>
         public const int PORT = 7723;
 
         // ── state ───────────────────────────────────────────────────────────

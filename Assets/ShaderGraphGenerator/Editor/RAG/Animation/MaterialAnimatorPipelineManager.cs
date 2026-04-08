@@ -12,20 +12,39 @@ using ShaderGraphGenerator.KnowledgeBase;
 namespace ShaderGraphGenerator.RAG
 {
     /// <summary>
-    /// Handles the full animation generation pipeline and survives domain reloads.
+    /// Orchestrates the full material animation pipeline and survives Unity domain reloads.
     ///
-    /// Domain reload problem:
-    ///   Writing a new .cs file triggers Unity to recompile and reload the domain,
-    ///   which destroys all in-memory state including EditorWindow instances.
-    ///   We survive by serialising pending state to EditorPrefs before the reload
-    ///   and restoring it via [InitializeOnLoad] after the reload.
+    /// Pipeline steps:
+    ///   1. Extract all animatable properties (float/color/vector) from the source material.
+    ///   2. Optionally match the material to a KB shape and retrieve similar animation examples.
+    ///   3. Call Gemini to generate a self-contained C# MonoBehaviour animation script.
+    ///   4. Write the .cs file to Assets/ShaderGraphs/Animations/.
+    ///   5. Trigger AssetDatabase.Refresh() → Unity recompiles → domain reload occurs.
+    ///   6. After reload, ResumeAfterReload() runs via [InitializeOnLoad]:
+    ///      - Finds the compiled script type by reflection.
+    ///      - Creates a Quad primitive in the scene.
+    ///      - Attaches the source material and the animation MonoBehaviour.
+    ///      - Frames the quad in SceneView.
+    ///
+    /// Domain-reload safety:
+    ///   Writing a new .cs file triggers Unity to recompile and destroy all in-memory state,
+    ///   including EditorWindow instances. This class survives by serialising all pending
+    ///   state to EditorPrefs before AssetDatabase.Refresh() and restoring it in the static
+    ///   constructor (which runs after every domain reload via [InitializeOnLoad]).
+    ///
+    ///   EditorPrefs keys used:
+    ///     AnimPipeline_Pending     — bool flag: resume needed
+    ///     AnimPipeline_MaterialPath — asset path of the source material
+    ///     AnimPipeline_ScriptPath  — path of the written .cs file
+    ///     AnimPipeline_FileName    — sanitised C# class name
+    ///     AnimPipeline_NotifyReady — bool flag: window should poll for result
     /// </summary>
     [InitializeOnLoad]
     public static class MaterialAnimatorPipelineManager
     {
         // ─── Output paths ─────────────────────────────────────────────────────
-        public const string ANIM_DIR    = "Assets/ShaderGraphs/Animations";
-        private const string KB_USE_KEY = "AnimPipeline_UseKB";
+        public const string ANIM_DIR     = "Assets/ShaderGraphs/Animations";
+        private const string KB_USE_KEY  = "AnimPipeline_UseKB";
 
         // ─── Domain reload state keys (EditorPrefs) ───────────────────────────
         private const string KEY_PENDING      = "AnimPipeline_Pending";

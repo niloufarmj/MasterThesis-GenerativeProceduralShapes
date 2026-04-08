@@ -1,3 +1,27 @@
+// AnimationScriptGenerator.cs
+//
+// Two responsibilities:
+//
+//   1. CLASSIFICATION  (ClassifyAnimationRequirementsAsync)
+//      Asks Gemini whether a requested animation can be achieved purely by a C# MonoBehaviour
+//      that drives EXISTING material properties, or whether new HLSL uniform properties must
+//      first be added to the shader.  Returns AnimationClassification with:
+//        • needs_hlsl_change      — routing flag
+//        • missing_properties     — exact properties that must be added (when true)
+//        • hlsl_update_request    — targeted prompt for HLSLUpdatePipelineManager (when true)
+//
+//   2. SCRIPT GENERATION  (GenerateAnimationScriptAsync)
+//      Builds a detailed prompt (material name, all animatable properties, KB examples,
+//      animation pattern library) and calls Gemini to produce a complete, compilable
+//      C# MonoBehaviour.  The script:
+//        • Uses Time.time + Mathf functions for frame-rate-independent animation
+//        • Drives ONLY material.SetFloat / SetColor / SetVector
+//        • Exposes public loop/speed/custom fields for Inspector tweaking
+//        • Includes a Reset() method
+//
+//   Helper:  ExtractMaterialProperties — filters a Material's properties to float/color/vector
+//            (skips unity_* internals and textures); shared with MaterialAnimatorPipelineManager.
+
 using System;
 using System.Collections.Generic;
 using System.IO;
