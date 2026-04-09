@@ -58,6 +58,8 @@ User Prompt / Reference Image
 | **Shape Editing** | AI classifies whether an edit needs a property tweak or full HLSL rewrite, then applies it |
 | **Animation** | AI generates a C# `MonoBehaviour` to animate material properties; adds new shader properties when needed |
 | **Pixelation Effect** | Client-side ShaderGraph node injection (Floor/Divide UV quantisation) — no LLM call required |
+| **Glow Effect** | Client-side ShaderGraph modification: all colour properties → HDR, `glowIntensity` multiplier node injected before Base Color, URP Bloom post-processing volume added to scene — no LLM call required |
+| **Stacked Effects** | Pixelation and Glow can be combined; applying one effect on top of the other preserves both |
 | **VLM Quality Loop** | GPT-4o scores rendered previews 1–10; automatically refines until threshold is met |
 | **RAG Knowledge Base** | 184+ verified shapes with embeddings for semantic retrieval; grows with each accepted generation |
 | **Chatbot UI** | Conversational editor window with state machine, quick replies, material/image pickers |
@@ -69,7 +71,7 @@ User Prompt / Reference Image
 
 ```
 Assets/ShaderGraphGenerator/
-├── ShaderGraphJSONGenerator.cs      ← HLSL → ShaderGraph JSON (with optional pixelation nodes)
+├── ShaderGraphJSONGenerator.cs      ← HLSL → ShaderGraph JSON (with optional pixelation / glow nodes)
 ├── ShaderGraphNodeFactory.cs        ← Creates typed ShaderGraph node objects
 ├── ShaderGraphPropertyFactory.cs    ← Creates shader property definitions
 ├── ShaderGraphSlotFactory.cs        ← Creates node input/output slot definitions
@@ -199,13 +201,35 @@ User animation request + material
 ```
 Source material
 → HLSLUpdatePipelineManager.ExtractHlslPathFromMaterial
-→ ShaderGraphJSONGenerator.GenerateFromHLSL (..., usePixelation: true)
+→ detect if source already has Glow (preserves it if so)
+→ ShaderGraphJSONGenerator.GenerateFromHLSL (..., usePixelation: true, useGlow: <preserved>)
    (injects: UV × PixelCount → Floor → ÷ PixelCount nodes)
 → MaterialPreviewHelper.CreateMaterialForShaderGraph
 → CopyMatchingMaterialProperties (original → effect)
 → SetFloat("PixelCount", 64)
 → CreatePreviewQuad → named "Pixelation Effect — {name}" in scene
 ```
+
+### 7. Glow Effect (no LLM)
+
+```
+Source material
+→ HLSLUpdatePipelineManager.ExtractHlslPathFromMaterial
+→ detect if source already has Pixelation (preserves it if so)
+→ ShaderGraphJSONGenerator.GenerateFromHLSL (..., useGlow: true, usePixelation: <preserved>)
+   (converts all colour properties to HDR colorMode=1)
+   (injects: FinalColor → Multiply(A) × glowIntensity(B) → BaseColor)
+→ MaterialPreviewHelper.CreateMaterialForShaderGraph
+→ CopyMatchingMaterialProperties (original colors + floats → effect)
+→ SetFloat("glowIntensity", 2)
+→ EnsureBloomVolume() — finds or creates a global URP Volume with Bloom, intensity=2
+→ CreatePreviewQuad → named "Glow Effect — {name}" in scene
+```
+
+**Stacking rules:**
+- Applying Glow to a Pixelated material → output named `{base}_Glow_Pixelated`
+- Applying Pixelation to a Glowed material → output named `{base}_Glow_Pixelated`
+- Both effects are always re-generated from the original HLSL source, so stacking is lossless
 
 ---
 
@@ -358,7 +382,9 @@ The asset is located anywhere in the project; all pipelines find it via `AssetDa
 | Updated HLSL | `Assets/ShaderGraphs/RAG_Updates/{name}.hlsl` |
 | Imported HLSL | `Assets/ShaderGraphs/Generated/HLSL/{name}.hlsl` |
 | ShaderGraph | `Assets/ShaderGraphs/RAG_Generated/{name}.shadergraph` |
-| Effect ShaderGraph | `Assets/ShaderGraphs/Effects/{name}_Pixelated.shadergraph` |
+| Effect ShaderGraph (Pixelation) | `Assets/ShaderGraphs/Effects/{name}_Pixelated.shadergraph` |
+| Effect ShaderGraph (Glow) | `Assets/ShaderGraphs/Effects/{name}_Glow.shadergraph` |
+| Effect ShaderGraph (Both) | `Assets/ShaderGraphs/Effects/{name}_Glow_Pixelated.shadergraph` |
 | Material | `Assets/ShaderGraphs/RAG_Generated/{name}.mat` |
 | Preview PNG | `Assets/ShaderGraphs/Previews/{name}_{iter}.png` |
 | Animation Script | `Assets/ShaderGraphs/Animations/{ClassName}.cs` |
@@ -538,6 +564,15 @@ No API calls. ShaderGraph nodes are injected deterministically (UV quantisation 
 
 ---
 
+#### Path 7 — Glow Effect
+
+No API calls. ShaderGraph is regenerated with HDR colour properties and a `glowIntensity` multiply node. A URP Bloom post-processing volume is added to the scene automatically.
+
+| **Total** | **$0.000** |
+|---|---|
+
+---
+
 ### Typical Session Estimates
 
 | Session type | Paths used | **Estimated total** |
@@ -565,7 +600,7 @@ Knowledge base embedding is essentially **free** — the entire 184-shape KB cos
 - **Reduce VLM iterations**: Lower `maxVlmIterations` from 3 to 1 in `RAGPipelineManager` and `HLSLUpdatePipelineManager` if speed/cost matters more than quality.
 - **Use text prompts over images**: The image path costs $0.007–$0.013 more per session due to the GPT-4o image description call.
 - **Simple edits are cheap**: If your shape already has the right properties exposed, editing is just one Gemini classification call (~$0.002).
-- **Pixelation is free**: The pixelation effect uses no LLM calls at all.
+- **Effects are free**: Both Pixelation and Glow effects use no LLM calls at all.
 - **Animation without HLSL changes**: Sub-path A (C# only) costs ~$0.005–$0.013 vs ~$0.021–$0.053 for the HLSL-update path.
 
 ---
@@ -628,6 +663,8 @@ Assets/
 - **VLM threshold** — The acceptance threshold is score > 7 out of 10. Shapes below this are automatically refined with feedback up to 3 times.
 - **Knowledge base growth** — Every shape accepted through Human Review (score ≥ 8) can be added to `shape_metadata.json` via the Auto Learn window, improving future RAG retrievals.
 - **Pixelation** — Implemented as a deterministic ShaderGraph modification (UV quantisation via Floor/Divide nodes), not an LLM call. Takes ~2 seconds.
+- **Glow** — Implemented as a deterministic ShaderGraph modification. All colour properties are switched to HDR mode (`colorMode=1`), a `glowIntensity` (default 2) multiply node is inserted before Base Color, and a global URP Bloom post-processing volume (intensity=2) is added to the scene. No LLM call. Requires URP with post-processing enabled on the camera.
+- **Effect stacking** — Pixelation and Glow can be applied on top of each other in any order. The system detects the existing effect and regenerates the ShaderGraph with both flags active, outputting a combined `_Glow_Pixelated` variant.
 
 ---
 

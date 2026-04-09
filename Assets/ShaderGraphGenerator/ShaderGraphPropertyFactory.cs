@@ -245,15 +245,15 @@ namespace ShaderGraphGenerator
                 rangeMax: rangeMax);
 
         /// <summary>
-        /// GlowDensity property for the glow effect:
+        /// glowIntensity property for the glow effect:
         /// Float that multiplies the final colour before BaseColor, amplifying it above 1
         /// so URP Bloom picks it up. Default 2 with range [0..10].
         /// </summary>
         public ShaderPropertyModel CreateGlowDensity(string propertyObjectId, float defaultValue = 2.0f, float rangeMin = 0.0f, float rangeMax = 10.0f)
             => CreateVector1(
                 propertyObjectId: propertyObjectId,
-                displayName: "GlowDensity",
-                referenceName: "_GlowDensity",
+                displayName: "glowIntensity",
+                referenceName: "_GlowIntensity",
                 defaultValue: defaultValue,
                 floatType: 0,
                 rangeMin: rangeMin,

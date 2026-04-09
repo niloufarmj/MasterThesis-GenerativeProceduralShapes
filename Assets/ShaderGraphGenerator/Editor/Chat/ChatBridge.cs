@@ -372,7 +372,7 @@ namespace ShaderGraphGenerator.Chat
                     }
                     else if (msg == "effect_glow")
                     {
-                        botReplies.Add("Applying glow effect! I'll switch your colour properties to HDR mode and add a GlowDensity multiplier so URP Bloom picks them up. I'll also add a Post-Processing Volume with Bloom to your scene if one isn't already there.");
+                        botReplies.Add("Applying glow effect! I'll switch your colour properties to HDR mode and add a glowIntensity multiplier so URP Bloom picks them up. I'll also add a Post-Processing Volume with Bloom to your scene if one isn't already there.");
                         ChatSession.State = ChatState.Animate_Running;
                         TriggerEffect("glow");
                     }
@@ -889,17 +889,21 @@ namespace ShaderGraphGenerator.Chat
             if (string.IsNullOrEmpty(hlslGuid)) { PushError($"Could not get GUID for: {hlslPath}"); return; }
 
             // ── 2. Regenerate the shadergraph with pixelation nodes injected ──
-            // This reuses the exact same pixelation logic already in
-            // ShaderGraphJSONGenerator (PixelCount property → Multiply → Floor → Divide → UV).
             const string EFFECT_DIR = "Assets/ShaderGraphs/Effects";
             if (!Directory.Exists(EFFECT_DIR)) Directory.CreateDirectory(EFFECT_DIR);
 
-            string baseName    = Path.GetFileNameWithoutExtension(hlslPath) + "_Pixelated";
+            // Detect if the source material already has glow, so we preserve it
+            string existingShaderName = sourceMat.shader != null ? sourceMat.shader.name : "";
+            bool alreadyGlow = existingShaderName.IndexOf("Glow", StringComparison.OrdinalIgnoreCase) >= 0
+                            || existingShaderName.IndexOf("_Glow", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            string suffix      = alreadyGlow ? "_Glow_Pixelated" : "_Pixelated";
+            string baseName    = Path.GetFileNameWithoutExtension(hlslPath) + suffix;
             string newGraphPath = $"{EFFECT_DIR}/{baseName}.shadergraph";
 
             ShaderGraphJSONGenerator.GenerateFromHLSL(
                 hlslPath, hlslGuid, newGraphPath,
-                useTransparency: true, usePixelation: true);
+                useTransparency: true, usePixelation: true, useGlow: alreadyGlow);
 
             AssetDatabase.Refresh();
             await Task.Delay(1200);
@@ -977,12 +981,17 @@ namespace ShaderGraphGenerator.Chat
             const string EFFECT_DIR = "Assets/ShaderGraphs/Effects";
             if (!Directory.Exists(EFFECT_DIR)) Directory.CreateDirectory(EFFECT_DIR);
 
-            string baseName    = Path.GetFileNameWithoutExtension(hlslPath) + "_Glow";
+            // Detect if the source material already has pixelation, so we preserve it
+            string existingShaderName = sourceMat.shader != null ? sourceMat.shader.name : "";
+            bool alreadyPixelated = existingShaderName.IndexOf("Pixelat", StringComparison.OrdinalIgnoreCase) >= 0;
+
+            string suffix      = alreadyPixelated ? "_Glow_Pixelated" : "_Glow";
+            string baseName    = Path.GetFileNameWithoutExtension(hlslPath) + suffix;
             string newGraphPath = $"{EFFECT_DIR}/{baseName}.shadergraph";
 
             ShaderGraphJSONGenerator.GenerateFromHLSL(
                 hlslPath, hlslGuid, newGraphPath,
-                useTransparency: true, usePixelation: false, useGlow: true);
+                useTransparency: true, usePixelation: alreadyPixelated, useGlow: true);
 
             AssetDatabase.Refresh();
             await Task.Delay(1200);
@@ -994,13 +1003,15 @@ namespace ShaderGraphGenerator.Chat
             Material effectMat = MaterialPreviewHelper.CreateMaterialForShaderGraph(newGraphPath);
             if (effectMat == null) { PushError("Failed to create glow material."); return; }
 
-            // ── 4. Copy non-colour properties from original; leave colour
-            //       props at their new HDR defaults (already in the shader) ────
-            CopyNonColorMaterialProperties(sourceMat, effectMat);
+            // ── 4. Copy properties from original.
+            //       When stacking on an already-pixelated material copy everything including
+            //       colors (user's actual colors). When applying glow fresh, also copy colors —
+            //       HDR mode comes from colorMode=1 in the shader property, not the value.
+            CopyMatchingMaterialProperties(sourceMat, effectMat);
 
-            // Ensure GlowDensity is explicitly set on the material instance
-            if (effectMat.HasProperty("GlowDensity"))  effectMat.SetFloat("GlowDensity", 2f);
-            if (effectMat.HasProperty("_GlowDensity")) effectMat.SetFloat("_GlowDensity", 2f);
+            // Ensure glowIntensity is explicitly set on the material instance
+            if (effectMat.HasProperty("glowIntensity"))  effectMat.SetFloat("glowIntensity", 2f);
+            if (effectMat.HasProperty("_GlowIntensity")) effectMat.SetFloat("_GlowIntensity", 2f);
 
             EditorUtility.SetDirty(effectMat);
             AssetDatabase.SaveAssets();
@@ -1033,7 +1044,7 @@ namespace ShaderGraphGenerator.Chat
             _statusMsg                      = "";
 
             ChatSession.AddBot(
-                $"Glow applied! Colour properties are now HDR and a GlowDensity (×2) multiplier drives URP Bloom.\n\n" +
+                $"Glow applied! Colour properties are now HDR and a glowIntensity (×2) multiplier drives URP Bloom.\n\n" +
                 $"Material saved at:\n{savedMatPath}\n\n" +
                 $"Quad '{quad.name}' added to your scene. Make sure Post-Processing is enabled on your camera and press Play to see the bloom.",
                 _lastPreview);
@@ -1111,54 +1122,42 @@ namespace ShaderGraphGenerator.Chat
                 return;
             }
 
-            // Set intensity = 2, threshold = 0.9 via reflection on ClampedFloatParameter
-            SetVolumeParameter(bloom, "intensity",  2f);
-            SetVolumeParameter(bloom, "threshold",  0.9f);
-            SetVolumeParameter(bloom, "scatter",    0.7f);
+            // Set only intensity = 2, leave all other parameters at default (not overridden)
+            SetVolumeParameter(bloom, "intensity", 2f);
 
             Debug.Log("[GlowEffect] Created Post-Processing Volume with Bloom (intensity=2, threshold=0.9).");
         }
 
-        /// <summary>Sets value and overrideState on a VolumeParameter field by name.</summary>
+        /// <summary>
+        /// Sets value and overrideState on a VolumeParameter field by name.
+        /// In URP: overrideState is a public field; value is a property (backed by m_Value).
+        /// Try both GetField and GetProperty so this works across URP versions.
+        /// </summary>
         private static void SetVolumeParameter(object bloomObj, string fieldName, float value)
         {
-            var prop = bloomObj.GetType().GetProperty(fieldName);
-            if (prop == null) return;
-            var param = prop.GetValue(bloomObj);
+            // intensity, threshold, etc. are public fields on the Bloom class itself
+            var field = bloomObj.GetType().GetField(fieldName, BindingFlags.Public | BindingFlags.Instance);
+            if (field == null) return;
+            var param = field.GetValue(bloomObj);
             if (param == null) return;
             var paramType = param.GetType();
-            paramType.GetProperty("overrideState")?.SetValue(param, true);
-            paramType.GetProperty("value")?.SetValue(param, value);
-        }
 
-        /// <summary>
-        /// Copies only non-colour (float/vector) matching properties from src to dst.
-        /// Colour properties are intentionally left at their new HDR defaults from the
-        /// glow-enabled ShaderGraph so the bloom effect is immediately visible.
-        /// </summary>
-        private static void CopyNonColorMaterialProperties(Material src, Material dst)
-        {
-            if (src == null || dst == null) return;
-            try
+            // overrideState is defined on the base VolumeParameter class — walk up the hierarchy
+            var t = paramType;
+            while (t != null && t != typeof(object))
             {
-                var props = MaterialEditor.GetMaterialProperties(new UnityEngine.Object[] { src });
-                foreach (var p in props)
-                {
-                    if (!dst.HasProperty(p.name)) continue;
-                    switch (p.type)
-                    {
-                        case MaterialProperty.PropType.Float:
-                        case MaterialProperty.PropType.Range:
-                            dst.SetFloat(p.name, p.floatValue);   break;
-                        case MaterialProperty.PropType.Vector:
-                            dst.SetVector(p.name, p.vectorValue); break;
-                        // Skip Color — keep the HDR defaults baked into the new shader
-                        case MaterialProperty.PropType.Texture:
-                            if (p.textureValue != null) dst.SetTexture(p.name, p.textureValue); break;
-                    }
-                }
+                var f = t.GetField("overrideState", BindingFlags.Public | BindingFlags.Instance);
+                if (f != null) { f.SetValue(param, true); break; }
+                t = t.BaseType;
             }
-            catch (Exception ex) { Debug.LogWarning($"[CopyNonColorProps] {ex.Message}"); }
+
+            // value: property in Unity 6 URP (backed by m_Value field in older versions)
+            var valueProp = paramType.GetProperty("value", BindingFlags.Public | BindingFlags.Instance);
+            if (valueProp != null && valueProp.CanWrite)
+                valueProp.SetValue(param, value);
+            else
+                paramType.GetField("m_Value", BindingFlags.NonPublic | BindingFlags.Instance)
+                         ?.SetValue(param, value);
         }
 
         private static void CopyMatchingMaterialProperties(Material src, Material dst)

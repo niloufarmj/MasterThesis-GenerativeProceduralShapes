@@ -34,9 +34,13 @@ namespace ShaderGraphGenerator
         {
             var info = new HLSLFunctionInfo();
 
+            // Strip single-line comments before regex so that ) inside comments
+            // (e.g. "float width, // full width (UV units)") don't truncate arg capture.
+            string strippedCode = Regex.Replace(hlslCode, @"//[^\n]*", " ");
+
             // Find ALL function definitions in the file
             var allMatches = Regex.Matches(
-                hlslCode,
+                strippedCode,
                 @"(?<ret>\w+)\s+(?<funcname>\w+)\s*\((?<args>[^)]*)\)",
                 RegexOptions.Multiline);
 
@@ -525,7 +529,7 @@ namespace ShaderGraphGenerator
                     x: 340f, y: 196.8f);
                 graph.NodeRefs.Add(glowDensNode.AsRef());
                 graph.Definitions.Add(glowDensNode);
-                graph.Definitions.Add(slotFactory.CreatePropertyVector1Out(glowDensityPropSlotGuid, "GlowDensity"));
+                graph.Definitions.Add(slotFactory.CreatePropertyVector1Out(glowDensityPropSlotGuid, "glowIntensity"));
 
                 var glowMulNode = nodeFactory.CreateMultiplyNode(
                     glowMultiplyNodeGuid, glowMultiplySlotA, glowMultiplySlotB, glowMultiplySlotOut,
