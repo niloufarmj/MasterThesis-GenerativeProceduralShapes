@@ -1,6 +1,6 @@
 // Phase2ExperimentDataModels.cs
 // Data models for Phase 2 (RAG-based) experiment.
-// Three experiment types: Generation, Edit, Animation.
+// Three experiment types: Generation, Edit, Animation, Image-to-Shader.
 // All saved as JSON for post-hoc analysis with the Python visualizer.
 
 using System;
@@ -31,6 +31,112 @@ namespace ShaderGraphExperiments.Editor
         HLSLUpdate        // Full HLSL shader modification required
     }
 
+    /// <summary>
+    /// Identifies which LLM provider was used for a given run.
+    /// Each provider maps to a specific model ID and pricing tier — see LlmPricing.
+    /// </summary>
+    public enum LlmProvider
+    {
+        Gemini,    // Google — gemini-2.5-pro (current default)
+        OpenAI,    // OpenAI  — gpt-4.1
+        DeepSeek,  // DeepSeek — deepseek-v3
+        Mistral    // Mistral AI — mistral-large-latest
+    }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  TOKEN & COST TRACKING
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>
+    /// Tracks token usage and computed USD cost for a single LLM call.
+    /// Populate input_tokens and output_tokens from the API response;
+    /// call LlmPricing.Fill() to compute cost_usd automatically.
+    /// </summary>
+    [Serializable]
+    public class LlmUsageStats
+    {
+        public int    input_tokens;
+        public int    output_tokens;
+        public int    total_tokens;   // input + output
+        public double cost_usd;       // computed via LlmPricing.Fill()
+    }
+
+    /// <summary>
+    /// Static pricing config. Model IDs and $/1M-token rates per provider.
+    /// Update model_id and pricing constants here when upgrading models.
+    ///
+    /// Current rates (April 2026, standard tier, no batch/caching discount):
+    ///   Gemini  (gemini-2.5-pro)        $1.25 in / $10.00 out  per 1M tokens
+    ///   OpenAI  (gpt-4.1)               $2.00 in /  $8.00 out  per 1M tokens
+    ///   DeepSeek(deepseek-v3)           $0.27 in /  $1.10 out  per 1M tokens
+    ///   Mistral (mistral-large-latest)  $2.00 in /  $6.00 out  per 1M tokens
+    /// </summary>
+    public static class LlmPricing
+    {
+        public static readonly Dictionary<LlmProvider, LlmProviderConfig> Config =
+            new Dictionary<LlmProvider, LlmProviderConfig>
+            {
+                {
+                    LlmProvider.Gemini,
+                    new LlmProviderConfig("gemini-2.5-pro",       inputPer1M: 1.25,  outputPer1M: 10.00)
+                },
+                {
+                    LlmProvider.OpenAI,
+                    new LlmProviderConfig("gpt-4.1",              inputPer1M: 2.00,  outputPer1M:  8.00)
+                },
+                {
+                    LlmProvider.DeepSeek,
+                    new LlmProviderConfig("deepseek-v3",          inputPer1M: 0.27,  outputPer1M:  1.10)
+                },
+                {
+                    LlmProvider.Mistral,
+                    new LlmProviderConfig("mistral-large-latest", inputPer1M: 2.00,  outputPer1M:  6.00)
+                },
+            };
+
+        /// <summary>
+        /// Fills total_tokens and cost_usd on stats given a provider.
+        /// Call this immediately after receiving a response from the API.
+        /// </summary>
+        public static void Fill(LlmUsageStats stats, LlmProvider provider)
+        {
+            stats.total_tokens = stats.input_tokens + stats.output_tokens;
+            if (!Config.TryGetValue(provider, out var cfg)) return;
+            stats.cost_usd = (stats.input_tokens  / 1_000_000.0) * cfg.InputPer1M
+                           + (stats.output_tokens / 1_000_000.0) * cfg.OutputPer1M;
+        }
+
+        /// <summary>Sums a collection of per-call stats into a single aggregate.</summary>
+        public static LlmUsageStats Aggregate(IEnumerable<LlmUsageStats> all)
+        {
+            var result = new LlmUsageStats();
+            foreach (var s in all)
+            {
+                if (s == null) continue;
+                result.input_tokens  += s.input_tokens;
+                result.output_tokens += s.output_tokens;
+                result.total_tokens  += s.total_tokens;
+                result.cost_usd      += s.cost_usd;
+            }
+            return result;
+        }
+    }
+
+    /// <summary>Pricing constants for one provider/model pair.</summary>
+    public class LlmProviderConfig
+    {
+        public readonly string ModelId;
+        public readonly double InputPer1M;
+        public readonly double OutputPer1M;
+
+        public LlmProviderConfig(string modelId, double inputPer1M, double outputPer1M)
+        {
+            ModelId     = modelId;
+            InputPer1M  = inputPer1M;
+            OutputPer1M = outputPer1M;
+        }
+    }
+
     // ═══════════════════════════════════════════════════════════════════════════
     //  GENERATION EXPERIMENT
     // ═══════════════════════════════════════════════════════════════════════════
@@ -59,6 +165,9 @@ namespace ShaderGraphExperiments.Editor
         public int    rag_components_decomposed;
         public int    rag_retrieved_examples;
         public float  rag_avg_similarity_score;
+
+        // Token & cost tracking for this single LLM call
+        public LlmUsageStats llm_usage = new LlmUsageStats();
     }
 
     /// <summary>
@@ -89,6 +198,9 @@ namespace ShaderGraphExperiments.Editor
         public int    rag_retrieved_examples;
         public float  rag_avg_similarity_score;
 
+        // Aggregated token & cost across all iterations for this shape
+        public LlmUsageStats llm_usage_total = new LlmUsageStats();
+
         // Per-iteration breakdown
         public List<GenerationIterationResult> iterations = new List<GenerationIterationResult>();
     }
@@ -104,15 +216,16 @@ namespace ShaderGraphExperiments.Editor
         public string timestamp_utc;
 
         public string pipeline;           // "RAG" | "NoRAG"
-        public string shape_set_name;     // "Simple" | "Complex" | "InRAG" | "Custom"
-        public string code_provider;      // "Gemini" | "OpenAI"
-        public string eval_provider;      // "OpenAI" | "Gemini"
+        public string shape_set_name;     // e.g. "Simple_InRAG" | "Complex_NotInRAG"
+        public string llm_provider;       // "Gemini" | "OpenAI" | "DeepSeek" | "Mistral"
+        public string llm_model_id;       // exact model string used (from LlmPricing.Config)
+        public string eval_provider;      // provider used for VLM evaluation
 
         public int    max_iterations;
         public int    success_threshold;
         public bool   require_human_score;
 
-        // Populated at run end
+        // Quality summaries
         public float  summary_success_rate;
         public float  summary_avg_vlm_score;
         public float  summary_avg_iterations;
@@ -121,11 +234,17 @@ namespace ShaderGraphExperiments.Editor
         public float  summary_avg_human_score;
         public float  summary_first_pass_compile_rate;
 
+        // Token & cost summaries (aggregated across all shapes in this run)
+        public int    summary_total_input_tokens;
+        public int    summary_total_output_tokens;
+        public int    summary_total_tokens;
+        public double summary_total_cost_usd;
+
         public List<GenerationShapeResult> shapes = new List<GenerationShapeResult>();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  EDIT EXPERIMENT  (Phase 2 only — no Phase 1 equivalent)
+    //  EDIT EXPERIMENT
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// <summary>Single iteration in an HLSL-update edit.</summary>
@@ -138,6 +257,9 @@ namespace ShaderGraphExperiments.Editor
         public string vlm_explanation;
         public string screenshot_path;
         public bool   compile_ok;
+
+        // Token & cost for this single edit call
+        public LlmUsageStats llm_usage = new LlmUsageStats();
     }
 
     /// <summary>
@@ -146,6 +268,7 @@ namespace ShaderGraphExperiments.Editor
     [Serializable]
     public class EditExperimentItem
     {
+        public string source_type;        // "complex_notinrag" | "image_ref"
         public string base_shape_prompt;
         public string material_name;
         public string material_path;
@@ -171,6 +294,9 @@ namespace ShaderGraphExperiments.Editor
         public int    human_score;
         public bool   accepted_by_human;
 
+        // Aggregated token & cost across all iterations for this edit
+        public LlmUsageStats llm_usage_total = new LlmUsageStats();
+
         public List<EditIterationResult> iterations = new List<EditIterationResult>();
     }
 
@@ -182,24 +308,35 @@ namespace ShaderGraphExperiments.Editor
         public string run_id;
         public string timestamp_utc;
 
-        // Summaries
+        public string llm_provider;
+        public string llm_model_id;
+        public string eval_provider;
+
+        // Quality summaries
         public float  summary_success_rate;
         public float  summary_avg_score_improvement;
-        public float  summary_property_change_rate;   // fraction that were PropertyChange
+        public float  summary_property_change_rate;
         public float  summary_hlsl_update_rate;
         public float  summary_avg_time_ms;
+
+        // Token & cost summaries
+        public int    summary_total_input_tokens;
+        public int    summary_total_output_tokens;
+        public int    summary_total_tokens;
+        public double summary_total_cost_usd;
 
         public List<EditExperimentItem> items = new List<EditExperimentItem>();
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
-    //  ANIMATION EXPERIMENT  (Phase 2 only — no Phase 1 equivalent)
+    //  ANIMATION EXPERIMENT
     // ═══════════════════════════════════════════════════════════════════════════
 
     /// <summary>Result for a single animation request.</summary>
     [Serializable]
     public class AnimationExperimentItem
     {
+        public string source_type;        // "complex_notinrag" | "image_ref"
         public string base_shape_prompt;
         public string material_name;
         public string material_path;
@@ -214,6 +351,9 @@ namespace ShaderGraphExperiments.Editor
         // Human evaluation
         public int    human_score;
         public bool   accepted_by_human;
+
+        // Token & cost for this animation generation call
+        public LlmUsageStats llm_usage = new LlmUsageStats();
     }
 
     /// <summary>A full animation experiment session.</summary>
@@ -224,9 +364,19 @@ namespace ShaderGraphExperiments.Editor
         public string run_id;
         public string timestamp_utc;
 
+        public string llm_provider;
+        public string llm_model_id;
+
+        // Quality summaries
         public float  summary_success_rate;
         public float  summary_avg_time_ms;
         public float  summary_avg_human_score;
+
+        // Token & cost summaries
+        public int    summary_total_input_tokens;
+        public int    summary_total_output_tokens;
+        public int    summary_total_tokens;
+        public double summary_total_cost_usd;
 
         public List<AnimationExperimentItem> items = new List<AnimationExperimentItem>();
     }
@@ -250,11 +400,15 @@ namespace ShaderGraphExperiments.Editor
 
         public string shader_graph_path;
         public string material_path;
-        public string preview_image_path;   // rendered output
+        public string preview_image_path;
         public string error_message;
 
+        // Human evaluation
         public int    human_score;
         public bool   accepted_by_human;
+
+        // Token & cost for the description + generation calls
+        public LlmUsageStats llm_usage = new LlmUsageStats();
     }
 
     /// <summary>A full image-to-shader experiment session.</summary>
@@ -265,10 +419,21 @@ namespace ShaderGraphExperiments.Editor
         public string run_id;
         public string timestamp_utc;
 
+        public string llm_provider;
+        public string llm_model_id;
+        public string eval_provider;
+
+        // Quality summaries
         public float  summary_success_rate;
         public float  summary_avg_vlm_score;
         public float  summary_avg_time_ms;
         public float  summary_avg_human_score;
+
+        // Token & cost summaries
+        public int    summary_total_input_tokens;
+        public int    summary_total_output_tokens;
+        public int    summary_total_tokens;
+        public double summary_total_cost_usd;
 
         public List<ImageExperimentItem> items = new List<ImageExperimentItem>();
     }

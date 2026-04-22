@@ -1,34 +1,32 @@
 [
   {
-    "shape_prompt": "a filled circle in the center",
-    "animation_request": "make the circle pulse in and out rhythmically like a heartbeat"
+    "active": true,
+    "source_type": "complex_notinrag",
+    "shape_prompt": "a cartoon ramen noodle bowl with wavy noodles, egg topping, and steam wisps",
+    "animation_request": "steam wisps rise continuously from the bowl and gently fade out, while the liquid surface ripples in a slow outward wave pattern"
   },
   {
-    "shape_prompt": "a five-pointed star",
-    "animation_request": "slowly rotate the star clockwise and make it shimmer with a golden glow"
+    "active": false,
+    "source_type": "complex_notinrag",
+    "shape_prompt": "a cartoon jellyfish with a dome bell body and flowing tentacles",
+    "animation_request": "the bell body pulses rhythmically by expanding and contracting, while the tentacles drift in slow sine wave oscillations as if floating in water"
   },
   {
-    "shape_prompt": "a cartoon snowman with two round body parts, a hat, and three buttons",
-    "animation_request": "make the snowman gently bob up and down like it is floating"
+    "active": false,
+    "source_type": "complex_notinrag",
+    "shape_prompt": "a cartoon Saturn planet with an elliptical ring around it",
+    "animation_request": "the planet slowly rotates on its axis, and the ring tilts gently back and forth in a slow pendulum oscillation"
   },
   {
-    "shape_prompt": "a ring (annulus) with a thick border",
-    "animation_request": "continuously spin the ring and gradually change its color from blue to red over time"
+    "active": true,
+    "source_type": "image_ref",
+    "image_path": "Assets/Experiment/ReferenceImages/bee.png",
+    "animation_request": "the wings flap rapidly back and forth, while the whole bee bobs gently up and down in a slow hovering oscillation"
   },
   {
-    "shape_prompt": "a heart shape",
-    "animation_request": "make the heart beat — scale up and down like a heartbeat animation"
-  },
-  {
-    "shape_prompt": "a sun with a circular center and eight radiating spikes",
-    "animation_request": "slowly rotate the entire sun and make the spikes extend and retract"
-  },
-  {
-    "shape_prompt": "a flower with six oval petals arranged around a circular center",
-    "animation_request": "make the petals open and close like a blooming flower"
-  },
-  {
-    "shape_prompt": "a diamond shape (rotated square)",
-    "animation_request": "make the diamond oscillate between blue and purple while slightly rotating"
+    "active": false,
+    "source_type": "image_ref",
+    "image_path": "Assets/Experiment/ReferenceImages/duck.png",
+    "animation_request": "the duck waddles side to side rhythmically, with the tail feathers wiggling in sync with each step"
   }
 ]

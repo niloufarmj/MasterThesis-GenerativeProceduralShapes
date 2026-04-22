@@ -1,50 +1,32 @@
 [
   {
-    "shape_prompt": "a filled circle in the center",
-    "edit_request": "change the fill color to bright red"
+    "active": true,
+    "source_type": "complex_notinrag",
+    "shape_prompt": "a cartoon cactus with a main trunk, two side arms, spines, and flowers at arm tips",
+    "edit_request": "change the cactus body color to deep purple, and make the flowers at the arm tips bloom in bright yellow"
   },
   {
-    "shape_prompt": "a five-pointed star",
-    "edit_request": "make the star larger and give it a golden yellow color"
+    "active": false,
+    "source_type": "complex_notinrag",
+    "shape_prompt": "a cartoon paper airplane pointing to the right with swept-back wings and fold crease lines",
+    "edit_request": "change the paper color to bright red and add a bold blue stripe running lengthwise down each wing"
   },
   {
-    "shape_prompt": "a rounded rectangle with soft corners",
-    "edit_request": "add a dashed border stroke around the rectangle"
+    "active": true,
+    "source_type": "image_ref",
+    "image_path": "Assets/Experiment/ReferenceImages/bear1.png",
+    "edit_request": "change the fur color to warm chestnut brown and add rosy pink blush circles on both cheeks"
   },
   {
-    "shape_prompt": "a cartoon snowman with two round body parts, a hat, and three buttons",
-    "edit_request": "change the snowman body color to light blue"
+    "active": false,
+    "source_type": "image_ref",
+    "image_path": "Assets/Experiment/ReferenceImages/butterfly.png",
+    "edit_request": "change the wing color to vivid orange with black border spots and increase the overall wing span"
   },
   {
-    "shape_prompt": "a cartoon snowman with two round body parts, a hat, and three buttons",
-    "edit_request": "add a striped scarf around the snowman's neck"
-  },
-  {
-    "shape_prompt": "a smiley face with two eyes and a curved mouth",
-    "edit_request": "make the smile into a frown (sad face)"
-  },
-  {
-    "shape_prompt": "a ring (annulus) with a thick border",
-    "edit_request": "make the ring thinner and change its color to purple"
-  },
-  {
-    "shape_prompt": "a sun with a circular center and eight radiating spikes",
-    "edit_request": "add more spikes — increase from 8 to 12 rays"
-  },
-  {
-    "shape_prompt": "a heart shape",
-    "edit_request": "make the heart pink and add a subtle white highlight on the upper left"
-  },
-  {
-    "shape_prompt": "a flower with six oval petals arranged around a circular center",
-    "edit_request": "change the petal color to violet and the center to bright yellow"
-  },
-  {
-    "shape_prompt": "a diamond shape (rotated square)",
-    "edit_request": "give the diamond a thick red border with no fill"
-  },
-  {
-    "shape_prompt": "a simple house with a triangular roof and a rectangular door",
-    "edit_request": "add two small square windows on either side of the door"
+    "active": false,
+    "source_type": "image_ref",
+    "image_path": "Assets/Experiment/ReferenceImages/fox.png",
+    "edit_request": "deepen the fur to a rich rust orange, add a white chest patch, and make the ears noticeably larger"
   }
 ]
