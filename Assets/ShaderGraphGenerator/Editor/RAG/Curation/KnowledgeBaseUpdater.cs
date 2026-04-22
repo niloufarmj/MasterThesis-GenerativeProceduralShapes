@@ -12,7 +12,7 @@ using ShaderGraphGenerator.KnowledgeBase;
 namespace ShaderGraphGenerator.RAG
 {
     /// <summary>
-    /// Adds a successfully generated RAG shape (score > 8) back into the knowledge base.
+    /// Adds a successfully generated RAG shape (score >= 8) back into the knowledge base.
     ///
     /// Steps:
     ///   1. Copy HLSL → SuccessfulResults/
@@ -41,11 +41,17 @@ namespace ShaderGraphGenerator.RAG
         public static async Task<bool> TryAddToLibraryAsync(
             RAGPipelineResult result,
             string geminiKey,
-            string openAIKey)
+            string openAIKey,
+            bool bypassScoreCheck = false)
         {
-            if (result.vmlScore <= AUTO_LEARN_THRESHOLD)
+            if (!bypassScoreCheck && result.vmlScore < AUTO_LEARN_THRESHOLD)
             {
-                Debug.Log($"[KB Updater] Score {result.vmlScore}/10 ≤ threshold ({AUTO_LEARN_THRESHOLD}). Skipping.");
+                Debug.Log($"[KB Updater] Score {result.vmlScore}/10 < threshold ({AUTO_LEARN_THRESHOLD}). Skipping.");
+                return false;
+            }
+            if (result.vmlScore < AUTO_LEARN_THRESHOLD)
+            {
+                Debug.Log($"[KB Updater] Score {result.vmlScore}/10 < threshold ({AUTO_LEARN_THRESHOLD}). Skipping.");
                 return false;
             }
 

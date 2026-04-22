@@ -85,7 +85,15 @@ namespace ShaderGraphExperiments.Editor
         private AnimationExperimentRun _anim_currentRun;
 
         // ═══════════════════════════════════════════════
-        //  TAB 4  –  RESULTS OVERVIEW
+        //  TAB 4  –  IMAGE → SHADER
+        // ═══════════════════════════════════════════════
+        private string  _img_configFile   = "Assets/Experiment/ShapeSets/ImageRequests.json";
+        private bool    _img_humanScore   = false;
+        private int     _img_maxIter      = 2;
+        private ImageExperimentRun _img_currentRun;
+
+        // ═══════════════════════════════════════════════
+        //  TAB 5  –  RESULTS OVERVIEW
         // ═══════════════════════════════════════════════
         private List<string>  _loaded_files        = new List<string>();
         private string        _loaded_summary       = "";
@@ -108,12 +116,13 @@ namespace ShaderGraphExperiments.Editor
             TryLoadKnowledgeBase();
         }
 
+        private const string KB_PATH = "Assets/ShaderGraphGenerator/KnowledgeBase/shape_metadata.json";
+
         private void TryLoadKnowledgeBase()
         {
-            _knowledgeBase = AssetDatabase.FindAssets("t:ShapeKnowledgeBase")
-                .Select(g => AssetDatabase.GUIDToAssetPath(g))
-                .Select(p => AssetDatabase.LoadAssetAtPath<ShapeKnowledgeBase>(p))
-                .FirstOrDefault();
+            if (!File.Exists(KB_PATH)) return;
+            string json = File.ReadAllText(KB_PATH);
+            _knowledgeBase = JsonConvert.DeserializeObject<ShapeKnowledgeBase>(json);
         }
 
         private void InitStyles()
@@ -164,17 +173,18 @@ namespace ShaderGraphExperiments.Editor
             EditorGUILayout.Space(4);
 
             // ── tabs ──
-            _tab = GUILayout.Toolbar(_tab, new[] { "Generation", "Edit", "Animation", "Results" });
+            _tab = GUILayout.Toolbar(_tab, new[] { "Generation", "Edit", "Animation", "Image→Shader", "Results" });
             EditorGUILayout.Space(6);
 
             _scroll = EditorGUILayout.BeginScrollView(_scroll);
 
             switch (_tab)
             {
-                case 0: DrawGenerationTab();  break;
-                case 1: DrawEditTab();        break;
-                case 2: DrawAnimationTab();   break;
-                case 3: DrawResultsTab();     break;
+                case 0: DrawGenerationTab();   break;
+                case 1: DrawEditTab();         break;
+                case 2: DrawAnimationTab();    break;
+                case 3: DrawImageTab();        break;
+                case 4: DrawResultsTab();      break;
             }
 
             EditorGUILayout.EndScrollView();
@@ -456,7 +466,88 @@ namespace ShaderGraphExperiments.Editor
         }
 
         // ══════════════════════════════════════════════════════════════════════
-        //  TAB 4  –  RESULTS OVERVIEW
+        //  TAB 4  –  IMAGE → SHADER
+        // ══════════════════════════════════════════════════════════════════════
+
+        private void DrawImageTab()
+        {
+            EditorGUILayout.LabelField("Image → Shader Experiment", _sectionStyle);
+            EditorGUILayout.HelpBox(
+                "Generates a shader from a reference image using GPT-4o Vision + RAG.\n" +
+                "Config file: JSON array of {image_path, editable_hints} objects.\n" +
+                "Place reference images in Assets/Experiment/ReferenceImages/.\n" +
+                "Results are saved in " + RESULTS_FOLDER,
+                MessageType.Info);
+
+            EditorGUILayout.Space(8);
+
+            _img_configFile = EditorGUILayout.TextField("Image Config File (.json)", _img_configFile);
+            if (GUILayout.Button("Browse...", GUILayout.Width(90)))
+            {
+                string p = EditorUtility.OpenFilePanel("Select Image Config JSON", "Assets/Experiment/ShapeSets", "json");
+                if (!string.IsNullOrEmpty(p))
+                    _img_configFile = p.Replace(Application.dataPath, "Assets").Replace("\\", "/");
+            }
+
+            EditorGUILayout.Space(4);
+            _img_maxIter   = EditorGUILayout.IntSlider("Max VLM Iterations", _img_maxIter, 1, 4);
+            _img_humanScore = EditorGUILayout.ToggleLeft("Collect Human Score after each image", _img_humanScore);
+            EditorGUILayout.Space(10);
+
+            EditorGUI.BeginDisabledGroup(_isRunning || _config == null || _knowledgeBase == null);
+            if (GUILayout.Button(_isRunning ? "Running..." : "Start Image→Shader Experiment",
+                GUILayout.Height(32)))
+            {
+                _ = RunImageExperimentAsync();
+            }
+            EditorGUI.EndDisabledGroup();
+
+            if (_isRunning && GUILayout.Button("Abort", GUILayout.Width(80)))
+                _isRunning = false;
+
+            EditorGUILayout.Space(8);
+            EditorGUILayout.LabelField("Status Log", EditorStyles.boldLabel);
+            EditorGUILayout.TextArea(_statusLog, _logStyle, GUILayout.MinHeight(100));
+
+            if (_img_currentRun?.items?.Count > 0)
+            {
+                EditorGUILayout.Space(6);
+                EditorGUILayout.LabelField(
+                    $"Images so far: {_img_currentRun.items.Count}  " +
+                    $"(success: {_img_currentRun.items.Count(i => i.success)}/{_img_currentRun.items.Count})",
+                    EditorStyles.boldLabel);
+
+                DrawImageResultTable(_img_currentRun.items, showLast: 6);
+            }
+        }
+
+        private void DrawImageResultTable(List<ImageExperimentItem> items, int showLast)
+        {
+            var recent = items.Skip(Mathf.Max(0, items.Count - showLast)).ToList();
+            EditorGUILayout.BeginHorizontal(EditorStyles.toolbar);
+            GUILayout.Label("Image",      GUILayout.Width(160));
+            GUILayout.Label("Hints",      GUILayout.Width(160));
+            GUILayout.Label("OK?",        GUILayout.Width(32));
+            GUILayout.Label("VLM",        GUILayout.Width(36));
+            GUILayout.Label("Human",      GUILayout.Width(46));
+            GUILayout.Label("Time(s)",    GUILayout.Width(55));
+            EditorGUILayout.EndHorizontal();
+
+            foreach (var item in recent)
+            {
+                EditorGUILayout.BeginHorizontal(EditorStyles.helpBox);
+                GUILayout.Label(Truncate(Path.GetFileName(item.image_path), 22),  GUILayout.Width(160));
+                GUILayout.Label(Truncate(item.editable_hints, 22),                GUILayout.Width(160));
+                GUILayout.Label(item.success ? "✓" : "✗",                        GUILayout.Width(32));
+                GUILayout.Label(item.vlm_score.ToString(),                        GUILayout.Width(36));
+                GUILayout.Label(item.human_score > 0 ? item.human_score.ToString() : "-", GUILayout.Width(46));
+                GUILayout.Label($"{item.total_time_ms / 1000.0:F1}",             GUILayout.Width(55));
+                EditorGUILayout.EndHorizontal();
+            }
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
+        //  TAB 5  –  RESULTS OVERVIEW
         // ══════════════════════════════════════════════════════════════════════
 
         private void DrawResultsTab()
@@ -1320,6 +1411,128 @@ namespace ShaderGraphExperiments.Editor
         }
 
         // ══════════════════════════════════════════════════════════════════════
+        //  IMAGE → SHADER EXPERIMENT ASYNC LOGIC
+        // ══════════════════════════════════════════════════════════════════════
+
+        private async Task RunImageExperimentAsync()
+        {
+            if (_isRunning) return;
+            _isRunning = true;
+            _statusLog = "";
+            _img_currentRun = null;
+
+            try
+            {
+                if (!File.Exists(_img_configFile))
+                {
+                    AppendStatus($"ERROR: config file not found: {_img_configFile}");
+                    return;
+                }
+
+                var requests = JsonConvert.DeserializeObject<List<ImageRequestConfig>>(
+                    File.ReadAllText(_img_configFile));
+
+                AppendStatus($"Loaded {requests.Count} image request(s).");
+                EnsureResultsFolder();
+
+                var run = new ImageExperimentRun
+                {
+                    run_id        = Guid.NewGuid().ToString("N").Substring(0, 8),
+                    timestamp_utc = DateTime.UtcNow.ToString("o")
+                };
+                _img_currentRun = run;
+
+                string jsonPath = Path.Combine(RESULTS_FOLDER,
+                    $"img2shader_{DateTime.UtcNow:yyyyMMdd_HHmmss}_{run.run_id}.json");
+
+                foreach (var req in requests)
+                {
+                    if (!_isRunning) break;
+
+                    string absPath = Path.GetFullPath(req.image_path);
+                    AppendStatus($"\nImage: {Path.GetFileName(req.image_path)}");
+
+                    var item = await RunSingleImageAsync(absPath, req.editable_hints);
+
+                    if (_img_humanScore)
+                    {
+                        int human = await RequestHumanScoreAsync(
+                            $"Image: {req.image_path}\nHints: {req.editable_hints}",
+                            item.preview_image_path);
+                        item.human_score       = human;
+                        item.accepted_by_human = human >= 7;
+                    }
+
+                    run.items.Add(item);
+                    ComputeImageSummary(run);
+                    File.WriteAllText(jsonPath, JsonConvert.SerializeObject(run, Formatting.Indented));
+                    AssetDatabase.Refresh();
+
+                    AppendStatus($"  → success={item.success}  vlm={item.vlm_score}  " +
+                                 $"time={item.total_time_ms / 1000.0:F1}s");
+                }
+
+                AppendStatus("\n✓ Image→Shader experiment complete. Saved: " + jsonPath);
+            }
+            catch (Exception ex)
+            {
+                AppendStatus($"EXCEPTION: {ex.Message}");
+                UnityEngine.Debug.LogException(ex);
+            }
+            finally
+            {
+                _isRunning = false;
+                Repaint();
+            }
+        }
+
+        private async Task<ImageExperimentItem> RunSingleImageAsync(string absImagePath, string editableHints)
+        {
+            var item = new ImageExperimentItem
+            {
+                image_path     = absImagePath,
+                editable_hints = editableHints
+            };
+            var sw = Stopwatch.StartNew();
+
+            try
+            {
+                var result = await ImageToShaderPipelineManager.RunPipelineAsync(
+                    absImagePath, editableHints, _knowledgeBase, _config,
+                    maxVlmIterations: _img_maxIter);
+
+                item.success             = result.success;
+                item.vlm_score           = result.vlmScore;
+                item.vlm_feedback        = result.vlmFeedback;
+                item.visual_description  = result.visualDescription;
+                item.shader_graph_path   = result.shaderGraphPath;
+                item.material_path       = result.materialPath;
+                item.preview_image_path  = result.previewImagePath;
+                item.error_message       = result.errorMessage;
+            }
+            catch (Exception ex)
+            {
+                item.success       = false;
+                item.error_message = ex.Message;
+                AppendStatus($"  Image error: {ex.Message}");
+            }
+
+            sw.Stop();
+            item.total_time_ms = sw.Elapsed.TotalMilliseconds;
+            return item;
+        }
+
+        private void ComputeImageSummary(ImageExperimentRun run)
+        {
+            if (run.items.Count == 0) return;
+            run.summary_success_rate    = (float)run.items.Count(i => i.success) / run.items.Count;
+            run.summary_avg_vlm_score   = (float)run.items.Average(i => i.vlm_score);
+            run.summary_avg_time_ms     = (float)run.items.Average(i => i.total_time_ms);
+            run.summary_avg_human_score = run.items.Any(i => i.human_score > 0)
+                ? (float)run.items.Where(i => i.human_score > 0).Average(i => i.human_score) : 0f;
+        }
+
+        // ══════════════════════════════════════════════════════════════════════
         //  RESULTS OVERVIEW HELPERS
         // ══════════════════════════════════════════════════════════════════════
 
@@ -1339,9 +1552,9 @@ namespace ShaderGraphExperiments.Editor
                 .ToList();
 
             // Quick aggregate stats
-            int genRag = 0, genNoRag = 0, editRuns = 0, animRuns = 0;
-            int genRagSuccess = 0, genNoRagSuccess = 0, editSuccess = 0, animSuccess = 0;
-            int genRagTotal = 0, genNoRagTotal = 0, editTotal = 0, animTotal = 0;
+            int genRag = 0, genNoRag = 0, editRuns = 0, animRuns = 0, imgRuns = 0;
+            int genRagSuccess = 0, genNoRagSuccess = 0, editSuccess = 0, animSuccess = 0, imgSuccess = 0;
+            int genRagTotal = 0, genNoRagTotal = 0, editTotal = 0, animTotal = 0, imgTotal = 0;
 
             foreach (var f in _loaded_files)
             {
@@ -1381,6 +1594,14 @@ namespace ShaderGraphExperiments.Editor
                         animSuccess += run.items.Count(a => a.success);
                         animTotal   += run.items.Count;
                     }
+                    else if (json.Contains("\"experiment_type\": \"image_to_shader\"") ||
+                             json.Contains("\"experiment_type\":\"image_to_shader\""))
+                    {
+                        var run = JsonConvert.DeserializeObject<ImageExperimentRun>(json);
+                        imgRuns++;
+                        imgSuccess += run.items.Count(i => i.success);
+                        imgTotal   += run.items.Count;
+                    }
                 }
                 catch { /* skip malformed files */ }
             }
@@ -1393,7 +1614,9 @@ namespace ShaderGraphExperiments.Editor
                 $"EDIT (Phase 2 only):          {editRuns} run(s)  {editTotal} edits   " +
                 $"success={SafeRate(editSuccess, editTotal):P0}\n" +
                 $"ANIMATION (Phase 2 only):     {animRuns} run(s)  {animTotal} anims   " +
-                $"success={SafeRate(animSuccess, animTotal):P0}";
+                $"success={SafeRate(animSuccess, animTotal):P0}\n" +
+                $"IMAGE→SHADER:                 {imgRuns} run(s)  {imgTotal} images  " +
+                $"success={SafeRate(imgSuccess, imgTotal):P0}";
         }
 
         private static float SafeRate(int num, int denom) =>
@@ -1638,5 +1861,12 @@ namespace ShaderGraphExperiments.Editor
     {
         public string shape_prompt;
         public string animation_request;
+    }
+
+    [Serializable]
+    internal class ImageRequestConfig
+    {
+        public string image_path;      // relative asset path, e.g. "Assets/Experiment/ReferenceImages/coin.png"
+        public string editable_hints;  // free-text hint for adjustable parameters
     }
 }

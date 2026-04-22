@@ -10,8 +10,32 @@ namespace ShaderGraphGenerator.KnowledgeBase
     /// </summary>
     public static class SemanticShapeSearch
     {
+        // Keywords that indicate a character/humanoid generation request.
+        // When matched, base templates receive a similarity boost so they
+        // surface at the top of search results.
+        private static readonly HashSet<string> CharacterKeywords = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "character", "person", "human", "figure", "mannequin", "humanoid",
+            "robot", "knight", "warrior", "wizard", "hero", "avatar",
+            "soldier", "player", "npc", "creature", "puppet"
+        };
+
         /// <summary>
-        /// Find most similar shapes to a query using cosine similarity
+        /// Returns true when the query is asking for a character/humanoid shape.
+        /// </summary>
+        public static bool IsCharacterRequest(string query)
+        {
+            if (string.IsNullOrEmpty(query)) return false;
+            foreach (var kw in CharacterKeywords)
+                if (query.IndexOf(kw, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            return false;
+        }
+
+        /// <summary>
+        /// Find most similar shapes to a query using cosine similarity.
+        /// Base templates are boosted when the query is a character request.
+        /// Shapes with priority > 0 receive an additional flat bonus.
         /// </summary>
         public static List<ShapeSearchResult> Search(
             string query,
@@ -22,6 +46,7 @@ namespace ShaderGraphGenerator.KnowledgeBase
             ComplexityLevel? maxComplexity = null)
         {
             var results = new List<ShapeSearchResult>();
+            bool isCharacter = IsCharacterRequest(query);
 
             foreach (var shape in knowledgeBase.shapes)
             {
@@ -38,6 +63,14 @@ namespace ShaderGraphGenerator.KnowledgeBase
 
                 // Calculate cosine similarity
                 float similarity = CosineSimilarity(queryEmbedding, shape.embedding);
+
+                // Boost base templates for character requests (1.5× multiplier)
+                if (shape.isBaseTemplate && isCharacter)
+                    similarity = Mathf.Min(1f, similarity * 1.5f);
+
+                // Flat priority bonus: each priority point adds 0.05 to similarity
+                if (shape.priority > 0)
+                    similarity = Mathf.Min(1f, similarity + shape.priority * 0.05f);
 
                 results.Add(new ShapeSearchResult
                 {

@@ -59,6 +59,12 @@ namespace ShaderGraphGenerator.KnowledgeBase
         // Metadata about when this was created/verified
         public string dateAdded;
         public int verificationScore; // The VLM score when it was created
+
+        // Base template support: shapes marked as base templates are prioritized
+        // when the user requests a character/humanoid and used as the starting HLSL
+        // rather than generating from scratch.
+        public bool isBaseTemplate = false;
+        public int priority = 0; // higher = stronger boost in semantic search (0 = no boost)
     }
 
     [Serializable]

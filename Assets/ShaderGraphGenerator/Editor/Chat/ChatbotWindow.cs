@@ -155,9 +155,10 @@ namespace ShaderGraphGenerator.Chat
                 active = { background = _txAbort, textColor = Color.white   }
             };
 
-            _stInput = new GUIStyle(GUI.skin.textField)
+            _stInput = new GUIStyle(GUI.skin.textArea)
             {
                 fontSize  = 12,
+                wordWrap  = true,
                 padding   = new RectOffset(12, 12, 10, 10),
                 margin    = new RectOffset(0, 0, 0, 0),
                 normal    = { background = _txInput, textColor = C_INPUT_TXT },
@@ -529,13 +530,15 @@ namespace ShaderGraphGenerator.Chat
             if (cfg.AllowFreeText)
             {
                 GUI.SetNextControlName("ChatInput");
-                _inputText = GUILayout.TextField(_inputText, _stInput,
-                    GUILayout.Height(INPUT_H - 2));
+                _inputText = GUILayout.TextArea(_inputText, _stInput,
+                    GUILayout.MinHeight(INPUT_H - 2), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(false));
+
+                bool canSend = !string.IsNullOrWhiteSpace(_inputText) || ChatSession.PendingImageBase64 != null;
 
                 // Enter key sends
                 if (Event.current.type == EventType.KeyDown &&
                     Event.current.keyCode == KeyCode.Return  &&
-                    !string.IsNullOrWhiteSpace(_inputText))
+                    canSend)
                 {
                     DoSendText();
                     Event.current.Use();
@@ -543,8 +546,8 @@ namespace ShaderGraphGenerator.Chat
 
                 GUILayout.Space(4);
                 if (GUILayout.Button("▶", _stSend,
-                GUILayout.Width(INPUT_H - 2), GUILayout.Height(INPUT_H - 2)) &&
-                !string.IsNullOrWhiteSpace(_inputText))
+                GUILayout.Width(INPUT_H - 2), GUILayout.Height(INPUT_H - 2), GUILayout.ExpandWidth(false)) &&
+                canSend)
                 {
                     DoSendText();
                 }
@@ -567,7 +570,13 @@ namespace ShaderGraphGenerator.Chat
         {
             string t  = _inputText.Trim();
             _inputText = "";
-            Send(t);
+            Send(t);  // state machine consumes PendingImageBase64 here
+            if (_pendingThumb != null)
+            {
+                Object.DestroyImmediate(_pendingThumb);
+                _pendingThumb = null;
+            }
+            ChatSession.PendingImageBase64 = null;
         }
 
         // ─── image picker ─────────────────────────────────────────────────────

@@ -17,7 +17,9 @@ namespace ShaderGraphGenerator.RAG
     public static class RAGShapeGenerator
     {
         /// <summary>
-        /// Generate a complex shape using RAG approach
+        /// Generate a complex shape using RAG approach.
+        /// When the request is for a character/humanoid and a base template exists in the KB,
+        /// routes to GenerateFromBaseTemplateAsync instead of the standard decompose-retrieve path.
         /// </summary>
         public static async Task<LLMShaderResponse> GenerateWithRAGAsync(
             string userRequest,
@@ -26,6 +28,18 @@ namespace ShaderGraphGenerator.RAG
             bool useTransparency = true)
         {
             Debug.Log($"[RAG] Starting generation for: {userRequest}");
+
+            // Character routing: if request is for a humanoid and a base template exists, use it
+            if (SemanticShapeSearch.IsCharacterRequest(userRequest))
+            {
+                var baseTemplate = FindBaseTemplate(knowledgeBase);
+                if (baseTemplate != null)
+                {
+                    Debug.Log($"[RAG] Character request detected — routing to base template: {baseTemplate.fileName}");
+                    return await GenerateFromBaseTemplateAsync(userRequest, baseTemplate, config, useTransparency);
+                }
+                Debug.Log("[RAG] Character request detected but no base template found in KB — using standard RAG.");
+            }
 
             // Step 1: Decompose request into components
             Debug.Log("[RAG] Step 1: Decomposing request...");
@@ -392,6 +406,169 @@ namespace ShaderGraphGenerator.RAG
 
             // Add constraints from Master Prompt
             sb.AppendLine(GetMasterPromptConstraints(useTransparency));
+
+            return sb.ToString();
+        }
+
+        // ─── Base Template Support ────────────────────────────────────────────
+
+        // Tags that identify a shape as a character/humanoid base template.
+        // Used as a fallback when isBaseTemplate is not explicitly set.
+        private static readonly HashSet<string> BaseTags = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "mannequin", "figure", "humanoid", "character figure", "technical figure",
+            "skeleton", "rig", "articulated", "jointed"
+        };
+
+        /// <summary>
+        /// Returns the best base template for character generation.
+        /// Priority order:
+        ///   1. Shapes with isBaseTemplate=true (highest priority first).
+        ///   2. Fallback: shapes whose tags overlap with BaseTags (mannequin, figure, etc.).
+        /// Returns null if no suitable shape exists or its file is missing.
+        /// </summary>
+        private static ShapeMetadata FindBaseTemplate(ShapeKnowledgeBase knowledgeBase)
+        {
+            ShapeMetadata best = null;
+
+            // Pass 1: explicit isBaseTemplate flag
+            foreach (var shape in knowledgeBase.shapes)
+            {
+                if (!shape.isBaseTemplate) continue;
+                if (!File.Exists(shape.filePath)) continue;
+                if (best == null || shape.priority > best.priority)
+                    best = shape;
+            }
+            if (best != null) return best;
+
+            // Pass 2: tag-based fallback — pick the shape with the most matching base tags
+            int bestTagHits = 0;
+            foreach (var shape in knowledgeBase.shapes)
+            {
+                if (!File.Exists(shape.filePath)) continue;
+                int hits = 0;
+                foreach (var tag in shape.tags)
+                    if (BaseTags.Contains(tag)) hits++;
+                if (hits > bestTagHits)
+                {
+                    bestTagHits = hits;
+                    best = shape;
+                }
+            }
+
+            if (best != null)
+                Debug.Log($"[RAG] Base template found via tags ({bestTagHits} tag hits): {best.fileName}");
+
+            return bestTagHits > 0 ? best : null;
+        }
+
+        /// <summary>
+        /// Generates a character by adapting an existing proven base template HLSL.
+        /// The LLM receives the full working HLSL and is asked to modify style/proportions
+        /// while preserving the joint structure and all animation parameters.
+        /// </summary>
+        private static async Task<LLMShaderResponse> GenerateFromBaseTemplateAsync(
+            string userRequest,
+            ShapeMetadata baseTemplate,
+            ShaderGraphGeneratorConfig config,
+            bool useTransparency)
+        {
+            string baseHLSL = File.ReadAllText(baseTemplate.filePath);
+            string prompt = BuildBaseTemplatePrompt(userRequest, baseTemplate, baseHLSL, useTransparency);
+
+            string jsonResponse = await GeminiApiService.CallGeminiAsync(prompt, config.geminiKey);
+            if (string.IsNullOrEmpty(jsonResponse))
+            {
+                Debug.LogError("[RAG] Base template LLM call returned null");
+                return null;
+            }
+
+            jsonResponse = StripMarkdownCodeBlock(jsonResponse);
+            try
+            {
+                var response = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
+                Debug.Log($"[RAG] ✓ Generated from base template: {response.file_name}");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[RAG] Failed to parse base template response: {ex.Message}\n{jsonResponse.Substring(0, Math.Min(400, jsonResponse.Length))}");
+                return null;
+            }
+        }
+
+        /// <summary>
+        /// Builds the LLM prompt for base-template character generation.
+        /// The base HLSL is provided in full so the LLM can modify rather than invent.
+        /// </summary>
+        private static string BuildBaseTemplatePrompt(
+            string userRequest,
+            ShapeMetadata baseTemplate,
+            string baseHLSL,
+            bool useTransparency)
+        {
+            var sb = new StringBuilder();
+
+            sb.AppendLine("You are an expert Unity HLSL shader developer.");
+            sb.AppendLine("You will receive a proven, fully working character figure shader and a user request.");
+            sb.AppendLine("Your task is to ADAPT the existing shader to match the user's character description.");
+            sb.AppendLine();
+
+            sb.AppendLine("## BASE TEMPLATE");
+            sb.AppendLine($"Name: {baseTemplate.fileName}");
+            sb.AppendLine($"Description: {baseTemplate.visualDescription}");
+            sb.AppendLine();
+            sb.AppendLine("### Full HLSL (this is your starting point — it compiles and renders correctly):");
+            sb.AppendLine("```hlsl");
+            sb.AppendLine(baseHLSL);
+            sb.AppendLine("```");
+            sb.AppendLine();
+
+            sb.AppendLine("## USER REQUEST");
+            sb.AppendLine(userRequest);
+            sb.AppendLine();
+
+            sb.AppendLine("## YOUR TASK");
+            sb.AppendLine("Adapt the base template HLSL to match the user's character request.");
+            sb.AppendLine();
+            sb.AppendLine("### RULES — READ CAREFULLY:");
+            sb.AppendLine("1. PRESERVE the entire joint/limb structure: all *Angle, *Size, *Center parameters and the sdLimb / limbEnd helper functions must remain.");
+            sb.AppendLine("   These are the animation backbone — removing them breaks the animator scripts.");
+            sb.AppendLine("2. PRESERVE parameter names exactly if they already express the right concept (e.g. LShoulderAngle, FillColor).");
+            sb.AppendLine("   The animator C# scripts reference these by exact name.");
+            sb.AppendLine("3. YOU MAY change:");
+            sb.AppendLine("   - Colors and their defaults (e.g. make a robot grey, a knight silver)");
+            sb.AppendLine("   - Proportions: size defaults for head, torso, limbs");
+            sb.AppendLine("   - Add new SDF elements on top (helmet, cape, weapon, antenna) as additional parameters");
+            sb.AppendLine("   - Add new float/float4 parameters for the new visual elements");
+            sb.AppendLine("4. DO NOT remove existing parameters — only add new ones.");
+            sb.AppendLine("5. The final HLSL must compile without errors in Unity ShaderGraph.");
+            sb.AppendLine("6. Give the function a new descriptive name matching the character (e.g. KnightCharacter_float).");
+            sb.AppendLine("7. Update file_name to match the new character (e.g. KnightCharacter).");
+            sb.AppendLine();
+
+            sb.AppendLine("## HLSL RULES (same as always)");
+            sb.AppendLine("- HLSL intrinsics only: lerp not mix, frac not fract, fmod not mod");
+            sb.AppendLine("- #ifndef PI / #define PI 3.14159265359 / #endif at top");
+            sb.AppendLine("- Helper functions defined BEFORE main function");
+            sb.AppendLine("- No const float inside functions — use #define");
+            sb.AppendLine($"- Alpha: {(useTransparency ? "output alpha in outColor.a (1=opaque, 0=transparent)" : "always set alpha to 1.0")}");
+            sb.AppendLine("- outColor = float4(Color.rgb * mask, mask) pattern for transparency");
+            sb.AppendLine();
+
+            sb.AppendLine("## OUTPUT FORMAT");
+            sb.AppendLine("Return ONLY valid JSON — no markdown fences, no preamble:");
+            sb.AppendLine(@"{
+  ""file_name"": ""CharacterName"",
+  ""hlsl_code"": ""[complete adapted HLSL here]"",
+  ""properties"": [
+    { ""name"": ""ParameterName"", ""type"": ""float"", ""default_value"": { ""x"": 0.5, ""y"": 0, ""z"": 0, ""w"": 0 } }
+  ]
+}");
+            sb.AppendLine();
+            sb.AppendLine("IMPORTANT: The properties array must list EVERY parameter in the function signature (except UV and outColor).");
+            sb.AppendLine("Match parameter names EXACTLY between the function signature and the properties array.");
+            sb.AppendLine("Every color property must have w=1.0 (opaque). Every size property must be > 0 (visible).");
 
             return sb.ToString();
         }

@@ -230,4 +230,46 @@ namespace ShaderGraphExperiments.Editor
 
         public List<AnimationExperimentItem> items = new List<AnimationExperimentItem>();
     }
+
+    // ═══════════════════════════════════════════════════════════════════════════
+    //  IMAGE-TO-SHADER EXPERIMENT
+    // ═══════════════════════════════════════════════════════════════════════════
+
+    /// <summary>Result for a single image-to-shader generation.</summary>
+    [Serializable]
+    public class ImageExperimentItem
+    {
+        public string image_path;           // path to the reference image
+        public string editable_hints;       // user's adjustable-properties note
+        public string visual_description;   // VLM's description of the image
+
+        public bool   success;
+        public int    vlm_score;
+        public string vlm_feedback;
+        public double total_time_ms;
+
+        public string shader_graph_path;
+        public string material_path;
+        public string preview_image_path;   // rendered output
+        public string error_message;
+
+        public int    human_score;
+        public bool   accepted_by_human;
+    }
+
+    /// <summary>A full image-to-shader experiment session.</summary>
+    [Serializable]
+    public class ImageExperimentRun
+    {
+        public string experiment_type = "image_to_shader";
+        public string run_id;
+        public string timestamp_utc;
+
+        public float  summary_success_rate;
+        public float  summary_avg_vlm_score;
+        public float  summary_avg_time_ms;
+        public float  summary_avg_human_score;
+
+        public List<ImageExperimentItem> items = new List<ImageExperimentItem>();
+    }
 }

@@ -55,6 +55,8 @@ namespace ShaderGraphGenerator.Chat
         private static string  _statusMsg   = "";
         private static string  _lastPreview = ""; // absolute path to latest preview PNG
 
+        private static RAGPipelineResult _lastRagResult;
+        private static HLSLUpdateResult  _lastUpdateResult;
         public static string StatusMsg => _statusMsg;
 
         // contact form scratch
@@ -277,23 +279,39 @@ namespace ShaderGraphGenerator.Chat
 
                 // ── review ─────────────────────────────────────────────
                 case ChatState.Reviewing:
-                    if (msg == "abort") { HandleAbort(); ChatSession.State = ChatState.MainMenu; botReplies.Add("Aborted. What else can I help you with?"); break; }
-                    if (int.TryParse(msg, out int score))
+                if (msg == "abort") { HandleAbort(); ChatSession.State = ChatState.MainMenu; botReplies.Add("Aborted. What else can I help you with?"); break; }
+                if (int.TryParse(msg, out int score))
+                {
+                    ChatSession.LastScore = score;
+
+                    // NEW: add to knowledge base when user rates 8 or higher
+                    if (score >= 8)
                     {
-                        ChatSession.LastScore = score;
-                        if (score >= 7)
-                        {
-                            ChatSession.State = ChatState.PostGen;
-                            botReplies.Add($"I'm glad you liked it! You can always edit specific features through material properties inside your project. What else can we do here?");
-                        }
-                        else
+                        _ = TryAddToKnowledgeBaseAsync(score);
+                    }
+
+                    if (score >= 7)
+                    {
+                        ChatSession.State = ChatState.PostGen;
+                        botReplies.Add($"I'm glad you liked it! You can always edit specific features through material properties inside your project. What else can we do here?");
+                    }
+                    else
+                    {
+                        // RAG shapes can retry; edits just return to PostGen with a helpful message
+                        if (_lastRagResult != null)
                         {
                             botReplies.Add("I see, let me try to improve it. Please wait…");
                             ChatSession.State = ChatState.Generating;
                             TriggerRetry($"Previous score was {score}. Please improve the result.");
                         }
+                        else
+                        {
+                            ChatSession.State = ChatState.PostGen;
+                            botReplies.Add("I see. You can further tweak the material properties in the Inspector, or try editing again with different instructions. What else can I help you with?");
+                        }
                     }
-                    break;
+                }
+                break;
 
                 // ── post-gen ───────────────────────────────────────────
                 case ChatState.PostGen:
@@ -484,6 +502,8 @@ namespace ShaderGraphGenerator.Chat
 
                     _lastPreview = result.previewImagePath ?? "";
                     ChatSession.PendingMaterialPath = result.materialPath ?? "";
+                    _lastRagResult = result;          // <-- ADD
+                    _lastUpdateResult = null;
                     ChatSession.State = ChatState.Reviewing;
                     ChatSession.AddBot("Here is the result, how do you rate it on a scale of 1 to 10?", _lastPreview);
                 }
@@ -523,6 +543,20 @@ namespace ShaderGraphGenerator.Chat
 
                     _lastPreview = result.previewImagePath ?? "";
                     ChatSession.PendingMaterialPath = result.materialPath ?? "";
+                    _lastRagResult = new RAGPipelineResult
+                    {
+                        userRequest      = result.editableHints ?? "Image reference",
+                        fileName         = result.fileName,
+                        hlslCode         = result.hlslCode,
+                        properties       = result.properties,
+                        shaderGraphPath  = result.shaderGraphPath,
+                        materialPath     = result.materialPath,
+                        previewImagePath = result.previewImagePath,
+                        vmlScore         = result.vlmScore,
+                        vmlFeedback      = result.vlmFeedback,
+                        success          = result.success
+                    };
+                    _lastUpdateResult = null;
                     ChatSession.State = ChatState.Reviewing;
                     ChatSession.AddBot("Here is the result, how do you rate it on a scale of 1 to 10?", _lastPreview);
                 }
@@ -612,19 +646,38 @@ namespace ShaderGraphGenerator.Chat
                         AssetDatabase.SaveAssets();
                         if (token.IsCancellationRequested) return;
 
-                        // Show the updated material on a quad so the user can see it
-                        var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+                        string previewPath = $"Assets/ShaderGraphs/Previews/Edit_{sourceMat.name}_{Guid.NewGuid()}.png";
+                        Directory.CreateDirectory(Path.GetDirectoryName(previewPath));
+                        GameObject quad = MaterialPreviewHelper.CreatePreviewQuad(sourceMat, true, previewPath);
                         quad.name = $"Edit Preview — {sourceMat.name}";
-                        quad.GetComponent<Renderer>().material = sourceMat;
                         Selection.activeGameObject = quad;
                         if (SceneView.lastActiveSceneView != null)
                             SceneView.lastActiveSceneView.FrameSelected();
 
+                        // Wait for the screenshot file to land
+                        double t0 = EditorApplication.timeSinceStartup;
+                        while (!File.Exists(previewPath) && (EditorApplication.timeSinceStartup - t0) < 5.0)
+                            await Task.Delay(200, token);
+                        await Task.Delay(100, token);
+
+                        // Remember original HLSL so we can add it to the KB if the user rates it highly
+                        string originalHlslPath = HLSLUpdatePipelineManager.ExtractHlslPathFromMaterial(sourceMat);
+                        string originalHlsl     = !string.IsNullOrEmpty(originalHlslPath) ? File.ReadAllText(originalHlslPath) : "";
+
+                        _lastUpdateResult = new HLSLUpdateResult
+                        {
+                            updatedFileName = sourceMat.name,
+                            updatedHlslCode = originalHlsl,
+                            updateRequest   = description,
+                            afterImagePath  = previewPath,
+                            materialPath    = matPath,
+                            success         = true
+                        };
+                        _lastRagResult = null;
+
                         _statusMsg = "";
-                        ChatSession.State = ChatState.PostGen;
-                        ChatSession.AddBot(
-                            $"Done! I've updated the material. A preview quad '{quad.name}' has been added to your scene.\n" +
-                            $"Material path: {matPath}");
+                        ChatSession.State = ChatState.Reviewing;   // <-- was PostGen
+                        ChatSession.AddBot("Here is the updated material. How do you rate it on a scale of 1 to 10?", previewPath);
                     }
                     else
                     {
@@ -643,6 +696,9 @@ namespace ShaderGraphGenerator.Chat
                             config:           config,
                             maxVlmIterations: 2);
                         if (token.IsCancellationRequested) return;
+
+                        _lastUpdateResult = result;   // <-- ADD
+                        _lastRagResult = null;
 
                         _statusMsg = "";
 
@@ -669,12 +725,8 @@ namespace ShaderGraphGenerator.Chat
                         string previewPath = result.afterImagePath ?? _lastPreview;
                         _lastPreview                    = previewPath ?? "";
                         ChatSession.PendingMaterialPath = resultMatPath;
-                        ChatSession.State               = ChatState.PostGen;
-
-                        ChatSession.AddBot(
-                            $"Done! Updated material saved at:\n{resultMatPath}\n\n" +
-                            $"A preview quad '{quad.name}' has been added to your scene.",
-                            _lastPreview);
+                        ChatSession.State = ChatState.Reviewing;   // <-- was PostGen
+                        ChatSession.AddBot("Here is the updated result. How do you rate it on a scale of 1 to 10?", _lastPreview);
                     }
                 }
                 catch (OperationCanceledException) { }
@@ -1158,6 +1210,46 @@ namespace ShaderGraphGenerator.Chat
             else
                 paramType.GetField("m_Value", BindingFlags.NonPublic | BindingFlags.Instance)
                          ?.SetValue(param, value);
+        }
+
+        /// <summary>
+        /// Adds the last generated/edited shape to the knowledge base when the user rates it ≥ 8.
+        /// </summary>
+        private static async Task TryAddToKnowledgeBaseAsync(int userScore)
+        {
+            if (userScore < 8) return;
+
+            var config = LoadConfig();
+            if (config == null) return;
+
+            bool added = false;
+
+            if (_lastRagResult != null)
+            {
+                added = await KnowledgeBaseUpdater.TryAddToLibraryAsync(
+                    _lastRagResult, config.geminiKey, config.openAIKey, bypassScoreCheck: true);
+            }
+            else if (_lastUpdateResult != null && !string.IsNullOrEmpty(_lastUpdateResult.updatedHlslCode))
+            {
+                // Package the edit result as a RAG result so the existing KB updater can ingest it
+                var ragResult = new RAGPipelineResult
+                {
+                    userRequest      = _lastUpdateResult.updateRequest,
+                    fileName         = _lastUpdateResult.updatedFileName,
+                    hlslCode         = _lastUpdateResult.updatedHlslCode,
+                    properties       = _lastUpdateResult.properties,
+                    shaderGraphPath  = _lastUpdateResult.shaderGraphPath,
+                    materialPath     = _lastUpdateResult.materialPath,
+                    previewImagePath = _lastUpdateResult.afterImagePath,
+                    vmlScore         = userScore,
+                    success          = true
+                };
+                added = await KnowledgeBaseUpdater.TryAddToLibraryAsync(
+                    ragResult, config.geminiKey, config.openAIKey, bypassScoreCheck: true);
+            }
+
+            if (added)
+                ChatSession.AddBot("⭐ This shape has been added to the knowledge base for future use!");
         }
 
         private static void CopyMatchingMaterialProperties(Material src, Material dst)
