@@ -9,4 +9,5 @@ public class ShaderGraphGeneratorConfig : ScriptableObject
     public string openAIKey;
     public string claudeKey;
     public string geminiKey;
+    public string kimiKey;
 }

@@ -12,7 +12,7 @@ namespace ShaderGraphGenerator.Editor
     public static class ClaudeApiService
     {
         private const string URL   = "https://api.anthropic.com/v1/messages";
-        private const string MODEL = "claude-sonnet-4-5-20250929";
+        private const string MODEL = "claude-sonnet-4-6";
         private const string BETA  = "structured-outputs-2025-11-13";
 
         /// <summary>

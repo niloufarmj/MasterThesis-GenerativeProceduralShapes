@@ -349,6 +349,29 @@ namespace ShaderGraphGenerator.Editor
             }
         }
 
+        // ═══════════════════════════════════════════════════════════════════════
+        //  Text generation (HLSL code generation)
+        // ═══════════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Sends a text prompt to an OpenAI model and returns the raw response text.
+        /// Used for HLSL shader code generation in the experiment pipeline.
+        /// </summary>
+        public static async Task<string> CallOpenAIGenerateAsync(string prompt, string apiKey, string model = "gpt-4.1")
+        {
+            var bodyObject = new
+            {
+                model,
+                response_format = new { type = "json_object" },
+                messages = new object[]
+                {
+                    new { role = "system", content = "You are a shader code generator. Respond only with valid JSON." },
+                    new { role = "user",   content = prompt }
+                }
+            };
+            return await PostAndExtractContentAsync(bodyObject, apiKey, $"OpenAI Generate ({model})");
+        }
+
         // ─── shared POST helper ───────────────────────────────────────────────
 
         private static async Task<string> PostAndExtractContentAsync(object bodyObject, string apiKey, string tag)
