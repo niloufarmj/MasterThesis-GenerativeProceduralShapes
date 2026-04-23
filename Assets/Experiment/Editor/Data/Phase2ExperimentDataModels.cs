@@ -32,15 +32,16 @@ namespace ShaderGraphExperiments.Editor
     }
 
     /// <summary>
-    /// Identifies which LLM provider was used for a given run.
-    /// Each provider maps to a specific model ID and pricing tier — see LlmPricing.
+    /// Identifies the exact model used for a given run.
+    /// Each value maps to a specific model ID and pricing tier — see LlmPricing.
     /// </summary>
     public enum LlmProvider
     {
-        Gemini,    // Google — gemini-2.5-pro (current default)
-        OpenAI,    // OpenAI  — gpt-4.1
-        DeepSeek,  // DeepSeek — deepseek-v3
-        Mistral    // Mistral AI — mistral-large-latest
+        Gemini25Pro,          // Google  — gemini-2.5-pro
+        Gemini31ProPreview,   // Google  — gemini-3.1-pro-preview
+        Gpt54,                // OpenAI  — gpt-5.4
+        ClaudeSonnet46,       // Anthropic — claude-sonnet-4-6
+        KimiK26               // Moonshot — kimi-k2.6
     }
 
     // ═══════════════════════════════════════════════════════════════════════════
@@ -66,10 +67,11 @@ namespace ShaderGraphExperiments.Editor
     /// Update model_id and pricing constants here when upgrading models.
     ///
     /// Current rates (April 2026, standard tier, no batch/caching discount):
-    ///   Gemini  (gemini-2.5-pro)        $1.25 in / $10.00 out  per 1M tokens
-    ///   OpenAI  (gpt-4.1)               $2.00 in /  $8.00 out  per 1M tokens
-    ///   DeepSeek(deepseek-v3)           $0.27 in /  $1.10 out  per 1M tokens
-    ///   Mistral (mistral-large-latest)  $2.00 in /  $6.00 out  per 1M tokens
+    ///   gemini-2.5-pro          $1.25 in / $10.00 out  per 1M tokens
+    ///   gemini-3.1-pro-preview  $2.50 in / $15.00 out  per 1M tokens  (verify — preview pricing)
+    ///   gpt-5.4                 $5.00 in / $20.00 out  per 1M tokens  (verify — estimate)
+    ///   claude-sonnet-4-6       $3.00 in / $15.00 out  per 1M tokens
+    ///   kimi-k2.6               $0.15 in /  $0.60 out  per 1M tokens  (verify — estimate)
     /// </summary>
     public static class LlmPricing
     {
@@ -77,20 +79,24 @@ namespace ShaderGraphExperiments.Editor
             new Dictionary<LlmProvider, LlmProviderConfig>
             {
                 {
-                    LlmProvider.Gemini,
-                    new LlmProviderConfig("gemini-2.5-pro",       inputPer1M: 1.25,  outputPer1M: 10.00)
+                    LlmProvider.Gemini25Pro,
+                    new LlmProviderConfig("gemini-2.5-pro",         inputPer1M: 1.25,  outputPer1M: 10.00)
                 },
                 {
-                    LlmProvider.OpenAI,
-                    new LlmProviderConfig("gpt-4.1",              inputPer1M: 2.00,  outputPer1M:  8.00)
+                    LlmProvider.Gemini31ProPreview,
+                    new LlmProviderConfig("gemini-3.1-pro-preview", inputPer1M: 2.50,  outputPer1M: 15.00)
                 },
                 {
-                    LlmProvider.DeepSeek,
-                    new LlmProviderConfig("deepseek-v3",          inputPer1M: 0.27,  outputPer1M:  1.10)
+                    LlmProvider.Gpt54,
+                    new LlmProviderConfig("gpt-5.4",                inputPer1M: 5.00,  outputPer1M: 20.00)
                 },
                 {
-                    LlmProvider.Mistral,
-                    new LlmProviderConfig("mistral-large-latest", inputPer1M: 2.00,  outputPer1M:  6.00)
+                    LlmProvider.ClaudeSonnet46,
+                    new LlmProviderConfig("claude-sonnet-4-6",      inputPer1M: 3.00,  outputPer1M: 15.00)
+                },
+                {
+                    LlmProvider.KimiK26,
+                    new LlmProviderConfig("kimi-k2.6",              inputPer1M: 0.15,  outputPer1M:  0.60)
                 },
             };
 
@@ -217,7 +223,7 @@ namespace ShaderGraphExperiments.Editor
 
         public string pipeline;           // "RAG" | "NoRAG"
         public string shape_set_name;     // e.g. "Simple_InRAG" | "Complex_NotInRAG"
-        public string llm_provider;       // "Gemini" | "OpenAI" | "DeepSeek" | "Mistral"
+        public string llm_provider;       // exact model ID, e.g. "gemini-2.5-pro"
         public string llm_model_id;       // exact model string used (from LlmPricing.Config)
         public string eval_provider;      // provider used for VLM evaluation
 

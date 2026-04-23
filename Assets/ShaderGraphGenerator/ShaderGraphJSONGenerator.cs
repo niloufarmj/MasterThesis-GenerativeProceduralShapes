@@ -879,6 +879,7 @@ namespace ShaderGraphGenerator
                     useGlow);
 
                 // 5. Write to disk
+                Directory.CreateDirectory(Path.GetDirectoryName(outputPath));
                 File.WriteAllText(outputPath, json);
 
                 Debug.Log($"✓ Generated ShaderGraph JSON: {outputPath}");

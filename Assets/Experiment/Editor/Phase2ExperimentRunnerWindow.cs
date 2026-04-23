@@ -58,11 +58,11 @@ namespace ShaderGraphExperiments.Editor
         // ═══════════════════════════════════════════════
         //  TAB 1  –  GENERATION
         // ═══════════════════════════════════════════════
-        private string  _gen_shapesFile    = "Assets/Experiment/ShapeSets/Shapes_Simple.txt";
+        private string  _gen_shapesFile    = "Assets/Experiment/ShapeSets/Shapes_Simple_InRAG.txt";
         private bool    _gen_runRAG        = true;
         private bool    _gen_runNoRAG      = true;
-        private string  _gen_codeProvider  = "Gemini";
-        private string  _gen_evalProvider  = "OpenAI";
+        private string  _gen_codeProvider  = "gemini-2.5-pro";
+        private string  _gen_evalProvider  = "gemini-2.5-pro";
         private int     _gen_maxIter       = 3;
         private int     _gen_threshold     = 7;
         private bool    _gen_humanScore    = false;
@@ -767,7 +767,8 @@ namespace ShaderGraphExperiments.Editor
                 timestamp_utc      = DateTime.UtcNow.ToString("o"),
                 pipeline           = pipeline,
                 shape_set_name     = setName,
-                code_provider      = _gen_codeProvider,
+                llm_provider       = _gen_codeProvider,
+                llm_model_id       = _gen_codeProvider,
                 eval_provider      = _gen_evalProvider,
                 max_iterations     = _gen_maxIter,
                 success_threshold  = _gen_threshold,
@@ -967,8 +968,7 @@ namespace ShaderGraphExperiments.Editor
 
                 try
                 {
-                    // Generate with direct Gemini (no RAG)
-                    string jsonResp = await CallGeminiDirectAsync(currentPrompt);
+                    string jsonResp = await CallCodeLLMAsync(currentPrompt);
 
                     if (string.IsNullOrEmpty(jsonResp))
                     {
@@ -1684,8 +1684,13 @@ namespace ShaderGraphExperiments.Editor
         {
             try
             {
-                string evalJson = await OpenAIApiService.CallOpenAIEvalAsync(
-                    prompt, hlslCode, null, previewPath, _config.openAIKey);
+                string evalJson;
+                if (_gen_evalProvider.StartsWith("gemini-"))
+                    evalJson = await GeminiApiService.CallGeminiEvalAsync(
+                        prompt, hlslCode, previewPath, _config.geminiKey, _gen_evalProvider);
+                else
+                    evalJson = await OpenAIApiService.CallOpenAIEvalAsync(
+                        prompt, hlslCode, null, previewPath, _config.openAIKey);
 
                 if (!string.IsNullOrEmpty(evalJson))
                 {
@@ -1701,9 +1706,19 @@ namespace ShaderGraphExperiments.Editor
             return new LLMMatchScoreResponse { score = 1, explanation = "Eval unavailable." };
         }
 
-        private async Task<string> CallGeminiDirectAsync(string prompt)
+        private Task<string> CallCodeLLMAsync(string prompt)
         {
-            return await GeminiApiService.CallGeminiAsync(prompt, _config.geminiKey);
+            if (_gen_codeProvider.StartsWith("gemini-"))
+                return GeminiApiService.CallGeminiAsync(prompt, _config.geminiKey, _gen_codeProvider);
+            if (_gen_codeProvider.StartsWith("gpt-"))
+                return OpenAIApiService.CallOpenAIGenerateAsync(prompt, _config.openAIKey, _gen_codeProvider);
+            if (_gen_codeProvider.StartsWith("claude-"))
+                return ClaudeApiService.CallClaudeAsync(prompt, _config.claudeKey);
+            if (_gen_codeProvider.StartsWith("kimi-"))
+                return KimiApiService.CallKimiAsync(prompt, _config.kimiKey, _gen_codeProvider);
+
+            UnityEngine.Debug.LogWarning($"[Experiment] Unknown provider '{_gen_codeProvider}', falling back to Gemini.");
+            return GeminiApiService.CallGeminiAsync(prompt, _config.geminiKey);
         }
 
         private async Task<bool> RenderMaterialPreviewAsync(Material mat, string outputPath)
@@ -1825,14 +1840,24 @@ namespace ShaderGraphExperiments.Editor
             : s.Length <= max ? s
             : s.Substring(0, max) + "…";
 
+        private static readonly string[] k_Providers =
+        {
+            "gemini-2.5-pro",
+            "gemini-3.1-pro-preview",
+            "gpt-5.4",
+            "claude-sonnet-4-6",
+            "kimi-k2.6",
+        };
+
         private static string DrawProviderField(string label, string current)
         {
+            int idx = System.Array.IndexOf(k_Providers, current);
+            if (idx < 0) idx = 0;
             EditorGUILayout.BeginHorizontal();
             EditorGUILayout.LabelField(label, GUILayout.Width(200));
-            int idx = current == "Gemini" ? 0 : 1;
-            idx = EditorGUILayout.Popup(idx, new[] { "Gemini", "OpenAI" }, GUILayout.Width(100));
+            idx = EditorGUILayout.Popup(idx, k_Providers, GUILayout.Width(180));
             EditorGUILayout.EndHorizontal();
-            return idx == 0 ? "Gemini" : "OpenAI";
+            return k_Providers[idx];
         }
 
         private static string StripMarkdown(string text)

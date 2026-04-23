@@ -12,14 +12,14 @@ namespace ShaderGraphGenerator.Editor
     /// </summary>
     public static class GeminiApiService
     {
-        private const string MODEL = "gemini-3-pro-preview";
+        private const string DEFAULT_MODEL = "gemini-2.5-pro";
 
         /// <summary>
         /// Calls Gemini with a text-only prompt. Used for HLSL code generation.
         /// </summary>
-        public static async Task<string> CallGeminiAsync(string prompt, string apiKey)
+        public static async Task<string> CallGeminiAsync(string prompt, string apiKey, string model = DEFAULT_MODEL)
         {
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={apiKey}";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
             var bodyObj = new
             {
@@ -67,12 +67,42 @@ namespace ShaderGraphGenerator.Editor
         /// Used by the Image→Shader pipeline for direct visual generation.
         /// absoluteImagePath must be an absolute filesystem path.
         /// </summary>
+        /// <summary>
+        /// VLM eval: scores how well a rendered preview matches the user's shape request.
+        /// Returns JSON: { "score": 1-10, "explanation": "..." }
+        /// </summary>
+        public static async Task<string> CallGeminiEvalAsync(
+            string userPrompt,
+            string hlslCode,
+            string previewPath,
+            string apiKey,
+            string model = DEFAULT_MODEL)
+        {
+            if (!File.Exists(previewPath))
+            {
+                Debug.LogError($"[Gemini Eval] Preview not found: {previewPath}");
+                return null;
+            }
+
+            string textContent =
+                "You are a strict visual evaluator for procedurally generated shapes.\n\n" +
+                "User requested shape:\n" + userPrompt + "\n\n" +
+                "HLSL code that produced the image:\n" + hlslCode + "\n\n" +
+                "Using ONLY the attached image, rate from 1 to 10 how well the rendered image matches the user's request. " +
+                "1 = completely wrong, 10 = perfect match.\n\n" +
+                "Return ONLY valid JSON: { \"score\": <integer 1-10>, \"explanation\": \"short explanation\" }";
+
+            string raw = await CallGeminiWithImageAsync(textContent, previewPath, apiKey, model);
+            return raw;
+        }
+
         public static async Task<string> CallGeminiWithImageAsync(
             string textPrompt,
             string absoluteImagePath,
-            string apiKey)
+            string apiKey,
+            string model = DEFAULT_MODEL)
         {
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{MODEL}:generateContent?key={apiKey}";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
             if (!File.Exists(absoluteImagePath))
             {
