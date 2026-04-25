@@ -25,7 +25,8 @@ namespace ShaderGraphGenerator.RAG
             string userRequest,
             ShapeKnowledgeBase knowledgeBase,
             ShaderGraphGeneratorConfig config,
-            bool useTransparency = true)
+            bool useTransparency = true,
+            string codeProvider = null)
         {
             Debug.Log($"[RAG] Starting generation for: {userRequest}");
 
@@ -36,7 +37,7 @@ namespace ShaderGraphGenerator.RAG
                 if (baseTemplate != null)
                 {
                     Debug.Log($"[RAG] Character request detected — routing to base template: {baseTemplate.fileName}");
-                    return await GenerateFromBaseTemplateAsync(userRequest, baseTemplate, config, useTransparency);
+                    return await GenerateFromBaseTemplateAsync(userRequest, baseTemplate, config, useTransparency, codeProvider);
                 }
                 Debug.Log("[RAG] Character request detected but no base template found in KB — using standard RAG.");
             }
@@ -112,7 +113,7 @@ namespace ShaderGraphGenerator.RAG
                 useTransparency
             );
 
-            string jsonResponse = await GeminiApiService.CallGeminiAsync(ragPrompt, config.geminiKey);
+            string jsonResponse = await CallCodeLLMAsync(ragPrompt, config, codeProvider);
 
             if (string.IsNullOrEmpty(jsonResponse))
             {
@@ -471,12 +472,13 @@ namespace ShaderGraphGenerator.RAG
             string userRequest,
             ShapeMetadata baseTemplate,
             ShaderGraphGeneratorConfig config,
-            bool useTransparency)
+            bool useTransparency,
+            string codeProvider = null)
         {
             string baseHLSL = File.ReadAllText(baseTemplate.filePath);
             string prompt = BuildBaseTemplatePrompt(userRequest, baseTemplate, baseHLSL, useTransparency);
 
-            string jsonResponse = await GeminiApiService.CallGeminiAsync(prompt, config.geminiKey);
+            string jsonResponse = await CallCodeLLMAsync(prompt, config, codeProvider);
             if (string.IsNullOrEmpty(jsonResponse))
             {
                 Debug.LogError("[RAG] Base template LLM call returned null");
@@ -645,6 +647,20 @@ Generate the complete, compilable HLSL code now.";
         /// <summary>
         /// Helper to get smooth min function definition
         /// </summary>
+        private static Task<string> CallCodeLLMAsync(string prompt, ShaderGraphGeneratorConfig config, string codeProvider)
+        {
+            if (!string.IsNullOrEmpty(codeProvider))
+            {
+                if (codeProvider.StartsWith("claude-"))
+                    return ClaudeApiService.CallClaudeAsync(prompt, config.claudeKey);
+                if (codeProvider.StartsWith("gpt-"))
+                    return OpenAIApiService.CallOpenAIGenerateAsync(prompt, config.openAIKey, codeProvider);
+                if (codeProvider.StartsWith("kimi-"))
+                    return KimiApiService.CallKimiAsync(prompt, config.kimiKey, codeProvider);
+            }
+            return GeminiApiService.CallGeminiAsync(prompt, config.geminiKey);
+        }
+
         private static string StripMarkdownCodeBlock(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;

@@ -37,7 +37,7 @@ namespace ShaderGraphExperiments.Editor
     /// </summary>
     public enum LlmProvider
     {
-        Gemini25Pro,          // Google  — gemini-2.5-pro
+        Gemini25Pro,          // Google  — gemini-3-pro-preview
         Gemini31ProPreview,   // Google  — gemini-3.1-pro-preview
         Gpt54,                // OpenAI  — gpt-5.4
         ClaudeSonnet46,       // Anthropic — claude-sonnet-4-6
@@ -67,7 +67,7 @@ namespace ShaderGraphExperiments.Editor
     /// Update model_id and pricing constants here when upgrading models.
     ///
     /// Current rates (April 2026, standard tier, no batch/caching discount):
-    ///   gemini-2.5-pro          $1.25 in / $10.00 out  per 1M tokens
+    ///   gemini-3-pro-preview          $1.25 in / $10.00 out  per 1M tokens
     ///   gemini-3.1-pro-preview  $2.50 in / $15.00 out  per 1M tokens  (verify — preview pricing)
     ///   gpt-5.4                 $5.00 in / $20.00 out  per 1M tokens  (verify — estimate)
     ///   claude-sonnet-4-6       $3.00 in / $15.00 out  per 1M tokens
@@ -80,7 +80,7 @@ namespace ShaderGraphExperiments.Editor
             {
                 {
                     LlmProvider.Gemini25Pro,
-                    new LlmProviderConfig("gemini-2.5-pro",         inputPer1M: 1.25,  outputPer1M: 10.00)
+                    new LlmProviderConfig("gemini-3-pro-preview",         inputPer1M: 1.25,  outputPer1M: 10.00)
                 },
                 {
                     LlmProvider.Gemini31ProPreview,
@@ -160,6 +160,8 @@ namespace ShaderGraphExperiments.Editor
         public bool   compile_ok;
         public int    vlm_score;          // 1–10 from the evaluator VLM
         public string vlm_explanation;
+        public int    human_score;        // 1–10 from human; 0 = not scored / skipped
+        public string vlm_screenshot_path; // fresh screenshot sent to VLM (may differ from screenshot_path after human tweaks)
 
         public int    hlsl_length;        // length of generated HLSL code in characters
         public string hlsl_asset_path;
@@ -223,7 +225,7 @@ namespace ShaderGraphExperiments.Editor
 
         public string pipeline;           // "RAG" | "NoRAG"
         public string shape_set_name;     // e.g. "Simple_InRAG" | "Complex_NotInRAG"
-        public string llm_provider;       // exact model ID, e.g. "gemini-2.5-pro"
+        public string llm_provider;       // exact model ID, e.g. "gemini-3-pro-preview"
         public string llm_model_id;       // exact model string used (from LlmPricing.Config)
         public string eval_provider;      // provider used for VLM evaluation
 

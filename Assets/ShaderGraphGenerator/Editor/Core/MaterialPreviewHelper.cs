@@ -149,10 +149,24 @@ namespace ShaderGraphGenerator.Editor
                 Directory.CreateDirectory(folderPath);
 
             string filePath = Path.Combine(folderPath, $"{fileName}.hlsl");
-            File.WriteAllText(filePath, hlslCode);
+            File.WriteAllText(filePath, SanitizeHlsl(hlslCode));
             AssetDatabase.ImportAsset(filePath);
             Debug.Log($"✓ Created HLSL file at: {filePath}");
             return filePath;
+        }
+
+        // Replaces GLSL-only functions with their HLSL equivalents.
+        // LLMs frequently emit these even when the prompt warns against them.
+        public static string SanitizeHlsl(string code)
+        {
+            if (string.IsNullOrEmpty(code)) return code;
+            return code
+                .Replace("mix(",         "lerp(")
+                .Replace("fract(",       "frac(")
+                .Replace("mod(",         "fmod(")
+                .Replace("inversesqrt(", "rsqrt(")
+                .Replace("dFdx(",        "ddx(")
+                .Replace("dFdy(",        "ddy(");
         }
 
         // ─── Material property setters ────────────────────────────────────────

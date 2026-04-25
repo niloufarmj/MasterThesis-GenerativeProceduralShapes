@@ -1,0 +1,212 @@
+{
+  "experiment_type": "generation",
+  "run_id": "7108c70b",
+  "timestamp_utc": "2026-04-25T18:14:24.4448422Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "kimi-moonshot-v1-8k",
+  "llm_model_id": "kimi-moonshot-v1-8k",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.0,
+  "summary_avg_vlm_score": 1.0,
+  "summary_avg_iterations": 3.0,
+  "summary_avg_time_ms": 5352.62842,
+  "summary_compile_rate": 0.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 0.0,
+  "summary_total_input_tokens": 0,
+  "summary_total_output_tokens": 0,
+  "summary_total_tokens": 0,
+  "summary_total_cost_usd": 0.0,
+  "shapes": [
+    {
+      "prompt": "a filled circle in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 5713.7258,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "LLM returned empty response.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 2034.2075000000002,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "LLM returned empty response.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 1914.3499000000002,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "LLM returned empty response.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 1756.2352,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "LLM returned empty response.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a 5-pointed star filled by default in yellow color, centered, with a clear inner radius",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 4991.5313000000006,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "LLM returned empty response.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 1554.3905,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "LLM returned empty response.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 1616.0058000000001,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "LLM returned empty response.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 1807.6473,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "LLM returned empty response.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,179 @@
+{
+  "experiment_type": "generation",
+  "run_id": "dac1a867",
+  "timestamp_utc": "2026-04-24T19:29:48.6688325Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Simple_NotInRAG",
+  "llm_provider": "gemini-3-pro-preview",
+  "llm_model_id": "gemini-3-pro-preview",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": true,
+  "summary_success_rate": 0.5,
+  "summary_avg_vlm_score": 6.5,
+  "summary_avg_iterations": 2.5,
+  "summary_avg_time_ms": 340858.875,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 10.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 0,
+  "summary_total_output_tokens": 0,
+  "summary_total_tokens": 0,
+  "summary_total_cost_usd": 0.0,
+  "shapes": [
+    {
+      "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 297439.572,
+      "final_vlm_score": 3,
+      "final_vlm_explanation": "The image does contain a dark parallelogram with tilted sides in the center, but it is rendered extremely small. The majority of the image is dominated by a massive, improperly shaped light gray artifact, making it a poor match for the prompt.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.504365742,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 90072.4292,
+          "compile_ok": true,
+          "vlm_score": 5,
+          "vlm_explanation": "The image features a dark-colored parallelogram with tilted sides, which matches the basic geometry requested. However, the shape is overwhelmed by an excessively thick, unrequested blue border that clips at the image edges, significantly detracting from the overall result.",
+          "hlsl_length": 2240,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.5407749,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 107621.68500000001,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline failed",
+          "hlsl_length": 1858,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.433337182,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 99745.3778,
+          "compile_ok": true,
+          "vlm_score": 3,
+          "vlm_explanation": "The image does contain a dark parallelogram with tilted sides in the center, but it is rendered extremely small. The majority of the image is dominated by a massive, improperly shaped light gray artifact, making it a poor match for the prompt.",
+          "hlsl_length": 2673,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.504365742,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a right-pointing chevron arrow formed by two diagonal lines meeting at a sharp point, filled in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 384278.2027,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly matches the user's request. It displays a right-pointing chevron arrow made of two diagonal lines meeting at a sharp point, and it is filled with a dark color.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.4823984,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 205141.7904,
+          "compile_ok": true,
+          "vlm_score": 6,
+          "vlm_explanation": "The image is a right-pointing chevron filled in a dark color as requested, but the lines meet at a heavily rounded tip rather than the explicitly requested 'sharp point'. Additionally, the thick red outline is heavily clipped at the edges.",
+          "hlsl_length": 2937,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\ChevronRightShape.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\ChevronRightShape.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronRightShape_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.511030138,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 179136.36370000002,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly matches the user's request. It displays a right-pointing chevron arrow made of two diagonal lines meeting at a sharp point, and it is filled with a dark color.",
+          "hlsl_length": 1931,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\ChevronArrowShape.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\ChevronArrowShape.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronArrowShape_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.4823984,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

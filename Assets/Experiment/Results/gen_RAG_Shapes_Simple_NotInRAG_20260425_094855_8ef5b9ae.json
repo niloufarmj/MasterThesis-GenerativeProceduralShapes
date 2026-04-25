@@ -1,0 +1,120 @@
+{
+  "experiment_type": "generation",
+  "run_id": "8ef5b9ae",
+  "timestamp_utc": "2026-04-25T09:48:55.9035416Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Simple_NotInRAG",
+  "llm_provider": "gemini-3-pro-preview",
+  "llm_model_id": "gemini-3-pro-preview",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": true,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 10.0,
+  "summary_avg_iterations": 1.0,
+  "summary_avg_time_ms": 202881.8,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 10.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 0,
+  "summary_total_output_tokens": 0,
+  "summary_total_tokens": 0,
+  "summary_total_cost_usd": 0.0,
+  "shapes": [
+    {
+      "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 138883.4427,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image clearly displays a parallelogram with two pairs of parallel sides, tilted at an angle that is approximately 30 degrees, and properly filled with a dark color, matching all aspects of the request perfectly.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.454536766,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 138882.9977,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image clearly displays a parallelogram with two pairs of parallel sides, tilted at an angle that is approximately 30 degrees, and properly filled with a dark color, matching all aspects of the request perfectly.",
+          "human_score": 10,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1_vlm.png",
+          "hlsl_length": 2477,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.454536766,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a right-pointing chevron arrow formed by two diagonal lines meeting at a sharp point, filled in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 266880.1455,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly matches the request, displaying a distinct right-pointing chevron arrow with two intersecting diagonal lines forming a sharp point, filled in a dark color.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.545333862,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 266880.1217,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly matches the request, displaying a distinct right-pointing chevron arrow with two intersecting diagonal lines forming a sharp point, filled in a dark color.",
+          "human_score": 10,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronShape_1_vlm.png",
+          "hlsl_length": 1780,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\ChevronShape.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\ChevronShape.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronShape_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.545333862,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

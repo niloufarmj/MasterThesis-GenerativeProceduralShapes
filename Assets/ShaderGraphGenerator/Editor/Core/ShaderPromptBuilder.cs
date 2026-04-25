@@ -168,11 +168,12 @@ namespace ShaderGraphGenerator.Editor
             sb.AppendLine("  * Example: 'float4 Color' or 'float4 FillColor, float4 StrokeColor'.");
 
             sb.AppendLine("\n=== DEFAULT VALUES GUIDE ===");
-            sb.AppendLine("float (Size/Thickness): 0.3 to 0.5 (visible but not huge)");
-            sb.AppendLine("float (Rotation): 0.0 radians (use radians, not degrees)");
-            sb.AppendLine("float2 (Position): {0.5, 0.5} (center of screen)");
-            sb.AppendLine("float3 (Color RGB): {1.0, 0.0, 1.0} (bright magenta)");
-            sb.AppendLine("float4 (Color RGBA): {1.0, 0.0, 1.0, 1.0} (bright magenta, opaque)");
+            sb.AppendLine("float (ShapeSize/OuterRadius/Radius/Size): 0.35 to 0.42 — overall extent of the shape in UV space");
+            sb.AppendLine("float (Thickness/StrokeWidth/BorderWidth/LineWidth/Feather/Smoothness/EdgeWidth): 0.01 to 0.03 — keep strokes THIN; NEVER exceed 0.05; a stroke of 0.3 covers 30% of the image which is WAY too large");
+            sb.AppendLine("float (InnerRadius/InnerRatio/HoleRatio): 0.4 to 0.5 — for stars, rings, donuts");
+            sb.AppendLine("float (Rotation/Angle): 0.0 radians (use radians, not degrees)");
+            sb.AppendLine("float2 (Position/Center): {0.5, 0.5} (center of screen)");
+            sb.AppendLine("float4 (Color RGBA): match the color described by the user; if 'dark' or unspecified use {0.1, 0.1, 0.15, 1.0} (near-black, opaque)");
             sb.AppendLine("MANDATORY: The generated ShaderGraph or HLSL instructions must set center01 = float2(0.5, 0.5). Never leave the center at (0,0). So the Default value for center x and center y should be 0.5 and 0.5. Never output any other default. The rendered object must appear centered.");
 
             sb.AppendLine("\n=== REMEMBER ===");

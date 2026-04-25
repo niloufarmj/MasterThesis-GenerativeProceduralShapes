@@ -11,7 +11,7 @@ namespace ShaderGraphGenerator.Editor
     /// </summary>
     public static class KimiApiService
     {
-        private const string URL = "https://api.moonshot.cn/v1/chat/completions";
+        private const string URL = "https://api.moonshot.ai/v1/chat/completions";
 
         /// <summary>
         /// Sends a text prompt to a Kimi model and returns the raw response text.
@@ -19,10 +19,11 @@ namespace ShaderGraphGenerator.Editor
         /// </summary>
         public static async Task<string> CallKimiAsync(string prompt, string apiKey, string model = "kimi-k2.6")
         {
+            apiKey = apiKey?.Trim() ?? "";
+
             var bodyObject = new
             {
                 model,
-                response_format = new { type = "json_object" },
                 messages = new object[]
                 {
                     new { role = "system", content = "You are a shader code generator. Respond only with valid JSON." },
@@ -51,6 +52,7 @@ namespace ShaderGraphGenerator.Editor
                 }
 
                 string raw = www.downloadHandler.text;
+                Debug.Log($"[Kimi] Raw response: {raw}");
                 try
                 {
                     dynamic parsed = JsonConvert.DeserializeObject(raw);

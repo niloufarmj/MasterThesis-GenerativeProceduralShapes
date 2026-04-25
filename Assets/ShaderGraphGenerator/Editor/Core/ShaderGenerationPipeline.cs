@@ -287,11 +287,11 @@ namespace ShaderGraphGenerator.Editor
             return File.Exists(path);
         }
 
-        private static void DisableAllPreviewQuads()
+        public static void DisableAllPreviewQuads()
         {
-            foreach (var quad in GameObject.FindObjectsOfType<MeshRenderer>())
+            foreach (var quad in UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None))
             {
-                if (quad.name.Contains("Preview Quad"))
+                if (quad.name.Contains("Preview Quad") || quad.name.StartsWith("RAG Preview"))
                     quad.gameObject.SetActive(false);
             }
         }

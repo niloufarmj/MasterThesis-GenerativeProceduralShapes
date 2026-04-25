@@ -53,8 +53,14 @@ namespace ShaderGraphGenerator.RAG
             string userRequest,
             ShapeKnowledgeBase knowledgeBase,
             ShaderGraphGeneratorConfig config,
-            int maxIterations = 3)
+            int maxIterations = 3,
+            string outputDir = null,
+            string previewDir = null,
+            string codeProvider = null)
         {
+            outputDir  ??= RAG_OUTPUT_DIR;
+            previewDir ??= PREVIEW_DIR;
+
             var result = new RAGPipelineResult
             {
                 userRequest = userRequest,
@@ -64,7 +70,7 @@ namespace ShaderGraphGenerator.RAG
             try
             {
                 // Ensure directories exist
-                EnsureDirectoriesExist();
+                EnsureDirectoriesExist(outputDir, previewDir);
 
                 // Step 1: RAG Generation (Decompose + Retrieve + LLM)
                 Debug.Log($"[RAG Pipeline] Starting for: {userRequest}");
@@ -72,7 +78,8 @@ namespace ShaderGraphGenerator.RAG
                     userRequest,
                     knowledgeBase,
                     config,
-                    useTransparency: true
+                    useTransparency: true,
+                    codeProvider: codeProvider
                 );
 
                 if (llmResponse == null)
@@ -81,19 +88,20 @@ namespace ShaderGraphGenerator.RAG
                     return result;
                 }
 
-                result.fileName = llmResponse.file_name;
-                result.hlslCode = llmResponse.hlsl_code;
+                result.fileName    = llmResponse.file_name;
                 result.properties = llmResponse.properties;
 
-                // Step 2: Save HLSL
-                string hlslPath = Path.Combine(RAG_OUTPUT_DIR, $"{llmResponse.file_name}.hlsl");
+                // Step 2: Save HLSL (sanitize GLSL→HLSL before writing)
+                llmResponse.hlsl_code = MaterialPreviewHelper.SanitizeHlsl(llmResponse.hlsl_code);
+                result.hlslCode = llmResponse.hlsl_code;
+                string hlslPath = Path.Combine(outputDir, $"{llmResponse.file_name}.hlsl");
                 File.WriteAllText(hlslPath, llmResponse.hlsl_code);
                 AssetDatabase.Refresh();
                 Debug.Log($"[RAG Pipeline] ✓ HLSL saved: {hlslPath}");
 
                 // Step 3: Build ShaderGraph JSON
                 Debug.Log("[RAG Pipeline] Building ShaderGraph JSON...");
-                string sgPath = Path.Combine(RAG_OUTPUT_DIR, $"{llmResponse.file_name}.shadergraph");
+                string sgPath = Path.Combine(outputDir, $"{llmResponse.file_name}.shadergraph");
                 var functionInfo = ShaderGraphBuilder.BuildShaderGraphFromLLMResponse(hlslPath, sgPath, useTransparency: true);
                 AssetDatabase.Refresh();
                 Debug.Log($"[RAG Pipeline] ✓ ShaderGraph saved: {sgPath}");
@@ -115,7 +123,7 @@ namespace ShaderGraphGenerator.RAG
                     return result;
                 }
 
-                string matPath = Path.Combine(RAG_OUTPUT_DIR, $"{llmResponse.file_name}.mat");
+                string matPath = Path.Combine(outputDir, $"{llmResponse.file_name}.mat");
                 if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(matPath) != null)
                     AssetDatabase.DeleteAsset(matPath);
                 var material = new Material(shader);
@@ -135,7 +143,7 @@ namespace ShaderGraphGenerator.RAG
                 // Step 5: Apply to Quad and Render Preview
                 Debug.Log("[RAG Pipeline] Rendering preview...");
                 string projectRoot = Path.GetDirectoryName(Application.dataPath);
-                string previewPath = Path.GetFullPath(Path.Combine(projectRoot, PREVIEW_DIR, $"{llmResponse.file_name}_{maxIterations}.png"));
+                string previewPath = Path.GetFullPath(Path.Combine(projectRoot, previewDir, $"{llmResponse.file_name}_{maxIterations}.png"));
                 
                 bool renderSuccess = await RenderPreviewAsync(material, previewPath);
                 
@@ -178,7 +186,10 @@ namespace ShaderGraphGenerator.RAG
                         refinementRequest,
                         knowledgeBase,
                         config,
-                        maxIterations - 1
+                        maxIterations - 1,
+                        outputDir,
+                        previewDir,
+                        codeProvider
                     );
                 }
 
@@ -342,13 +353,13 @@ namespace ShaderGraphGenerator.RAG
         /// <summary>
         /// Ensure output directories exist
         /// </summary>
-        private static void EnsureDirectoriesExist()
+        private static void EnsureDirectoriesExist(string outputDir, string previewDir)
         {
-            if (!Directory.Exists(RAG_OUTPUT_DIR))
-                Directory.CreateDirectory(RAG_OUTPUT_DIR);
+            if (!Directory.Exists(outputDir))
+                Directory.CreateDirectory(outputDir);
 
-            if (!Directory.Exists(PREVIEW_DIR))
-                Directory.CreateDirectory(PREVIEW_DIR);
+            if (!Directory.Exists(previewDir))
+                Directory.CreateDirectory(previewDir);
         }
     }
 

@@ -63,8 +63,7 @@ namespace ShaderGraphGenerator.Editor
                 {
                     new { role = "user", content = new object[] { new { type = "text", text = prompt } } }
                 },
-                output_format = new { type = "json_schema", schema = schema },
-                betas         = new[] { BETA }
+                output_format = new { type = "json_schema", schema = schema }
             };
 
             string jsonBody = JsonConvert.SerializeObject(bodyObject);

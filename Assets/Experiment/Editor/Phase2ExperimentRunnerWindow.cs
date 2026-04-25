@@ -61,8 +61,8 @@ namespace ShaderGraphExperiments.Editor
         private string  _gen_shapesFile    = "Assets/Experiment/ShapeSets/Shapes_Simple_InRAG.txt";
         private bool    _gen_runRAG        = true;
         private bool    _gen_runNoRAG      = true;
-        private string  _gen_codeProvider  = "gemini-2.5-pro";
-        private string  _gen_evalProvider  = "gemini-2.5-pro";
+        private string  _gen_codeProvider  = "gemini-3-pro-preview";
+        private string  _gen_evalProvider  = "gemini-3-pro-preview";
         private int     _gen_maxIter       = 3;
         private int     _gen_threshold     = 7;
         private bool    _gen_humanScore    = false;
@@ -649,6 +649,11 @@ namespace ShaderGraphExperiments.Editor
 
             EditorGUILayout.LabelField("Human Score Required", new GUIStyle(EditorStyles.boldLabel)
                 { normal = { textColor = new Color(1f, 0.85f, 0.1f) }, fontSize = 12 });
+            EditorGUILayout.HelpBox(
+                "Adjust material values in the Inspector if needed, then submit your score.\n" +
+                "If score ≥ threshold: a fresh screenshot is taken and sent to VLM.\n" +
+                "Score 0 = skip (VLM runs on original).",
+                MessageType.Info);
 
             if (_pendingPreview != null)
             {
@@ -791,14 +796,11 @@ namespace ShaderGraphExperiments.Editor
                 shapeResult.shape_complexity = DetermineComplexity(setName);
                 shapeResult.in_knowledge_base = _gen_markInRAG;
 
-                if (_gen_humanScore && !string.IsNullOrEmpty(
-                    shapeResult.iterations.LastOrDefault()?.screenshot_path))
+                // Aggregate human score from iterations (highest non-zero score)
+                if (_gen_humanScore && shapeResult.iterations.Any(it => it.human_score > 0))
                 {
-                    int human = await RequestHumanScoreAsync(
-                        prompts[i],
-                        shapeResult.iterations.Last().screenshot_path);
-                    shapeResult.human_score       = human;
-                    shapeResult.accepted_by_human = human >= _gen_threshold;
+                    shapeResult.human_score       = shapeResult.iterations.Max(it => it.human_score);
+                    shapeResult.accepted_by_human = shapeResult.human_score >= _gen_threshold;
                 }
 
                 run.shapes.Add(shapeResult);
@@ -862,27 +864,54 @@ namespace ShaderGraphExperiments.Editor
                     }
 
                     // Step 3: Run full RAG pipeline
+                    ShaderGenerationPipeline.DisableAllPreviewQuads();
                     var pipelineResult = await RAGPipelineManager.RunCompletePipelineAsync(
-                        prompt, _knowledgeBase, _config, maxIterations: 1);
+                        prompt, _knowledgeBase, _config, maxIterations: 1,
+                        outputDir:  "Assets/Experiment/Generated_RAG",
+                        previewDir: "Assets/Experiment/Generated_RAG/Previews",
+                        codeProvider: _gen_codeProvider);
 
-                    iterResult.compile_ok         = pipelineResult != null && pipelineResult.success;
+                    // compile_ok = HLSL compiled and a preview was rendered (NOT dependent on internal VLM score)
+                    iterResult.compile_ok         = pipelineResult != null &&
+                                                    !string.IsNullOrEmpty(pipelineResult.previewImagePath) &&
+                                                    !string.IsNullOrEmpty(pipelineResult.hlslCode);
                     iterResult.screenshot_path    = pipelineResult?.previewImagePath;
                     iterResult.shadergraph_asset_path = pipelineResult?.shaderGraphPath;
                     iterResult.material_asset_path    = pipelineResult?.materialPath;
                     iterResult.hlsl_length        = pipelineResult?.hlslCode?.Length ?? 0;
+                    ShaderGenerationPipeline.DisableAllPreviewQuads();
 
-                    // Step 4: Evaluate with VLM
-                    if (iterResult.compile_ok && !string.IsNullOrEmpty(iterResult.screenshot_path))
-                    {
-                        var evalResult = await EvaluateShapeVLMAsync(
-                            prompt, pipelineResult.hlslCode ?? "", iterResult.screenshot_path);
-                        iterResult.vlm_score      = evalResult.score;
-                        iterResult.vlm_explanation = evalResult.explanation;
-                    }
-                    else
+                    // Step 4: Evaluate — human first, then VLM on fresh screenshot
+                    if (!iterResult.compile_ok || string.IsNullOrEmpty(iterResult.screenshot_path))
                     {
                         iterResult.vlm_score       = 1;
                         iterResult.vlm_explanation = pipelineResult?.errorMessage ?? "Pipeline failed";
+                    }
+                    else if (_gen_humanScore)
+                    {
+                        int humanScore = await RequestHumanScoreAsync(prompt, iterResult.screenshot_path);
+                        iterResult.human_score = humanScore;
+
+                        if (humanScore == 0 || humanScore >= _gen_threshold)
+                        {
+                            string freshPath = await CaptureCurrentPreviewAsync(iterResult.screenshot_path);
+                            iterResult.vlm_screenshot_path = freshPath;
+                            var evalResult = await EvaluateShapeVLMAsync(prompt, pipelineResult.hlslCode ?? "", freshPath);
+                            iterResult.vlm_score       = evalResult.score;
+                            iterResult.vlm_explanation = evalResult.explanation;
+                        }
+                        else
+                        {
+                            iterResult.vlm_score       = humanScore;
+                            iterResult.vlm_explanation = "Rejected by human evaluator.";
+                        }
+                    }
+                    else
+                    {
+                        var evalResult = await EvaluateShapeVLMAsync(
+                            prompt, pipelineResult.hlslCode ?? "", iterResult.screenshot_path);
+                        iterResult.vlm_score       = evalResult.score;
+                        iterResult.vlm_explanation = evalResult.explanation;
                     }
                 }
                 catch (Exception ex)
@@ -990,6 +1019,8 @@ namespace ShaderGraphExperiments.Editor
 
                     iterResult.hlsl_length = llmResponse.hlsl_code?.Length ?? 0;
 
+                    ShaderGenerationPipeline.DisableAllPreviewQuads();
+
                     string previewPath;
                     try
                     {
@@ -1006,10 +1037,34 @@ namespace ShaderGraphExperiments.Editor
 
                     iterResult.screenshot_path = previewPath;
 
-                    // Evaluate
-                    var evalResult = await EvaluateShapeVLMAsync(prompt, llmResponse.hlsl_code, previewPath);
-                    iterResult.vlm_score       = evalResult.score;
-                    iterResult.vlm_explanation = evalResult.explanation;
+                    // Evaluate — human first, then VLM on fresh screenshot
+                    if (_gen_humanScore)
+                    {
+                        int humanScore = await RequestHumanScoreAsync(prompt, previewPath);
+                        iterResult.human_score = humanScore;
+
+                        if (humanScore == 0 || humanScore >= _gen_threshold)
+                        {
+                            // Human accepted (or skipped) — take fresh screenshot then VLM
+                            string freshPath = await CaptureCurrentPreviewAsync(previewPath);
+                            iterResult.vlm_screenshot_path = freshPath;
+                            var evalResult = await EvaluateShapeVLMAsync(prompt, llmResponse.hlsl_code, freshPath);
+                            iterResult.vlm_score       = evalResult.score;
+                            iterResult.vlm_explanation = evalResult.explanation;
+                        }
+                        else
+                        {
+                            // Human rejected — skip VLM, use human score as proxy
+                            iterResult.vlm_score       = humanScore;
+                            iterResult.vlm_explanation = "Rejected by human evaluator.";
+                        }
+                    }
+                    else
+                    {
+                        var evalResult = await EvaluateShapeVLMAsync(prompt, llmResponse.hlsl_code, previewPath);
+                        iterResult.vlm_score       = evalResult.score;
+                        iterResult.vlm_explanation = evalResult.explanation;
+                    }
 
                     if (iterResult.compile_ok && iterResult.vlm_score < _gen_threshold)
                         currentPrompt = ShaderPromptBuilder.BuildRefinementPrompt(
@@ -1706,6 +1761,32 @@ namespace ShaderGraphExperiments.Editor
             return new LLMMatchScoreResponse { score = 1, explanation = "Eval unavailable." };
         }
 
+        private async Task<string> CaptureCurrentPreviewAsync(string originalPath)
+        {
+            // Find the active preview quad — either NoRAG ("... Preview Quad") or RAG ("RAG Preview — ...")
+            // Take the last match so we get the most recently created one
+            var renderers = UnityEngine.Object.FindObjectsByType<MeshRenderer>(FindObjectsSortMode.None);
+            MeshRenderer target = null;
+            foreach (var r in renderers)
+            {
+                if (r.sharedMaterial != null &&
+                    (r.name.Contains("Preview Quad") || r.name.StartsWith("RAG Preview")))
+                    target = r;
+            }
+
+            if (target == null)
+            {
+                AppendStatus("  [CapturePreview] No active preview quad found — using original screenshot.");
+                return originalPath;
+            }
+
+            string freshPath = originalPath.Replace(".png", "_vlm.png");
+            bool ok = await RenderMaterialPreviewAsync(target.sharedMaterial, freshPath);
+            if (ok) AppendStatus($"  [CapturePreview] Fresh screenshot captured from '{target.name}'.");
+            return ok ? freshPath : originalPath;
+        }
+
+//
         private Task<string> CallCodeLLMAsync(string prompt)
         {
             if (_gen_codeProvider.StartsWith("gemini-"))
@@ -1842,7 +1923,7 @@ namespace ShaderGraphExperiments.Editor
 
         private static readonly string[] k_Providers =
         {
-            "gemini-2.5-pro",
+            "gemini-3-pro-preview",
             "gemini-3.1-pro-preview",
             "gpt-5.4",
             "claude-sonnet-4-6",

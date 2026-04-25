@@ -90,14 +90,18 @@ namespace ShaderGraphGenerator.Editor
                 : "[]";
 
             string textContent =
-                "You are a strict visual evaluator for procedurally generated shapes.\n\n" +
-                "User requested shape (natural language):\n" + userPrompt + "\n\n" +
-                "HLSL code that produced the image:\n" + hlslCode + "\n\n" +
-                "Shader properties (name, type, default_value) used for this preview:\n" + propertiesJson + "\n\n" +
-                "Using ONLY the attached image and this information, rate from 1 to 10 how well " +
-                "the rendered image matches the user's request. 1 = completely wrong, 10 = perfect match.\n\n" +
-                "Return ONLY valid JSON with this structure:\n" +
-                "{ \"score\": <integer 1-10>, \"explanation\": \"short explanation\" }";
+                "You are a visual evaluator for procedurally generated 2D shapes.\n\n" +
+                "User requested shape:\n" + userPrompt + "\n\n" +
+                "Using ONLY the attached image, rate from 1 to 10 how well the rendered shape matches the request.\n\n" +
+                "Scoring guide:\n" +
+                "  10 = shape is correct and clearly recognizable\n" +
+                "   7 = shape is correct but has minor imperfections (slightly off proportions, thin border artifacts)\n" +
+                "   4 = shape is partially recognizable but significantly wrong\n" +
+                "   1 = completely wrong or blank\n\n" +
+                "IMPORTANT: Ignore soft/anti-aliased edges, slight glow or blur around shape borders, and minor " +
+                "color variations — these are normal shader rendering artifacts and should NOT reduce the score. " +
+                "Focus only on whether the overall shape matches the request.\n\n" +
+                "Return ONLY valid JSON: { \"score\": <integer 1-10>, \"explanation\": \"short explanation\" }";
 
             var bodyObject = new
             {

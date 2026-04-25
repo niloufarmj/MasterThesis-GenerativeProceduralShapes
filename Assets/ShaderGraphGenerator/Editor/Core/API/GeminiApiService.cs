@@ -12,7 +12,7 @@ namespace ShaderGraphGenerator.Editor
     /// </summary>
     public static class GeminiApiService
     {
-        private const string DEFAULT_MODEL = "gemini-2.5-pro";
+        private const string DEFAULT_MODEL = "gemini-3-pro-preview";
 
         /// <summary>
         /// Calls Gemini with a text-only prompt. Used for HLSL code generation.
@@ -52,7 +52,20 @@ namespace ShaderGraphGenerator.Editor
                 try
                 {
                     dynamic parsed = JsonConvert.DeserializeObject(raw);
-                    return (string)parsed.candidates[0].content.parts[0].text;
+                    var parts = parsed.candidates[0].content.parts;
+                    // gemini-3-pro-preview thinking mode puts reasoning in parts marked thought:true;
+                    // the actual response is always the last non-thought part.
+                    string result = null;
+                    foreach (var part in parts)
+                    {
+                        bool isThought = part.thought != null && (bool)part.thought;
+                        if (!isThought)
+                            result = (string)part.text;
+                    }
+                    if (result == null) result = (string)parts[0].text;
+                    // strip accidental markdown fences
+                    result = StripMarkdownFences(result);
+                    return result;
                 }
                 catch (Exception ex)
                 {
@@ -60,6 +73,19 @@ namespace ShaderGraphGenerator.Editor
                     return null;
                 }
             }
+        }
+
+        private static string StripMarkdownFences(string text)
+        {
+            if (string.IsNullOrEmpty(text)) return text;
+            text = text.Trim();
+            if (text.StartsWith("```"))
+            {
+                int newline = text.IndexOf('\n');
+                if (newline >= 0) text = text.Substring(newline + 1);
+                if (text.EndsWith("```")) text = text.Substring(0, text.LastIndexOf("```")).TrimEnd();
+            }
+            return text.Trim();
         }
 
         /// <summary>
@@ -85,11 +111,17 @@ namespace ShaderGraphGenerator.Editor
             }
 
             string textContent =
-                "You are a strict visual evaluator for procedurally generated shapes.\n\n" +
+                "You are a visual evaluator for procedurally generated 2D shapes.\n\n" +
                 "User requested shape:\n" + userPrompt + "\n\n" +
-                "HLSL code that produced the image:\n" + hlslCode + "\n\n" +
-                "Using ONLY the attached image, rate from 1 to 10 how well the rendered image matches the user's request. " +
-                "1 = completely wrong, 10 = perfect match.\n\n" +
+                "Using ONLY the attached image, rate from 1 to 10 how well the rendered shape matches the request.\n\n" +
+                "Scoring guide:\n" +
+                "  10 = shape is correct and clearly recognizable\n" +
+                "   7 = shape is correct but has minor imperfections (slightly off proportions, thin border artifacts)\n" +
+                "   4 = shape is partially recognizable but significantly wrong\n" +
+                "   1 = completely wrong or blank\n\n" +
+                "IMPORTANT: Ignore soft/anti-aliased edges, slight glow or blur around shape borders, and minor " +
+                "color variations — these are normal shader rendering artifacts and should NOT reduce the score. " +
+                "Focus only on whether the overall shape matches the request.\n\n" +
                 "Return ONLY valid JSON: { \"score\": <integer 1-10>, \"explanation\": \"short explanation\" }";
 
             string raw = await CallGeminiWithImageAsync(textContent, previewPath, apiKey, model);
@@ -156,7 +188,16 @@ namespace ShaderGraphGenerator.Editor
                 try
                 {
                     dynamic parsed = JsonConvert.DeserializeObject(raw);
-                    return (string)parsed.candidates[0].content.parts[0].text;
+                    var parts = parsed.candidates[0].content.parts;
+                    string result = null;
+                    foreach (var part in parts)
+                    {
+                        bool isThought = part.thought != null && (bool)part.thought;
+                        if (!isThought)
+                            result = (string)part.text;
+                    }
+                    if (result == null) result = (string)parts[0].text;
+                    return StripMarkdownFences(result);
                 }
                 catch (Exception ex)
                 {
