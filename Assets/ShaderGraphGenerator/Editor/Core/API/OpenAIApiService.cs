@@ -376,6 +376,61 @@ namespace ShaderGraphGenerator.Editor
             return await PostAndExtractContentAsync(bodyObject, apiKey, $"OpenAI Generate ({model})");
         }
 
+        /// <summary>
+        /// Same as CallOpenAIGenerateAsync but also returns input/output token counts.
+        /// </summary>
+        public static async Task<(string content, int inputTokens, int outputTokens)> CallOpenAIGenerateWithUsageAsync(
+            string prompt, string apiKey, string model = "gpt-4.1")
+        {
+            var bodyObject = new
+            {
+                model,
+                response_format = new { type = "json_object" },
+                messages = new object[]
+                {
+                    new { role = "system", content = "You are a shader code generator. Respond only with valid JSON." },
+                    new { role = "user",   content = prompt }
+                }
+            };
+            return await PostAndExtractContentWithUsageAsync(bodyObject, apiKey, $"OpenAI Generate ({model})");
+        }
+
+        private static async Task<(string, int, int)> PostAndExtractContentWithUsageAsync(
+            object bodyObject, string apiKey, string tag)
+        {
+            string jsonBody = JsonConvert.SerializeObject(bodyObject);
+            byte[] bodyRaw  = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+            using (UnityWebRequest www = new UnityWebRequest(URL, "POST"))
+            {
+                www.uploadHandler   = new UploadHandlerRaw(bodyRaw);
+                www.downloadHandler = new DownloadHandlerBuffer();
+                www.SetRequestHeader("Content-Type",  "application/json");
+                www.SetRequestHeader("Authorization", $"Bearer {apiKey}");
+                var op = www.SendWebRequest();
+                while (!op.isDone) await Task.Yield();
+                if (www.result == UnityWebRequest.Result.ConnectionError ||
+                    www.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogError($"{tag} API Error: {www.error}");
+                    return (null, 0, 0);
+                }
+                string rawResponse = www.downloadHandler.text;
+                try
+                {
+                    var parsed   = JsonConvert.DeserializeObject<dynamic>(rawResponse);
+                    int inTok  = 0, outTok = 0;
+                    try { inTok  = (int)(parsed.usage?.prompt_tokens     ?? 0); } catch { }
+                    try { outTok = (int)(parsed.usage?.completion_tokens ?? 0); } catch { }
+                    return ((string)parsed.choices[0].message.content, inTok, outTok);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"{tag}: Failed to parse response: {ex.Message}");
+                    return (null, 0, 0);
+                }
+            }
+        }
+
         // ─── shared POST helper ───────────────────────────────────────────────
 
         private static async Task<string> PostAndExtractContentAsync(object bodyObject, string apiKey, string tag)

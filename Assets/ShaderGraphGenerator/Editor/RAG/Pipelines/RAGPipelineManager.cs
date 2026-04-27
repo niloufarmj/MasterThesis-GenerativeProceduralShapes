@@ -74,13 +74,15 @@ namespace ShaderGraphGenerator.RAG
 
                 // Step 1: RAG Generation (Decompose + Retrieve + LLM)
                 Debug.Log($"[RAG Pipeline] Starting for: {userRequest}");
-                var llmResponse = await RAGShapeGenerator.GenerateWithRAGAsync(
+                var (llmResponse, inTok, outTok) = await RAGShapeGenerator.GenerateWithRAGAsync(
                     userRequest,
                     knowledgeBase,
                     config,
                     useTransparency: true,
                     codeProvider: codeProvider
                 );
+                result.llm_input_tokens  = inTok;
+                result.llm_output_tokens = outTok;
 
                 if (llmResponse == null)
                 {
@@ -372,7 +374,7 @@ namespace ShaderGraphGenerator.RAG
         public string userRequest;
         public bool success;
         public string errorMessage;
-        
+
         public string fileName;
         public string hlslCode;
         public List<LLMShaderProperty> properties;
@@ -382,5 +384,9 @@ namespace ShaderGraphGenerator.RAG
 
         public int vmlScore;
         public string vmlFeedback;
+
+        // Token usage from the code-generation LLM call (populated by RAGPipelineManager)
+        public int llm_input_tokens;
+        public int llm_output_tokens;
     }
 }

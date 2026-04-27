@@ -636,7 +636,7 @@ namespace ShaderGraphGenerator.RAG
                 _statusMsg = "Generating HLSL with RAG…";
                 Repaint();
 
-                var llmResponse = await RAGShapeGenerator.GenerateWithRAGAsync(
+                var (llmResponse, _, __) = await RAGShapeGenerator.GenerateWithRAGAsync(
                     userRequest, _kb, _config, _useTransparency);
 
                 if (llmResponse == null)

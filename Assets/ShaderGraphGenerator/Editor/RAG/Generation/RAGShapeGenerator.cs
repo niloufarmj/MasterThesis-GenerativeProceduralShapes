@@ -21,7 +21,7 @@ namespace ShaderGraphGenerator.RAG
         /// When the request is for a character/humanoid and a base template exists in the KB,
         /// routes to GenerateFromBaseTemplateAsync instead of the standard decompose-retrieve path.
         /// </summary>
-        public static async Task<LLMShaderResponse> GenerateWithRAGAsync(
+        public static async Task<(LLMShaderResponse response, int inputTokens, int outputTokens)> GenerateWithRAGAsync(
             string userRequest,
             ShapeKnowledgeBase knowledgeBase,
             ShaderGraphGeneratorConfig config,
@@ -53,7 +53,7 @@ namespace ShaderGraphGenerator.RAG
             if (decomposition == null)
             {
                 Debug.LogError("[RAG] Decomposition failed");
-                return null;
+                return (null, 0, 0);
             }
 
             Debug.Log($"[RAG] Decomposed into {decomposition.total_components} components");
@@ -113,12 +113,12 @@ namespace ShaderGraphGenerator.RAG
                 useTransparency
             );
 
-            string jsonResponse = await CallCodeLLMAsync(ragPrompt, config, codeProvider);
+            var (jsonResponse, inTok, outTok) = await CallCodeLLMAsync(ragPrompt, config, codeProvider);
 
             if (string.IsNullOrEmpty(jsonResponse))
             {
                 Debug.LogError("[RAG] LLM returned null response");
-                return null;
+                return (null, 0, 0);
             }
 
             // Strip markdown code fences (```json ... ``` or ``` ... ```) if present
@@ -128,12 +128,12 @@ namespace ShaderGraphGenerator.RAG
             {
                 var response = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
                 Debug.Log($"[RAG] ✓ Generated: {response.file_name}");
-                return response;
+                return (response, inTok, outTok);
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[RAG] Failed to parse response: {ex.Message}\n{jsonResponse}");
-                return null;
+                return (null, 0, 0);
             }
         }
 
@@ -468,7 +468,7 @@ namespace ShaderGraphGenerator.RAG
         /// The LLM receives the full working HLSL and is asked to modify style/proportions
         /// while preserving the joint structure and all animation parameters.
         /// </summary>
-        private static async Task<LLMShaderResponse> GenerateFromBaseTemplateAsync(
+        private static async Task<(LLMShaderResponse response, int inputTokens, int outputTokens)> GenerateFromBaseTemplateAsync(
             string userRequest,
             ShapeMetadata baseTemplate,
             ShaderGraphGeneratorConfig config,
@@ -478,11 +478,11 @@ namespace ShaderGraphGenerator.RAG
             string baseHLSL = File.ReadAllText(baseTemplate.filePath);
             string prompt = BuildBaseTemplatePrompt(userRequest, baseTemplate, baseHLSL, useTransparency);
 
-            string jsonResponse = await CallCodeLLMAsync(prompt, config, codeProvider);
+            var (jsonResponse, inTok, outTok) = await CallCodeLLMAsync(prompt, config, codeProvider);
             if (string.IsNullOrEmpty(jsonResponse))
             {
                 Debug.LogError("[RAG] Base template LLM call returned null");
-                return null;
+                return (null, 0, 0);
             }
 
             jsonResponse = StripMarkdownCodeBlock(jsonResponse);
@@ -490,12 +490,12 @@ namespace ShaderGraphGenerator.RAG
             {
                 var response = JsonConvert.DeserializeObject<LLMShaderResponse>(jsonResponse);
                 Debug.Log($"[RAG] ✓ Generated from base template: {response.file_name}");
-                return response;
+                return (response, inTok, outTok);
             }
             catch (Exception ex)
             {
                 Debug.LogError($"[RAG] Failed to parse base template response: {ex.Message}\n{jsonResponse.Substring(0, Math.Min(400, jsonResponse.Length))}");
-                return null;
+                return (null, 0, 0);
             }
         }
 
@@ -647,18 +647,19 @@ Generate the complete, compilable HLSL code now.";
         /// <summary>
         /// Helper to get smooth min function definition
         /// </summary>
-        private static Task<string> CallCodeLLMAsync(string prompt, ShaderGraphGeneratorConfig config, string codeProvider)
+        private static Task<(string content, int inputTokens, int outputTokens)> CallCodeLLMAsync(
+            string prompt, ShaderGraphGeneratorConfig config, string codeProvider)
         {
             if (!string.IsNullOrEmpty(codeProvider))
             {
                 if (codeProvider.StartsWith("claude-"))
-                    return ClaudeApiService.CallClaudeAsync(prompt, config.claudeKey);
+                    return ClaudeApiService.CallClaudeWithUsageAsync(prompt, config.claudeKey);
                 if (codeProvider.StartsWith("gpt-"))
-                    return OpenAIApiService.CallOpenAIGenerateAsync(prompt, config.openAIKey, codeProvider);
+                    return OpenAIApiService.CallOpenAIGenerateWithUsageAsync(prompt, config.openAIKey, codeProvider);
                 if (codeProvider.StartsWith("kimi-"))
-                    return KimiApiService.CallKimiAsync(prompt, config.kimiKey, codeProvider);
+                    return KimiApiService.CallKimiWithUsageAsync(prompt, config.kimiKey, codeProvider);
             }
-            return GeminiApiService.CallGeminiAsync(prompt, config.geminiKey);
+            return GeminiApiService.CallGeminiWithUsageAsync(prompt, config.geminiKey);
         }
 
         private static string StripMarkdownCodeBlock(string text)

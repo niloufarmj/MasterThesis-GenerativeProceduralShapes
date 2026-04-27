@@ -75,6 +75,58 @@ namespace ShaderGraphGenerator.Editor
             }
         }
 
+        /// <summary>
+        /// Same as CallGeminiAsync but also returns input/output token counts from usageMetadata.
+        /// </summary>
+        public static async Task<(string content, int inputTokens, int outputTokens)> CallGeminiWithUsageAsync(
+            string prompt, string apiKey, string model = DEFAULT_MODEL)
+        {
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
+            var bodyObj = new
+            {
+                contents = new object[] { new { parts = new object[] { new { text = prompt } } } }
+            };
+            string jsonBody = JsonConvert.SerializeObject(bodyObj);
+            byte[] bodyRaw  = System.Text.Encoding.UTF8.GetBytes(jsonBody);
+
+            using (UnityWebRequest www = new UnityWebRequest(url, "POST"))
+            {
+                www.uploadHandler   = new UploadHandlerRaw(bodyRaw);
+                www.downloadHandler = new DownloadHandlerBuffer();
+                www.SetRequestHeader("Content-Type", "application/json");
+                var op = www.SendWebRequest();
+                while (!op.isDone) await Task.Yield();
+                if (www.result == UnityWebRequest.Result.ConnectionError ||
+                    www.result == UnityWebRequest.Result.ProtocolError)
+                {
+                    Debug.LogError($"Gemini API Error: {www.error}");
+                    return (null, 0, 0);
+                }
+                string raw = www.downloadHandler.text;
+                try
+                {
+                    dynamic parsed   = JsonConvert.DeserializeObject(raw);
+                    int inTok  = 0, outTok = 0;
+                    try { inTok  = (int)(parsed.usageMetadata?.promptTokenCount     ?? 0); } catch { }
+                    try { outTok = (int)(parsed.usageMetadata?.candidatesTokenCount ?? 0); } catch { }
+                    var parts = parsed.candidates[0].content.parts;
+                    string result = null;
+                    foreach (var part in parts)
+                    {
+                        bool isThought = part.thought != null && (bool)part.thought;
+                        if (!isThought) result = (string)part.text;
+                    }
+                    if (result == null) result = (string)parts[0].text;
+                    return (StripMarkdownFences(result), inTok, outTok);
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"Gemini parse error: {ex.Message}\nRaw: {raw}");
+                    return (null, 0, 0);
+                }
+            }
+        }
+
         private static string StripMarkdownFences(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;

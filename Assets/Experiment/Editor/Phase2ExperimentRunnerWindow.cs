@@ -879,6 +879,9 @@ namespace ShaderGraphExperiments.Editor
                     iterResult.shadergraph_asset_path = pipelineResult?.shaderGraphPath;
                     iterResult.material_asset_path    = pipelineResult?.materialPath;
                     iterResult.hlsl_length        = pipelineResult?.hlslCode?.Length ?? 0;
+                    iterResult.llm_usage.input_tokens  = pipelineResult?.llm_input_tokens  ?? 0;
+                    iterResult.llm_usage.output_tokens = pipelineResult?.llm_output_tokens ?? 0;
+                    LlmPricing.Fill(iterResult.llm_usage, _gen_codeProvider);
                     ShaderGenerationPipeline.DisableAllPreviewQuads();
 
                     // Step 4: Evaluate — human first, then VLM on fresh screenshot
@@ -966,6 +969,8 @@ namespace ShaderGraphExperiments.Editor
             if (result.iterations.Count > 0)
                 result.first_pass_compiled = result.iterations[0].compile_ok;
 
+            result.llm_usage_total = LlmPricing.Aggregate(result.iterations.Select(i => i.llm_usage));
+
             return result;
         }
 
@@ -997,7 +1002,10 @@ namespace ShaderGraphExperiments.Editor
 
                 try
                 {
-                    string jsonResp = await CallCodeLLMAsync(currentPrompt);
+                    var (jsonResp, inTok, outTok) = await CallCodeLLMAsync(currentPrompt);
+                    iterResult.llm_usage.input_tokens  = inTok;
+                    iterResult.llm_usage.output_tokens = outTok;
+                    LlmPricing.Fill(iterResult.llm_usage, _gen_codeProvider);
 
                     if (string.IsNullOrEmpty(jsonResp))
                     {
@@ -1111,6 +1119,8 @@ namespace ShaderGraphExperiments.Editor
             if (result.iterations.Count > 0)
                 result.first_pass_compiled = result.iterations[0].compile_ok;
 
+            result.llm_usage_total = LlmPricing.Aggregate(result.iterations.Select(i => i.llm_usage));
+
             return result;
         }
 
@@ -1125,6 +1135,12 @@ namespace ShaderGraphExperiments.Editor
             run.summary_avg_human_score        = run.shapes.Any(s => s.human_score > 0)
                 ? (float)run.shapes.Where(s => s.human_score > 0).Average(s => s.human_score) : 0f;
             run.summary_first_pass_compile_rate = run.summary_compile_rate;
+
+            var agg = LlmPricing.Aggregate(run.shapes.Select(s => s.llm_usage_total));
+            run.summary_total_input_tokens  = agg.input_tokens;
+            run.summary_total_output_tokens = agg.output_tokens;
+            run.summary_total_tokens        = agg.total_tokens;
+            run.summary_total_cost_usd      = agg.cost_usd;
         }
 
         // ══════════════════════════════════════════════════════════════════════
@@ -1715,13 +1731,18 @@ namespace ShaderGraphExperiments.Editor
                     return;
                 }
 
-                var psi = new System.Diagnostics.ProcessStartInfo
+                // Write a temp batch file to avoid cmd.exe quoting issues with spaces in paths.
+                string batPath = Path.Combine(Path.GetTempPath(), "run_visualizer.bat");
+                File.WriteAllText(batPath,
+                    $"@echo off\r\n" +
+                    $"\"{python}\" \"{scriptPath}\" --results_dir \"{resultsDir}\" --out_dir \"{outDir}\"\r\n" +
+                    $"pause\r\n");
+                var psi = new ProcessStartInfo
                 {
-                    FileName        = python,
-                    Arguments       = $"\"{scriptPath}\" --results_dir \"{resultsDir}\" --out_dir \"{outDir}\"",
-                    UseShellExecute = true   // opens a visible console window
+                    FileName        = batPath,
+                    UseShellExecute = true
                 };
-                System.Diagnostics.Process.Start(psi);
+                Process.Start(psi);
                 AppendStatus("Launched Python visualizer.");
             }
             catch (Exception ex)
@@ -1787,19 +1808,19 @@ namespace ShaderGraphExperiments.Editor
         }
 
 //
-        private Task<string> CallCodeLLMAsync(string prompt)
+        private Task<(string content, int inputTokens, int outputTokens)> CallCodeLLMAsync(string prompt)
         {
             if (_gen_codeProvider.StartsWith("gemini-"))
-                return GeminiApiService.CallGeminiAsync(prompt, _config.geminiKey, _gen_codeProvider);
+                return GeminiApiService.CallGeminiWithUsageAsync(prompt, _config.geminiKey, _gen_codeProvider);
             if (_gen_codeProvider.StartsWith("gpt-"))
-                return OpenAIApiService.CallOpenAIGenerateAsync(prompt, _config.openAIKey, _gen_codeProvider);
+                return OpenAIApiService.CallOpenAIGenerateWithUsageAsync(prompt, _config.openAIKey, _gen_codeProvider);
             if (_gen_codeProvider.StartsWith("claude-"))
-                return ClaudeApiService.CallClaudeAsync(prompt, _config.claudeKey);
+                return ClaudeApiService.CallClaudeWithUsageAsync(prompt, _config.claudeKey);
             if (_gen_codeProvider.StartsWith("kimi-"))
-                return KimiApiService.CallKimiAsync(prompt, _config.kimiKey, _gen_codeProvider);
+                return KimiApiService.CallKimiWithUsageAsync(prompt, _config.kimiKey, _gen_codeProvider);
 
             UnityEngine.Debug.LogWarning($"[Experiment] Unknown provider '{_gen_codeProvider}', falling back to Gemini.");
-            return GeminiApiService.CallGeminiAsync(prompt, _config.geminiKey);
+            return GeminiApiService.CallGeminiWithUsageAsync(prompt, _config.geminiKey);
         }
 
         private async Task<bool> RenderMaterialPreviewAsync(Material mat, string outputPath)

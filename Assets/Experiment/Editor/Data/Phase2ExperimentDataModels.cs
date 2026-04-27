@@ -112,6 +112,18 @@ namespace ShaderGraphExperiments.Editor
                            + (stats.output_tokens / 1_000_000.0) * cfg.OutputPer1M;
         }
 
+        public static void Fill(LlmUsageStats stats, string modelId)
+        {
+            stats.total_tokens = stats.input_tokens + stats.output_tokens;
+            foreach (var cfg in Config.Values)
+            {
+                if (cfg.ModelId != modelId) continue;
+                stats.cost_usd = (stats.input_tokens  / 1_000_000.0) * cfg.InputPer1M
+                               + (stats.output_tokens / 1_000_000.0) * cfg.OutputPer1M;
+                return;
+            }
+        }
+
         /// <summary>Sums a collection of per-call stats into a single aggregate.</summary>
         public static LlmUsageStats Aggregate(IEnumerable<LlmUsageStats> all)
         {

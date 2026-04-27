@@ -1,0 +1,8 @@
+experiment,group_by,pipeline,complexity,llm_model,n,success_rate,avg_vlm_score,avg_iterations,avg_time_s,compile_rate,avg_cost_usd,avg_total_tokens,avg_human_score
+generation,pipeline_complexity,NoRAG,Simple,ALL,7,0.7143,7.4286,1.7143,64.7364,0.8571,0.1379,40771.0000,9.5000
+generation,pipeline_complexity,RAG,Simple,ALL,8,0.8750,8.1250,1.5000,70.5840,0.8750,0.0187,3181.7500,10.0000
+generation,model,ALL,ALL,Gemini 3.1 Pro,4,1.0000,10.0000,1.2500,80.3619,0.7500,0.0839,28730.5000,9.7500
+generation,model,ALL,ALL,GPT-5.4,4,0.5000,5.5000,2.0000,62.4735,1.0000,0.1216,19211.5000,
+generation,model,ALL,ALL,Claude Sonnet,4,0.7500,7.0000,2.0000,39.5541,0.7500,0.0672,19741.5000,
+generation,model,ALL,ALL,Kimi K2.6,1,1.0000,10.0000,1.0000,109.3078,1.0000,0.0076,35027.0000,
+generation,model,ALL,ALL,Gemini 3 Pro,2,1.0000,8.5000,1.0000,89.4802,1.0000,0.0081,2545.0000,10.0000
