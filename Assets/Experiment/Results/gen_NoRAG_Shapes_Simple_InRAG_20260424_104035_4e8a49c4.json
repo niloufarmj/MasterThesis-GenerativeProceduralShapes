@@ -1,0 +1,137 @@
+{
+  "experiment_type": "generation",
+  "run_id": "4e8a49c4",
+  "timestamp_utc": "2026-04-24T10:40:35.7649305Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "gemini-2.5-pro",
+  "llm_model_id": "gemini-2.5-pro",
+  "eval_provider": "gemini-2.5-pro",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.5,
+  "summary_avg_vlm_score": 5.5,
+  "summary_avg_iterations": 1.5,
+  "summary_avg_time_ms": 104898.789,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 0,
+  "summary_total_output_tokens": 0,
+  "summary_total_tokens": 0,
+  "summary_total_cost_usd": 0.0,
+  "shapes": [
+    {
+      "prompt": "a filled circle in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 24266.091200000003,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly renders a filled circle in a dark color, exactly as requested. The shape is accurate, the color is dark, and the anti-aliased edge is clean.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 24237.4607,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly renders a filled circle in a dark color, exactly as requested. The shape is accurate, the color is dark, and the anti-aliased edge is clean.",
+          "hlsl_length": 856,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\FilledCircleDark_ab4d2e44-73b6-40b6-9833-5a47665ff5f4.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a five-pointed star with five equal pointed tips",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 2,
+      "total_time_ms": 185531.4927,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Pipeline error: Failed to create material.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 64382.5074,
+          "compile_ok": true,
+          "vlm_score": 3,
+          "vlm_explanation": "The shape has five equal points, but the tips are rounded, not pointed. This makes the shape look more like a flower than the requested five-pointed star.",
+          "hlsl_length": 1985,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\StarFivePointed_ca8a083d-b087-4676-a9ec-b70bfc2d01dc.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 121145.97260000001,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline error: Failed to create material.",
+          "hlsl_length": 3128,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

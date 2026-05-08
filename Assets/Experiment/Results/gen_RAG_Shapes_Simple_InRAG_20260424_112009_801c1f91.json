@@ -1,0 +1,71 @@
+{
+  "experiment_type": "generation",
+  "run_id": "801c1f91",
+  "timestamp_utc": "2026-04-24T11:20:09.0406931Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "gemini-2.5-pro",
+  "llm_model_id": "gemini-2.5-pro",
+  "eval_provider": "gemini-2.5-pro",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": true,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 10.0,
+  "summary_avg_iterations": 1.0,
+  "summary_avg_time_ms": 39723.93,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 10.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 0,
+  "summary_total_output_tokens": 0,
+  "summary_total_tokens": 0,
+  "summary_total_cost_usd": 0.0,
+  "shapes": [
+    {
+      "prompt": "a filled circle in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 39723.9315,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly depicts a filled circle in a dark color, exactly as requested.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.6035908,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 39723.8723,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly depicts a filled circle in a dark color, exactly as requested.",
+          "hlsl_length": 1205,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/ShaderGraphs/RAG_Generated\\FilledCircle.shadergraph",
+          "material_asset_path": "Assets/ShaderGraphs/RAG_Generated\\FilledCircle.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\ShaderGraphs\\Previews\\FilledCircle_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.6035908,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

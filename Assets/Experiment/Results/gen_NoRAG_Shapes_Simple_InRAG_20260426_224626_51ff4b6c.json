@@ -1,0 +1,143 @@
+{
+  "experiment_type": "generation",
+  "run_id": "51ff4b6c",
+  "timestamp_utc": "2026-04-26T22:46:26.7528967Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "gemini-3.1-pro-preview",
+  "llm_model_id": "gemini-3.1-pro-preview",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": true,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 10.0,
+  "summary_avg_iterations": 1.5,
+  "summary_avg_time_ms": 105845.648,
+  "summary_compile_rate": 0.5,
+  "summary_avg_human_score": 9.5,
+  "summary_first_pass_compile_rate": 0.5,
+  "summary_total_input_tokens": 107125,
+  "summary_total_output_tokens": 2677,
+  "summary_total_tokens": 109802,
+  "summary_total_cost_usd": 0.3079675,
+  "shapes": [
+    {
+      "prompt": "a filled circle in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 28644.7225,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly matches the request, showing a filled circle in a dark color.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 35699,
+        "output_tokens": 498,
+        "total_tokens": 36197,
+        "cost_usd": 0.096717500000000012
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 28640.631100000002,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly matches the request, showing a filled circle in a dark color.",
+          "human_score": 10,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\FilledDarkCircle_3c389901-45e9-46ca-96b3-ef4964c6cfc1_vlm.png",
+          "hlsl_length": 699,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\FilledDarkCircle_3c389901-45e9-46ca-96b3-ef4964c6cfc1.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 35699,
+            "output_tokens": 498,
+            "total_tokens": 36197,
+            "cost_usd": 0.096717500000000012
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a 5-pointed star filled by default in yellow color, centered, with a clear inner radius",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 183046.5768,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly matches the request, showing a clearly recognizable, centered 5-pointed star filled in yellow with a distinct inner radius.",
+      "human_score": 9,
+      "accepted_by_human": true,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 71426,
+        "output_tokens": 2179,
+        "total_tokens": 73605,
+        "cost_usd": 0.21125
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 52749.7425,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline error: Shader compile error detected.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 2077,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 35713,
+            "output_tokens": 978,
+            "total_tokens": 36691,
+            "cost_usd": 0.1039525
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 130296.07130000001,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly matches the request, showing a clearly recognizable, centered 5-pointed star filled in yellow with a distinct inner radius.",
+          "human_score": 9,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\StarShape_d3224936-2978-4d24-b392-d31458c1eac9_vlm.png",
+          "hlsl_length": 2307,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\StarShape_d3224936-2978-4d24-b392-d31458c1eac9.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 35713,
+            "output_tokens": 1201,
+            "total_tokens": 36914,
+            "cost_usd": 0.1072975
+          }
+        }
+      ]
+    }
+  ]
+}

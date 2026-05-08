@@ -1,0 +1,120 @@
+{
+  "experiment_type": "generation",
+  "run_id": "eca29b4f",
+  "timestamp_utc": "2026-04-24T21:12:41.9104312Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_NotInRAG",
+  "llm_provider": "gemini-3-pro-preview",
+  "llm_model_id": "gemini-3-pro-preview",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": true,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 10.0,
+  "summary_avg_iterations": 1.0,
+  "summary_avg_time_ms": 110296.477,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 9.5,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 0,
+  "summary_total_output_tokens": 0,
+  "summary_total_tokens": 0,
+  "summary_total_cost_usd": 0.0,
+  "shapes": [
+    {
+      "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 54207.9046,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The shape is clearly recognizable as a parallelogram with a dark fill and the sides are tilted at an appropriate angle, perfectly matching the request.",
+      "human_score": 10,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 54199.6871,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The shape is clearly recognizable as a parallelogram with a dark fill and the sides are tilted at an appropriate angle, perfectly matching the request.",
+          "human_score": 10,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ParallelogramDark_88db9e3c-1c1c-42b2-beb5-df27e43a0132_vlm.png",
+          "hlsl_length": 2586,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ParallelogramDark_88db9e3c-1c1c-42b2-beb5-df27e43a0132.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a right-pointing chevron arrow formed by two diagonal lines meeting at a sharp point, filled in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 166385.05010000002,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The shape perfectly matches the requested right-pointing chevron arrow, with two diagonal lines meeting at a sharp point and filled in a dark color.",
+      "human_score": 9,
+      "accepted_by_human": true,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 166384.3205,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The shape perfectly matches the requested right-pointing chevron arrow, with two diagonal lines meeting at a sharp point and filled in a dark color.",
+          "human_score": 9,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ChevronArrow_c3c02160-8090-4b20-9b59-ea571459def6_vlm.png",
+          "hlsl_length": 2218,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ChevronArrow_c3c02160-8090-4b20-9b59-ea571459def6.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "experiment_type": "generation",
+  "run_id": "1d2f8ff2",
+  "timestamp_utc": "2026-04-27T07:53:47.6541023Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "kimi-k2.6",
+  "llm_model_id": "kimi-k2.6",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.5,
+  "summary_avg_vlm_score": 5.5,
+  "summary_avg_iterations": 1.0,
+  "summary_avg_time_ms": 667218.563,
+  "summary_compile_rate": 0.5,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 0.5,
+  "summary_total_input_tokens": 59730,
+  "summary_total_output_tokens": 37937,
+  "summary_total_tokens": 97667,
+  "summary_total_cost_usd": 0.0317217,
+  "shapes": [
+    {
+      "prompt": "a filled circle in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 109307.8154,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The image perfectly depicts a filled circle in a dark color, exactly matching the request.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 29858,
+        "output_tokens": 5169,
+        "total_tokens": 35027,
+        "cost_usd": 0.0075800999999999993
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 109306.8995,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The image perfectly depicts a filled circle in a dark color, exactly matching the request.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 955,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\DarkFilledCircle_6eb0eab3-204c-448a-8c6f-b957369eaf7e.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 29858,
+            "output_tokens": 5169,
+            "total_tokens": 35027,
+            "cost_usd": 0.0075800999999999993
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a 5-pointed star filled by default in yellow color, centered, with a clear inner radius",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 1,
+      "total_time_ms": 1225129.2655,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Invalid JSON from LLM.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 29872,
+        "output_tokens": 32768,
+        "total_tokens": 62640,
+        "cost_usd": 0.0241416
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 1225121.5476000002,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "Invalid JSON from LLM.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 29872,
+            "output_tokens": 32768,
+            "total_tokens": 62640,
+            "cost_usd": 0.0241416
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -56,23 +56,33 @@ PALETTE = {
     "PropertyChange": "#00BCD4", "HLSLUpdate": "#FF5722"
 }
 
+# ─── exact set of models included in the experiment ──────────────────────────
+# Any result file whose llm_provider is NOT in this set is silently skipped.
+VALID_MODEL_IDS = {
+    "gemini-3-pro-preview",
+    "gemini-3-1-pro",
+    "gpt-5.4",
+    "claude-sonnet-4-6",
+    "kimi-k2.6",
+}
+
 # Per-model colours — used for all model-breakdown charts
 MODEL_COLORS = {
-    "Gemini 3 Pro":    "#1E88E5",
-    "Gemini 3.1 Pro":  "#0D47A1",
-    "GPT-5.4":         "#43A047",
-    "Claude Sonnet":   "#FB8C00",
-    "Kimi K2.6":       "#8E24AA",
-    "Unknown":         "#78909C",
+    "Gemini 3 Pro Preview": "#1E88E5",
+    "Gemini 3.1 Pro":       "#0D47A1",
+    "GPT-5.4":              "#43A047",
+    "Claude Sonnet":        "#FB8C00",
+    "Kimi K2.6":            "#8E24AA",
+    "Unknown":              "#78909C",
 }
 
 # Pricing table ($/1M tokens) kept in sync with LlmPricing.cs
 PRICING = {
-    "gemini-3-pro-preview":   (1.25,  10.00),
-    "gemini-3.1-pro-preview": (2.50,  15.00),
-    "gpt-5.4":                (5.00,  20.00),
-    "claude-sonnet-4-6":      (3.00,  15.00),
-    "kimi-k2.6":              (0.15,   0.60),
+    "gemini-3-pro-preview": (1.25,  10.00),
+    "gemini-3-1-pro":       (1.25,  10.00),
+    "gpt-5.4":              (5.00,  20.00),
+    "claude-sonnet-4-6":    (3.00,  15.00),
+    "kimi-k2.6":            (0.15,   0.60),
 }
 
 sns.set_theme(style="whitegrid", palette="muted", font_scale=1.1)
@@ -81,11 +91,11 @@ sns.set_theme(style="whitegrid", palette="muted", font_scale=1.1)
 # ─── model helpers ───────────────────────────────────────────────────────────
 
 MODEL_ID_TO_DISPLAY = {
-    "gemini-3-pro-preview":   "Gemini 3 Pro",
-    "gemini-3.1-pro-preview": "Gemini 3.1 Pro",
-    "gpt-5.4":                "GPT-5.4",
-    "claude-sonnet-4-6":      "Claude Sonnet",
-    "kimi-k2.6":              "Kimi K2.6",
+    "gemini-3-pro-preview": "Gemini 3 Pro Preview",
+    "gemini-3-1-pro":       "Gemini 3.1 Pro",
+    "gpt-5.4":              "GPT-5.4",
+    "claude-sonnet-4-6":    "Claude Sonnet",
+    "kimi-k2.6":            "Kimi K2.6",
 }
 
 def shorten_model(model_id: str) -> str:
@@ -120,6 +130,9 @@ def load_results(results_dir: Path):
                          or data.get("llm_model_id")
                          or data.get("code_provider")
                          or "unknown")
+            # Skip files from models outside the defined experiment set
+            if llm_id not in VALID_MODEL_IDS:
+                continue
             llm_model = shorten_model(llm_id)
             eval_prov = data.get("eval_provider", "?")
 

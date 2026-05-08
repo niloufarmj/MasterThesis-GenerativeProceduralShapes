@@ -1701,8 +1701,11 @@ namespace ShaderGraphExperiments.Editor
 
             try
             {
-                // Try to find Python executable
-                string[] candidates = { "python", "python3", "py" };
+                // Try to find Python executable — prefer project venv, then PATH entries.
+                // Deliberately exclude "py" (Windows Launcher) as it may be configured to use
+                // a Python version that is no longer installed, causing a misleading error.
+                string venvPython = Path.GetFullPath(@"kb_env\Scripts\python.exe");
+                string[] candidates = { venvPython, "python", "python3" };
                 string   python     = null;
                 foreach (var c in candidates)
                 {
@@ -1711,13 +1714,13 @@ namespace ShaderGraphExperiments.Editor
                         var test = new System.Diagnostics.ProcessStartInfo(c, "--version")
                         {
                             RedirectStandardOutput = true,
+                            RedirectStandardError  = true,
                             UseShellExecute = false,
                             CreateNoWindow = true
                         };
-                        var proc = System.Diagnostics.Process.Start(test);
+                        var proc = Process.Start(test);
                         proc?.WaitForExit(2000);
-                        python = c;
-                        break;
+                        if (proc?.ExitCode == 0) { python = c; break; }
                     }
                     catch { /* try next */ }
                 }

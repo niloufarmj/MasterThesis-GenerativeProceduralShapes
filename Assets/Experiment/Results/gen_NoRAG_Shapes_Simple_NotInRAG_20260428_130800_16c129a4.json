@@ -1,0 +1,399 @@
+{
+  "experiment_type": "generation",
+  "run_id": "16c129a4",
+  "timestamp_utc": "2026-04-28T13:08:00.0000000Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_NotInRAG",
+  "llm_provider": "kimi-k2.6",
+  "llm_model_id": "kimi-k2.6",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.6,
+  "summary_avg_vlm_score": 5.4,
+  "summary_avg_iterations": 2.2,
+  "summary_avg_time_ms": 1138134.713,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 0.6,
+  "summary_total_input_tokens": 386843,
+  "summary_total_output_tokens": 97780,
+  "summary_total_tokens": 484623,
+  "summary_total_cost_usd": 0.11669445,
+  "shapes": [
+    {
+      "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 1017141.9145,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The Parallelogram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 63677,
+        "output_tokens": 18875,
+        "total_tokens": 82552,
+        "cost_usd": 0.02087655
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 349566.742,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 884,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Parallelogram_a3045adf-730b-4d49-a304-bb221c310113.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 25330,
+            "output_tokens": 8593,
+            "total_tokens": 33923,
+            "cost_usd": 0.0089553
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 667575.1725,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The Parallelogram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Parallelogram_cb33d42a-555b-417c-8bf5-56b3f4d1003b_vlm.png",
+          "hlsl_length": 832,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Parallelogram_cb33d42a-555b-417c-8bf5-56b3f4d1003b.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 38347,
+            "output_tokens": 10282,
+            "total_tokens": 48629,
+            "cost_usd": 0.01192125
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a right-pointing chevron arrow formed by two diagonal lines meeting at a sharp point, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 575538.307,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The ChevronArrow is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 32078,
+        "output_tokens": 6703,
+        "total_tokens": 38781,
+        "cost_usd": 0.0088335
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 575538.307,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The ChevronArrow is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ChevronArrow_714243e5-1b2e-458d-9394-318a0482315f_vlm.png",
+          "hlsl_length": 744,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ChevronArrow_714243e5-1b2e-458d-9394-318a0482315f.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 32078,
+            "output_tokens": 6703,
+            "total_tokens": 38781,
+            "cost_usd": 0.0088335
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a lemniscate or figure-eight curve lying horizontally with two lobes of equal size, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 1463320.4189,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "The shader code references undefined built-in functions.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 99864,
+        "output_tokens": 24744,
+        "total_tokens": 124608,
+        "cost_usd": 0.029826
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 516511.448,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1692,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Lemniscate_01697e85-7022-4344-8217-b009ba4b79d6.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 27845,
+            "output_tokens": 6209,
+            "total_tokens": 34054,
+            "cost_usd": 0.00790215
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 537150.0732,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1152,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Lemniscate_201ca05c-52ce-4cb0-86f4-10f3bf9bb4dd.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 31816,
+            "output_tokens": 8570,
+            "total_tokens": 40386,
+            "cost_usd": 0.0099144
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 409658.8977,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The shader code references undefined built-in functions.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 40203,
+            "output_tokens": 9965,
+            "total_tokens": 50168,
+            "cost_usd": 0.01200945
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a hexagram composed of two overlapping equilateral triangles forming a six-pointed star, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 1408385.3264,
+      "final_vlm_score": 5,
+      "final_vlm_explanation": "Rejected by human evaluator.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 113382,
+        "output_tokens": 27137,
+        "total_tokens": 140519,
+        "cost_usd": 0.0332895
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 626573.4467,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The generated HLSL code failed to compile due to an undeclared identifier.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 25339,
+            "output_tokens": 7830,
+            "total_tokens": 33169,
+            "cost_usd": 0.00849885
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 318822.1533,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1560,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Hexagram_2e35ec7e-1eb4-4578-8c93-655a3059209d.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 42872,
+            "output_tokens": 9615,
+            "total_tokens": 52487,
+            "cost_usd": 0.0121998
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 462989.7264,
+          "compile_ok": true,
+          "vlm_score": 5,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1727,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Hexagram_c456833b-9b7e-4559-b7f0-58ddd89fa8b2.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 45171,
+            "output_tokens": 9692,
+            "total_tokens": 54863,
+            "cost_usd": 0.01259085
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a squircle that blends smoothly between a square and a circle using a superellipse curve, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 1226287.5959,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The Squircle is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 77842,
+        "output_tokens": 20321,
+        "total_tokens": 98163,
+        "cost_usd": 0.0238689
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 562206.0564,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The LLM returned malformed output that could not be parsed as valid HLSL.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 35053,
+            "output_tokens": 10519,
+            "total_tokens": 45572,
+            "cost_usd": 0.01156935
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 664081.5395,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The Squircle is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Squircle_28613785-355f-4853-a4df-2fb747c11b4b_vlm.png",
+          "hlsl_length": 985,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Squircle_28613785-355f-4853-a4df-2fb747c11b4b.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 42789,
+            "output_tokens": 9802,
+            "total_tokens": 52591,
+            "cost_usd": 0.01229955
+          }
+        }
+      ]
+    }
+  ]
+}

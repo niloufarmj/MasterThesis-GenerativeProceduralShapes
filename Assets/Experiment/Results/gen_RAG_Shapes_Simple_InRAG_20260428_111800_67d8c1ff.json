@@ -1,0 +1,376 @@
+{
+  "experiment_type": "generation",
+  "run_id": "67d8c1ff",
+  "timestamp_utc": "2026-04-28T11:18:00.0000000Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "kimi-k2.6",
+  "llm_model_id": "kimi-k2.6",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.6,
+  "summary_avg_vlm_score": 6.0,
+  "summary_avg_iterations": 2.0,
+  "summary_avg_time_ms": 1108701.851,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 0.4,
+  "summary_total_input_tokens": 401554,
+  "summary_total_output_tokens": 108886,
+  "summary_total_tokens": 510440,
+  "summary_total_cost_usd": 0.1255647,
+  "shapes": [
+    {
+      "prompt": "a teardrop shape with a smooth round bottom and a tapering pointed top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 1580022.7916,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "The shader code references undefined built-in functions.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.4874054,
+      "llm_usage_total": {
+        "input_tokens": 135832,
+        "output_tokens": 34842,
+        "total_tokens": 170674,
+        "cost_usd": 0.04128
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 438992.5312,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The LLM returned malformed output that could not be parsed as valid HLSL.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.472537,
+          "llm_usage": {
+            "input_tokens": 37103,
+            "output_tokens": 9611,
+            "total_tokens": 46714,
+            "cost_usd": 0.01133205
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 393199.9649,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1494,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Teardrop.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Teardrop.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Teardrop_2.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.5560746,
+          "llm_usage": {
+            "input_tokens": 44187,
+            "output_tokens": 13303,
+            "total_tokens": 57490,
+            "cost_usd": 0.01460985
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 747830.2955,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The shader code references undefined built-in functions.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.4874054,
+          "llm_usage": {
+            "input_tokens": 54542,
+            "output_tokens": 11928,
+            "total_tokens": 66470,
+            "cost_usd": 0.0153381
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a scalloped disc with evenly spaced smooth convex bumps distributed around its circular perimeter, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 1268086.934,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The ScallopedDisc is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 3,
+      "rag_retrieved_examples": 3,
+      "rag_avg_similarity_score": 0.5331031,
+      "llm_usage_total": {
+        "input_tokens": 76993,
+        "output_tokens": 22560,
+        "total_tokens": 99553,
+        "cost_usd": 0.02508495
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 853716.6707,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "HLSL compilation error: unexpected token in shader function body.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.5809808,
+          "llm_usage": {
+            "input_tokens": 35099,
+            "output_tokens": 10042,
+            "total_tokens": 45141,
+            "cost_usd": 0.01129005
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 414370.2633,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The ScallopedDisc is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ScallopedDisc_2_vlm.png",
+          "hlsl_length": 1980,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\ScallopedDisc.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\ScallopedDisc.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ScallopedDisc_2.png",
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.5331031,
+          "llm_usage": {
+            "input_tokens": 41894,
+            "output_tokens": 12518,
+            "total_tokens": 54412,
+            "cost_usd": 0.0137949
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a U-shaped thick arc with two parallel straight arms and a rounded bottom, open at the top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 1927271.2754,
+      "final_vlm_score": 6,
+      "final_vlm_explanation": "Rejected by human evaluator.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.4252374,
+      "llm_usage_total": {
+        "input_tokens": 120851,
+        "output_tokens": 28626,
+        "total_tokens": 149477,
+        "cost_usd": 0.03530325
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 570012.1473,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The generated HLSL code failed to compile due to an undeclared identifier.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.5150557,
+          "llm_usage": {
+            "input_tokens": 37761,
+            "output_tokens": 10452,
+            "total_tokens": 48213,
+            "cost_usd": 0.01193535
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 816873.463,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 800,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\UShapedArc.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\UShapedArc.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\UShapedArc_2.png",
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.612169,
+          "llm_usage": {
+            "input_tokens": 42552,
+            "output_tokens": 8810,
+            "total_tokens": 51362,
+            "cost_usd": 0.0116688
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 540385.6651,
+          "compile_ok": true,
+          "vlm_score": 6,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1255,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\UShapedArc.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\UShapedArc.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\UShapedArc_3.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.4252374,
+          "llm_usage": {
+            "input_tokens": 40538,
+            "output_tokens": 9364,
+            "total_tokens": 49902,
+            "cost_usd": 0.0116991
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a lightning bolt formed by two angled segments meeting at a sharp midpoint, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 394611.9317,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The LightningBolt is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.4707206,
+      "llm_usage_total": {
+        "input_tokens": 39270,
+        "output_tokens": 11781,
+        "total_tokens": 51051,
+        "cost_usd": 0.0129591
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 394611.9317,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The LightningBolt is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\LightningBolt_1_vlm.png",
+          "hlsl_length": 1325,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\LightningBolt.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\LightningBolt.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\LightningBolt_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.4707206,
+          "llm_usage": {
+            "input_tokens": 39270,
+            "output_tokens": 11781,
+            "total_tokens": 51051,
+            "cost_usd": 0.0129591
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a trapezoid with a wider base and a shorter parallel top edge, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 373516.321,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The Trapezoid is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 3,
+      "rag_retrieved_examples": 3,
+      "rag_avg_similarity_score": 0.4908932,
+      "llm_usage_total": {
+        "input_tokens": 28608,
+        "output_tokens": 11077,
+        "total_tokens": 39685,
+        "cost_usd": 0.0109374
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 373516.321,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The Trapezoid is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Trapezoid_1_vlm.png",
+          "hlsl_length": 1387,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Trapezoid.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Trapezoid.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Trapezoid_1.png",
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.4908932,
+          "llm_usage": {
+            "input_tokens": 28608,
+            "output_tokens": 11077,
+            "total_tokens": 39685,
+            "cost_usd": 0.0109374
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,307 @@
+{
+  "experiment_type": "generation",
+  "run_id": "8c1b1a68",
+  "timestamp_utc": "2026-04-28T09:06:00.0000000Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "claude-sonnet-4-6",
+  "llm_model_id": "claude-sonnet-4-6",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 7.6,
+  "summary_avg_iterations": 1.4,
+  "summary_avg_time_ms": 37987.095,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 9884,
+  "summary_total_output_tokens": 4127,
+  "summary_total_tokens": 14011,
+  "summary_total_cost_usd": 0.091557,
+  "shapes": [
+    {
+      "prompt": "a teardrop shape with a smooth round bottom and a tapering pointed top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 43812.9716,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The Teardrop is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 2868,
+        "output_tokens": 1128,
+        "total_tokens": 3996,
+        "cost_usd": 0.025524
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 19959.8471,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1425,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Teardrop_ff89125d-963d-4f7d-a094-6e3f7ae5017d.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1380,
+            "output_tokens": 603,
+            "total_tokens": 1983,
+            "cost_usd": 0.013185
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 23853.1245,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The Teardrop is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Teardrop_300fc96b-c13c-475a-8f99-237806a286f2_vlm.png",
+          "hlsl_length": 1289,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Teardrop_300fc96b-c13c-475a-8f99-237806a286f2.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1488,
+            "output_tokens": 525,
+            "total_tokens": 2013,
+            "cost_usd": 0.012339
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a scalloped disc with evenly spaced smooth convex bumps distributed around its circular perimeter, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 55716.9174,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The ScallopedDisc is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 3008,
+        "output_tokens": 1444,
+        "total_tokens": 4452,
+        "cost_usd": 0.030684
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 20300.7341,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1020,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ScallopedDisc_1fb88ace-76a1-4566-848a-a116f65ded1c.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1521,
+            "output_tokens": 719,
+            "total_tokens": 2240,
+            "cost_usd": 0.015348
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 35416.1833,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The ScallopedDisc is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ScallopedDisc_fea8fb20-9d15-4129-8290-ea749e579d63_vlm.png",
+          "hlsl_length": 1740,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ScallopedDisc_fea8fb20-9d15-4129-8290-ea749e579d63.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1487,
+            "output_tokens": 725,
+            "total_tokens": 2212,
+            "cost_usd": 0.015336
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a U-shaped thick arc with two parallel straight arms and a rounded bottom, open at the top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 29311.1956,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested UShapedArc description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 1446,
+        "output_tokens": 494,
+        "total_tokens": 1940,
+        "cost_usd": 0.011748
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 29311.1956,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested UShapedArc description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\UShapedArc_356c8aaf-e6c0-4db7-b7f2-03e318d9dfe5_vlm.png",
+          "hlsl_length": 908,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\UShapedArc_356c8aaf-e6c0-4db7-b7f2-03e318d9dfe5.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1446,
+            "output_tokens": 494,
+            "total_tokens": 1940,
+            "cost_usd": 0.011748
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a lightning bolt formed by two angled segments meeting at a sharp midpoint, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 24134.882,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The LightningBolt is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 1214,
+        "output_tokens": 474,
+        "total_tokens": 1688,
+        "cost_usd": 0.010752
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 24134.882,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The LightningBolt is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\LightningBolt_569f4f15-8dab-4737-a798-ade1f7134297_vlm.png",
+          "hlsl_length": 1000,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\LightningBolt_569f4f15-8dab-4737-a798-ade1f7134297.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1214,
+            "output_tokens": 474,
+            "total_tokens": 1688,
+            "cost_usd": 0.010752
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a trapezoid with a wider base and a shorter parallel top edge, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 36959.5087,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The Trapezoid is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 1348,
+        "output_tokens": 587,
+        "total_tokens": 1935,
+        "cost_usd": 0.012849
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 36959.5087,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The Trapezoid is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Trapezoid_4db87237-7529-429d-a773-5647030cfc96_vlm.png",
+          "hlsl_length": 1688,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Trapezoid_4db87237-7529-429d-a773-5647030cfc96.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1348,
+            "output_tokens": 587,
+            "total_tokens": 1935,
+            "cost_usd": 0.012849
+          }
+        }
+      ]
+    }
+  ]
+}

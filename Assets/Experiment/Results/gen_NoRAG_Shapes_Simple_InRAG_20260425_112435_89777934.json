@@ -1,0 +1,166 @@
+{
+  "experiment_type": "generation",
+  "run_id": "89777934",
+  "timestamp_utc": "2026-04-25T11:24:35.3433884Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "gpt-5.4",
+  "llm_model_id": "gpt-5.4",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.5,
+  "summary_avg_vlm_score": 5.5,
+  "summary_avg_iterations": 2.0,
+  "summary_avg_time_ms": 33967.1367,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 0,
+  "summary_total_output_tokens": 0,
+  "summary_total_tokens": 0,
+  "summary_total_cost_usd": 0.0,
+  "shapes": [
+    {
+      "prompt": "a filled circle in dark color",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 14092.5594,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The shape is a perfectly recognizable filled circle rendered in a dark color, fully matching the requested prompt.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 14089.8907,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The shape is a perfectly recognizable filled circle rendered in a dark color, fully matching the requested prompt.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 827,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\FilledDarkCircle_f65e299a-6c54-42f1-98ec-23816a1872c1.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a 5-pointed star filled by default in yellow color, centered, with a clear inner radius",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 53841.715200000006,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "Pipeline error: Failed to create material.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "cost_usd": 0.0
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 29261.293400000002,
+          "compile_ok": true,
+          "vlm_score": 4,
+          "vlm_explanation": "The image features 5 yellow arms and an empty center, which partially matches the prompt. However, it looks like a stylized asterisk or loading icon with detached, rounded spokes rather than a traditional filled 5-pointed star.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 2778,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\StarRingYellow_fe33c9f6-8210-490e-81bd-d7e7e38cdc04.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 12199.983100000001,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline error: Failed to parse HLSL function header. No functions found in file.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 12379.4648,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "Pipeline error: Failed to create material.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 2036,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 0,
+            "output_tokens": 0,
+            "total_tokens": 0,
+            "cost_usd": 0.0
+          }
+        }
+      ]
+    }
+  ]
+}

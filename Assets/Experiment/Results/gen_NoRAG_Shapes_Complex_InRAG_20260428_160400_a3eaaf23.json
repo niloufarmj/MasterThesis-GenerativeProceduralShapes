@@ -1,0 +1,353 @@
+{
+  "experiment_type": "generation",
+  "run_id": "a3eaaf23",
+  "timestamp_utc": "2026-04-28T16:04:00.0000000Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Complex_InRAG",
+  "llm_provider": "gpt-5.4",
+  "llm_model_id": "gpt-5.4",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.8,
+  "summary_avg_vlm_score": 7.2,
+  "summary_avg_iterations": 1.8,
+  "summary_avg_time_ms": 394392.332,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 0.8,
+  "summary_total_input_tokens": 32525,
+  "summary_total_output_tokens": 59773,
+  "summary_total_tokens": 92298,
+  "summary_total_cost_usd": 1.05922,
+  "shapes": [
+    {
+      "prompt": "a cartoon mushroom icon consisting of a large rounded cap on top with a flat underside where the cap width, height, and main color are adjustable, two or three evenly spaced circular spots on the cap surface with adjustable size and spot color, a short cylindrical stalk below the cap with adjustable height and width and a lighter stalk color, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 656822.5874,
+      "final_vlm_score": 3,
+      "final_vlm_explanation": "Rejected by human evaluator.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 11915,
+        "output_tokens": 21110,
+        "total_tokens": 33025,
+        "cost_usd": 0.376225
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 191953.9026,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 3927,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonMushroom_0817686c-82d9-45d6-ad31-b43b544c38c2.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2911,
+            "output_tokens": 5108,
+            "total_tokens": 8019,
+            "cost_usd": 0.091175
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 152555.1206,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 7715,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonMushroom_e59446fa-e87c-4002-ae05-e32b1c077d42.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3744,
+            "output_tokens": 8090,
+            "total_tokens": 11834,
+            "cost_usd": 0.14007
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 312313.5642,
+          "compile_ok": true,
+          "vlm_score": 3,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4031,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonMushroom_8b5bd10e-71ef-4d3d-a5d1-218212c3b54a.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 5260,
+            "output_tokens": 7912,
+            "total_tokens": 13172,
+            "cost_usd": 0.14498
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon fire flame icon consisting of a tall central flame lobe with a pointed tip and rounded base where overall flame height and width are adjustable, two smaller side flame lobes flanking the central one with adjustable height ratio and horizontal offset, a bright glowing core at the base of the flame with adjustable radius and inner color, a gradient color transition from bright yellow at the core to deep orange at the tips where inner and outer flame colors are independently adjustable, flat 2D cartoon style with smooth curves and adjustable outline thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 269309.7117,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The CartoonFireFlame is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 3691,
+        "output_tokens": 5735,
+        "total_tokens": 9426,
+        "cost_usd": 0.10448
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 269309.7117,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The CartoonFireFlame is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonFireFlame_edbfd52f-75b1-4d66-98af-782db50052bb_vlm.png",
+          "hlsl_length": 8202,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonFireFlame_edbfd52f-75b1-4d66-98af-782db50052bb.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3691,
+            "output_tokens": 5735,
+            "total_tokens": 9426,
+            "cost_usd": 0.10448
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon gear or cog wheel consisting of a central circular hub with adjustable radius and fill color, a ring of evenly spaced rectangular teeth radiating outward around the hub perimeter where tooth count, tooth width, tooth height, and gap between teeth are adjustable, a smaller concentric hollow circle in the center representing the axle hole with adjustable radius, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 342114.3414,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The CartoonGearCog is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 6755,
+        "output_tokens": 14089,
+        "total_tokens": 20844,
+        "cost_usd": 0.24511
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 185288.229,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 5714,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonGearCog_947cbbf7-198f-4a33-b045-8cefe03627a1.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2983,
+            "output_tokens": 5635,
+            "total_tokens": 8618,
+            "cost_usd": 0.09944
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 156826.1124,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The CartoonGearCog is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonGearCog_9f27a4bd-94b1-4173-af6e-3bcd8c9b29e6_vlm.png",
+          "hlsl_length": 8666,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonGearCog_9f27a4bd-94b1-4173-af6e-3bcd8c9b29e6.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3772,
+            "output_tokens": 8454,
+            "total_tokens": 12226,
+            "cost_usd": 0.14567
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon speech bubble icon consisting of a large rounded rectangular body with fully rounded corners where width, height, corner radius, and fill color are adjustable, a small triangular tail extending from the lower left or lower right corner pointing outward where tail direction, base width, and tail length are adjustable, flat 2D cartoon style with a clean outline and adjustable border thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 403665.1636,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonSpeechBubble description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": false,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 6783,
+        "output_tokens": 13536,
+        "total_tokens": 20319,
+        "cost_usd": 0.236955
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 171616.5433,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The generated HLSL code failed to compile due to an undeclared identifier.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2706,
+            "output_tokens": 6064,
+            "total_tokens": 8770,
+            "cost_usd": 0.10449
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 232048.6203,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonSpeechBubble description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSpeechBubble_cf3e6f98-e976-4ed0-97bf-d2d4ed6c00cb_vlm.png",
+          "hlsl_length": 8502,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSpeechBubble_cf3e6f98-e976-4ed0-97bf-d2d4ed6c00cb.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4077,
+            "output_tokens": 7472,
+            "total_tokens": 11549,
+            "cost_usd": 0.132465
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon gift box consisting of a rectangular box body with adjustable width, height, and box color, a flat lid on top with a slightly different color and adjustable thickness, a vertical ribbon stripe running down the front of the box with adjustable width and ribbon color, a horizontal ribbon stripe across the middle of the box with matching adjustable color, a decorative bow tied at the center front where loop size and bow color are adjustable, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 300049.8561,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonGiftBox description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 3381,
+        "output_tokens": 5303,
+        "total_tokens": 8684,
+        "cost_usd": 0.09645
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 300049.8561,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonGiftBox description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonGiftBox_6e40a4af-099c-423e-8d0b-6c876446d63d_vlm.png",
+          "hlsl_length": 4184,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonGiftBox_6e40a4af-099c-423e-8d0b-6c876446d63d.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3381,
+            "output_tokens": 5303,
+            "total_tokens": 8684,
+            "cost_usd": 0.09645
+          }
+        }
+      ]
+    }
+  ]
+}

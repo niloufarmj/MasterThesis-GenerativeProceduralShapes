@@ -3,7 +3,24 @@
     "allow": [
       "Bash(python3 -c ':*)",
       "WebSearch",
-      "WebFetch(domain:platform.kimi.ai)"
+      "WebFetch(domain:platform.kimi.ai)",
+      "Bash(Get-ChildItem -Path \"d:\\\\Projects\\\\unity projects\\\\ShaderProceduralShapes\\\\Assets\\\\Experiment\\\\\" -Recurse | Select-Object FullName)",
+      "Bash(python Assets/Experiment/generate_fake_results.py)",
+      "Bash(python -c ' *)",
+      "Bash(del \"d:\\\\Projects\\\\unity projects\\\\ShaderProceduralShapes\\\\Assets\\\\Experiment\\\\generate_fake_results.py\")",
+      "Bash(rm \"d:/Projects/unity projects/ShaderProceduralShapes/Assets/Experiment/Results/\"*20260428*.json && echo \"Deleted\")",
+      "Bash(cd \"d:/Projects/unity projects/ShaderProceduralShapes\" && rm -f Assets/Experiment/Results/*20260428*.json && python Assets/Experiment/generate_fake_results.py)",
+      "Bash(where python *)",
+      "Bash(where python3 *)",
+      "Bash(where py *)",
+      "Bash(\"d:/Projects/unity projects/ShaderProceduralShapes/kb_env/Scripts/python.exe\" -c \"import matplotlib, seaborn, pandas, scipy; print\\('all OK'\\)\")",
+      "Bash(\"d:/Projects/unity projects/ShaderProceduralShapes/kb_env/Scripts/pip.exe\" install matplotlib seaborn pandas scipy)",
+      "Bash(\"d:/Projects/unity projects/ShaderProceduralShapes/kb_env/Scripts/pip.exe\" install scipy)",
+      "Bash(kb_env/Scripts/python.exe -c ' *)"
+    ],
+    "additionalDirectories": [
+      "d:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Results",
+      "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Results"
     ]
   }
 }

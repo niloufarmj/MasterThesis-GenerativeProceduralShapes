@@ -1,0 +1,307 @@
+{
+  "experiment_type": "generation",
+  "run_id": "92381a81",
+  "timestamp_utc": "2026-04-28T12:24:00.0000000Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_NotInRAG",
+  "llm_provider": "gpt-5.4",
+  "llm_model_id": "gpt-5.4",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 8.8,
+  "summary_avg_iterations": 1.4,
+  "summary_avg_time_ms": 60494.904,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 15131,
+  "summary_total_output_tokens": 5595,
+  "summary_total_tokens": 20726,
+  "summary_total_cost_usd": 0.15958,
+  "shapes": [
+    {
+      "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 109625.6331,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The Parallelogram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 4691,
+        "output_tokens": 1464,
+        "total_tokens": 6155,
+        "cost_usd": 0.045415
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 51410.0166,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1681,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Parallelogram_00575935-089f-427c-9f91-dbb0acf1561f.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2237,
+            "output_tokens": 808,
+            "total_tokens": 3045,
+            "cost_usd": 0.023305
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 58215.6165,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The Parallelogram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Parallelogram_5ae72059-866e-4248-b4f7-41df0132bdef_vlm.png",
+          "hlsl_length": 1818,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Parallelogram_5ae72059-866e-4248-b4f7-41df0132bdef.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2454,
+            "output_tokens": 656,
+            "total_tokens": 3110,
+            "cost_usd": 0.02211
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a right-pointing chevron arrow formed by two diagonal lines meeting at a sharp point, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 37943.7268,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested ChevronArrow description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 2265,
+        "output_tokens": 806,
+        "total_tokens": 3071,
+        "cost_usd": 0.023415
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 37943.7268,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested ChevronArrow description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ChevronArrow_cede812b-7afc-4b74-8666-1c6960ef44ea_vlm.png",
+          "hlsl_length": 1914,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ChevronArrow_cede812b-7afc-4b74-8666-1c6960ef44ea.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2265,
+            "output_tokens": 806,
+            "total_tokens": 3071,
+            "cost_usd": 0.023415
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a lemniscate or figure-eight curve lying horizontally with two lobes of equal size, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 80805.2409,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested Lemniscate description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 4264,
+        "output_tokens": 1857,
+        "total_tokens": 6121,
+        "cost_usd": 0.049175
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 33734.5526,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1988,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Lemniscate_2afb0fd0-9b36-4232-8c89-6ed6f6e9d2b6.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1857,
+            "output_tokens": 909,
+            "total_tokens": 2766,
+            "cost_usd": 0.02292
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 47070.6883,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested Lemniscate description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Lemniscate_5c1b6e92-7635-41aa-a107-ab2d6814125f_vlm.png",
+          "hlsl_length": 1272,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Lemniscate_5c1b6e92-7635-41aa-a107-ab2d6814125f.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2407,
+            "output_tokens": 948,
+            "total_tokens": 3355,
+            "cost_usd": 0.026255
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a hexagram composed of two overlapping equilateral triangles forming a six-pointed star, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 38103.807,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested Hexagram description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 1798,
+        "output_tokens": 807,
+        "total_tokens": 2605,
+        "cost_usd": 0.021095
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 38103.807,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested Hexagram description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Hexagram_31a9d064-c058-4aad-8ca5-72b2bc800ac7_vlm.png",
+          "hlsl_length": 895,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Hexagram_31a9d064-c058-4aad-8ca5-72b2bc800ac7.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1798,
+            "output_tokens": 807,
+            "total_tokens": 2605,
+            "cost_usd": 0.021095
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a squircle that blends smoothly between a square and a circle using a superellipse curve, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 35996.1124,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested Squircle description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 2113,
+        "output_tokens": 661,
+        "total_tokens": 2774,
+        "cost_usd": 0.02048
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 35996.1124,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested Squircle description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Squircle_280ccf11-d2cf-41c1-8655-d6851152dcb6_vlm.png",
+          "hlsl_length": 1322,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\Squircle_280ccf11-d2cf-41c1-8655-d6851152dcb6.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2113,
+            "output_tokens": 661,
+            "total_tokens": 2774,
+            "cost_usd": 0.02048
+          }
+        }
+      ]
+    }
+  ]
+}

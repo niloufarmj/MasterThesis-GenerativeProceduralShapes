@@ -1,0 +1,422 @@
+{
+  "experiment_type": "generation",
+  "run_id": "43f3cef8",
+  "timestamp_utc": "2026-04-28T18:38:00.0000000Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Complex_InRAG",
+  "llm_provider": "kimi-k2.6",
+  "llm_model_id": "kimi-k2.6",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.6,
+  "summary_avg_vlm_score": 4.8,
+  "summary_avg_iterations": 2.4,
+  "summary_avg_time_ms": 1867922.99,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 571025,
+  "summary_total_output_tokens": 264765,
+  "summary_total_tokens": 835790,
+  "summary_total_cost_usd": 0.24451275,
+  "shapes": [
+    {
+      "prompt": "a cartoon mushroom icon consisting of a large rounded cap on top with a flat underside where the cap width, height, and main color are adjustable, two or three evenly spaced circular spots on the cap surface with adjustable size and spot color, a short cylindrical stalk below the cap with adjustable height and width and a lighter stalk color, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 3,
+      "total_time_ms": 2415274.3399,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The CartoonMushroom is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 4,
+      "rag_retrieved_examples": 4,
+      "rag_avg_similarity_score": 0.4918727,
+      "llm_usage_total": {
+        "input_tokens": 139486,
+        "output_tokens": 61671,
+        "total_tokens": 201157,
+        "cost_usd": 0.0579255
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 870173.5607,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 6172,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonMushroom_1.png",
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.4638324,
+          "llm_usage": {
+            "input_tokens": 36386,
+            "output_tokens": 26843,
+            "total_tokens": 63229,
+            "cost_usd": 0.0215637
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 891122.0516,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The shader code references undefined built-in functions.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.4861993,
+          "llm_usage": {
+            "input_tokens": 54380,
+            "output_tokens": 16288,
+            "total_tokens": 70668,
+            "cost_usd": 0.0179298
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 653978.7276,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The CartoonMushroom is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonMushroom_3_vlm.png",
+          "hlsl_length": 7831,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonMushroom_3.png",
+          "rag_components_decomposed": 4,
+          "rag_retrieved_examples": 4,
+          "rag_avg_similarity_score": 0.4918727,
+          "llm_usage": {
+            "input_tokens": 48720,
+            "output_tokens": 18540,
+            "total_tokens": 67260,
+            "cost_usd": 0.018432
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon fire flame icon consisting of a tall central flame lobe with a pointed tip and rounded base where overall flame height and width are adjustable, two smaller side flame lobes flanking the central one with adjustable height ratio and horizontal offset, a bright glowing core at the base of the flame with adjustable radius and inner color, a gradient color transition from bright yellow at the core to deep orange at the tips where inner and outer flame colors are independently adjustable, flat 2D cartoon style with smooth curves and adjustable outline thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 597260.4157,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The CartoonFireFlame is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 5,
+      "rag_retrieved_examples": 5,
+      "rag_avg_similarity_score": 0.5311603,
+      "llm_usage_total": {
+        "input_tokens": 43528,
+        "output_tokens": 23284,
+        "total_tokens": 66812,
+        "cost_usd": 0.0204996
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 597260.4157,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The CartoonFireFlame is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonFireFlame_1_vlm.png",
+          "hlsl_length": 5487,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonFireFlame.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonFireFlame.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonFireFlame_1.png",
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.5311603,
+          "llm_usage": {
+            "input_tokens": 43528,
+            "output_tokens": 23284,
+            "total_tokens": 66812,
+            "cost_usd": 0.0204996
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon gear or cog wheel consisting of a central circular hub with adjustable radius and fill color, a ring of evenly spaced rectangular teeth radiating outward around the hub perimeter where tooth count, tooth width, tooth height, and gap between teeth are adjustable, a smaller concentric hollow circle in the center representing the axle hole with adjustable radius, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 1673706.9953,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The CartoonGearCog is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 7,
+      "rag_retrieved_examples": 7,
+      "rag_avg_similarity_score": 0.5036878,
+      "llm_usage_total": {
+        "input_tokens": 85308,
+        "output_tokens": 37633,
+        "total_tokens": 122941,
+        "cost_usd": 0.035376
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 856733.3475,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 6362,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGearCog.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGearCog.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGearCog_1.png",
+          "rag_components_decomposed": 8,
+          "rag_retrieved_examples": 8,
+          "rag_avg_similarity_score": 0.565702,
+          "llm_usage": {
+            "input_tokens": 37267,
+            "output_tokens": 21337,
+            "total_tokens": 58604,
+            "cost_usd": 0.01839225
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 816973.6478,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The CartoonGearCog is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGearCog_2_vlm.png",
+          "hlsl_length": 8396,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGearCog.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGearCog.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGearCog_2.png",
+          "rag_components_decomposed": 7,
+          "rag_retrieved_examples": 7,
+          "rag_avg_similarity_score": 0.5036878,
+          "llm_usage": {
+            "input_tokens": 48041,
+            "output_tokens": 16296,
+            "total_tokens": 64337,
+            "cost_usd": 0.01698375
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon speech bubble icon consisting of a large rounded rectangular body with fully rounded corners where width, height, corner radius, and fill color are adjustable, a small triangular tail extending from the lower left or lower right corner pointing outward where tail direction, base width, and tail length are adjustable, flat 2D cartoon style with a clean outline and adjustable border thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 2290739.7858,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "The LLM returned malformed output that could not be parsed as valid HLSL.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 5,
+      "rag_retrieved_examples": 5,
+      "rag_avg_similarity_score": 0.5621544,
+      "llm_usage_total": {
+        "input_tokens": 148193,
+        "output_tokens": 61020,
+        "total_tokens": 209213,
+        "cost_usd": 0.05884095
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 832331.1222,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 5895,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonSpeechBubble.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonSpeechBubble.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonSpeechBubble_1.png",
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.4967033,
+          "llm_usage": {
+            "input_tokens": 37540,
+            "output_tokens": 20361,
+            "total_tokens": 57901,
+            "cost_usd": 0.0178476
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 781713.2481,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The shader code references undefined built-in functions.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 8,
+          "rag_retrieved_examples": 8,
+          "rag_avg_similarity_score": 0.5949392,
+          "llm_usage": {
+            "input_tokens": 51527,
+            "output_tokens": 18233,
+            "total_tokens": 69760,
+            "cost_usd": 0.01866885
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 676695.4155,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The LLM returned malformed output that could not be parsed as valid HLSL.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.5621544,
+          "llm_usage": {
+            "input_tokens": 59126,
+            "output_tokens": 22426,
+            "total_tokens": 81552,
+            "cost_usd": 0.0223245
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon gift box consisting of a rectangular box body with adjustable width, height, and box color, a flat lid on top with a slightly different color and adjustable thickness, a vertical ribbon stripe running down the front of the box with adjustable width and ribbon color, a horizontal ribbon stripe across the middle of the box with matching adjustable color, a decorative bow tied at the center front where loop size and bow color are adjustable, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 2362633.4155,
+      "final_vlm_score": 2,
+      "final_vlm_explanation": "Rejected by human evaluator.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 5,
+      "rag_retrieved_examples": 5,
+      "rag_avg_similarity_score": 0.4526208,
+      "llm_usage_total": {
+        "input_tokens": 154510,
+        "output_tokens": 81157,
+        "total_tokens": 235667,
+        "cost_usd": 0.0718707
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 578081.4599,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 7437,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGiftBox_1.png",
+          "rag_components_decomposed": 8,
+          "rag_retrieved_examples": 8,
+          "rag_avg_similarity_score": 0.5320833,
+          "llm_usage": {
+            "input_tokens": 46484,
+            "output_tokens": 23401,
+            "total_tokens": 69885,
+            "cost_usd": 0.0210132
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 664348.2254,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "The LLM returned malformed output that could not be parsed as valid HLSL.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.4343194,
+          "llm_usage": {
+            "input_tokens": 48520,
+            "output_tokens": 28739,
+            "total_tokens": 77259,
+            "cost_usd": 0.0245214
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 1120203.7302,
+          "compile_ok": true,
+          "vlm_score": 2,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 8515,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGiftBox_3.png",
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.4526208,
+          "llm_usage": {
+            "input_tokens": 59506,
+            "output_tokens": 29017,
+            "total_tokens": 88523,
+            "cost_usd": 0.0263361
+          }
+        }
+      ]
+    }
+  ]
+}

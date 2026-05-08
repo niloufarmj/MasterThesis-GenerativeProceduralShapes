@@ -1,0 +1,284 @@
+{
+  "experiment_type": "generation",
+  "run_id": "f69920a4",
+  "timestamp_utc": "2026-04-28T18:16:00.0000000Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Complex_InRAG",
+  "llm_provider": "claude-sonnet-4-6",
+  "llm_model_id": "claude-sonnet-4-6",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 9.2,
+  "summary_avg_iterations": 1.2,
+  "summary_avg_time_ms": 201598.934,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 52404,
+  "summary_total_output_tokens": 40506,
+  "summary_total_tokens": 92910,
+  "summary_total_cost_usd": 0.764802,
+  "shapes": [
+    {
+      "prompt": "a cartoon mushroom icon consisting of a large rounded cap on top with a flat underside where the cap width, height, and main color are adjustable, two or three evenly spaced circular spots on the cap surface with adjustable size and spot color, a short cylindrical stalk below the cap with adjustable height and width and a lighter stalk color, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 135541.265,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonMushroom description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 3,
+      "rag_retrieved_examples": 3,
+      "rag_avg_similarity_score": 0.4218761,
+      "llm_usage_total": {
+        "input_tokens": 8780,
+        "output_tokens": 8172,
+        "total_tokens": 16952,
+        "cost_usd": 0.14892
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 135541.265,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonMushroom description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonMushroom_1_vlm.png",
+          "hlsl_length": 7965,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonMushroom_1.png",
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.4218761,
+          "llm_usage": {
+            "input_tokens": 8780,
+            "output_tokens": 8172,
+            "total_tokens": 16952,
+            "cost_usd": 0.14892
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon fire flame icon consisting of a tall central flame lobe with a pointed tip and rounded base where overall flame height and width are adjustable, two smaller side flame lobes flanking the central one with adjustable height ratio and horizontal offset, a bright glowing core at the base of the flame with adjustable radius and inner color, a gradient color transition from bright yellow at the core to deep orange at the tips where inner and outer flame colors are independently adjustable, flat 2D cartoon style with smooth curves and adjustable outline thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 162936.5925,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The CartoonFireFlame is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 4,
+      "rag_retrieved_examples": 4,
+      "rag_avg_similarity_score": 0.5932628,
+      "llm_usage_total": {
+        "input_tokens": 8857,
+        "output_tokens": 7717,
+        "total_tokens": 16574,
+        "cost_usd": 0.142326
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 162936.5925,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The CartoonFireFlame is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonFireFlame_1_vlm.png",
+          "hlsl_length": 5954,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonFireFlame.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonFireFlame.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonFireFlame_1.png",
+          "rag_components_decomposed": 4,
+          "rag_retrieved_examples": 4,
+          "rag_avg_similarity_score": 0.5932628,
+          "llm_usage": {
+            "input_tokens": 8857,
+            "output_tokens": 7717,
+            "total_tokens": 16574,
+            "cost_usd": 0.142326
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon gear or cog wheel consisting of a central circular hub with adjustable radius and fill color, a ring of evenly spaced rectangular teeth radiating outward around the hub perimeter where tooth count, tooth width, tooth height, and gap between teeth are adjustable, a smaller concentric hollow circle in the center representing the axle hole with adjustable radius, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 144388.4077,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonGearCog description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 5,
+      "rag_retrieved_examples": 5,
+      "rag_avg_similarity_score": 0.4214451,
+      "llm_usage_total": {
+        "input_tokens": 8047,
+        "output_tokens": 5605,
+        "total_tokens": 13652,
+        "cost_usd": 0.108216
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 144388.4077,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonGearCog description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGearCog_1_vlm.png",
+          "hlsl_length": 3909,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGearCog.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGearCog.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGearCog_1.png",
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.4214451,
+          "llm_usage": {
+            "input_tokens": 8047,
+            "output_tokens": 5605,
+            "total_tokens": 13652,
+            "cost_usd": 0.108216
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon speech bubble icon consisting of a large rounded rectangular body with fully rounded corners where width, height, corner radius, and fill color are adjustable, a small triangular tail extending from the lower left or lower right corner pointing outward where tail direction, base width, and tail length are adjustable, flat 2D cartoon style with a clean outline and adjustable border thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 189533.0805,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonSpeechBubble description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 3,
+      "rag_retrieved_examples": 3,
+      "rag_avg_similarity_score": 0.4302741,
+      "llm_usage_total": {
+        "input_tokens": 8966,
+        "output_tokens": 8174,
+        "total_tokens": 17140,
+        "cost_usd": 0.149508
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 189533.0805,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonSpeechBubble description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonSpeechBubble_1_vlm.png",
+          "hlsl_length": 5042,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonSpeechBubble.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonSpeechBubble.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonSpeechBubble_1.png",
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.4302741,
+          "llm_usage": {
+            "input_tokens": 8966,
+            "output_tokens": 8174,
+            "total_tokens": 17140,
+            "cost_usd": 0.149508
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon gift box consisting of a rectangular box body with adjustable width, height, and box color, a flat lid on top with a slightly different color and adjustable thickness, a vertical ribbon stripe running down the front of the box with adjustable width and ribbon color, a horizontal ribbon stripe across the middle of the box with matching adjustable color, a decorative bow tied at the center front where loop size and bow color are adjustable, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 375595.3232,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonGiftBox description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 8,
+      "rag_retrieved_examples": 8,
+      "rag_avg_similarity_score": 0.5317481,
+      "llm_usage_total": {
+        "input_tokens": 17754,
+        "output_tokens": 10838,
+        "total_tokens": 28592,
+        "cost_usd": 0.215832
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 135440.7794,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 7164,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGiftBox_1.png",
+          "rag_components_decomposed": 6,
+          "rag_retrieved_examples": 6,
+          "rag_avg_similarity_score": 0.6225761,
+          "llm_usage": {
+            "input_tokens": 8059,
+            "output_tokens": 5055,
+            "total_tokens": 13114,
+            "cost_usd": 0.100002
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 240154.5438,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonGiftBox description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGiftBox_2_vlm.png",
+          "hlsl_length": 7881,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonGiftBox.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonGiftBox_2.png",
+          "rag_components_decomposed": 8,
+          "rag_retrieved_examples": 8,
+          "rag_avg_similarity_score": 0.5317481,
+          "llm_usage": {
+            "input_tokens": 9695,
+            "output_tokens": 5783,
+            "total_tokens": 15478,
+            "cost_usd": 0.11583
+          }
+        }
+      ]
+    }
+  ]
+}

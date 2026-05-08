@@ -1,0 +1,284 @@
+{
+  "experiment_type": "generation",
+  "run_id": "f295c38f",
+  "timestamp_utc": "2026-04-28T21:12:00.0000000Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Complex_NotInRAG",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 8.6,
+  "summary_avg_iterations": 1.2,
+  "summary_avg_time_ms": 594680.227,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 57462,
+  "summary_total_output_tokens": 42780,
+  "summary_total_tokens": 100242,
+  "summary_total_cost_usd": 0.2857275,
+  "shapes": [
+    {
+      "prompt": "a cartoon ramen noodle bowl consisting of a wide circular bowl body with a rounded bottom and a slightly flared rim at the top where bowl width, height, and ceramic color are adjustable, wavy noodle lines filling the upper interior of the bowl where noodle count, wave amplitude, thickness, and noodle color are adjustable, circular toppings on the surface including a soft-boiled egg half with adjustable yolk and white colors and one or two leaf or meat slice shapes with adjustable colors, two or three wispy steam curves rising from the top where steam opacity and curvature are adjustable, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 553810.7575,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonRamenBowl description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 7,
+      "rag_retrieved_examples": 7,
+      "rag_avg_similarity_score": 0.3823526,
+      "llm_usage_total": {
+        "input_tokens": 8627,
+        "output_tokens": 7729,
+        "total_tokens": 16356,
+        "cost_usd": 0.04942875
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 553810.7575,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonRamenBowl description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonRamenBowl_1_vlm.png",
+          "hlsl_length": 7711,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonRamenBowl.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonRamenBowl.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonRamenBowl_1.png",
+          "rag_components_decomposed": 7,
+          "rag_retrieved_examples": 7,
+          "rag_avg_similarity_score": 0.3823526,
+          "llm_usage": {
+            "input_tokens": 8627,
+            "output_tokens": 7729,
+            "total_tokens": 16356,
+            "cost_usd": 0.04942875
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon cactus consisting of a tall vertical main trunk with a rounded top and slightly tapered body where trunk width, height, and green color are adjustable, two side arms branching outward and then upward from the mid-section of the trunk where each arm length, width, and branch angle are adjustable, small evenly spaced spine lines dotting the trunk and arm surfaces where spine length, count, and color are adjustable, a small flower with petals blooming at the top of each arm with adjustable petal color and petal count, a flat oval base at the bottom representing ground with adjustable width and color, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 513369.1733,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonCactus description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 5,
+      "rag_retrieved_examples": 5,
+      "rag_avg_similarity_score": 0.2618028,
+      "llm_usage_total": {
+        "input_tokens": 9756,
+        "output_tokens": 7070,
+        "total_tokens": 16826,
+        "cost_usd": 0.047545
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 513369.1733,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonCactus description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonCactus_1_vlm.png",
+          "hlsl_length": 7444,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonCactus.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonCactus.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonCactus_1.png",
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.2618028,
+          "llm_usage": {
+            "input_tokens": 9756,
+            "output_tokens": 7070,
+            "total_tokens": 16826,
+            "cost_usd": 0.047545
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon jellyfish icon consisting of a large dome-shaped bell body at the top with a smooth rounded surface where bell width, height, and translucent body color are adjustable, a ruffled or wavy skirt edge along the underside of the bell with adjustable frill count and undulation depth, four to six flowing tentacle strands hanging below the bell where tentacle length, thickness, curvature amplitude, and color are adjustable, a subtle radial glow or spot pattern on the bell surface suggesting bioluminescence with adjustable intensity and tint color, flat 2D cartoon style with smooth curves and adjustable outline thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 1061242.4711,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonJellyfish description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 4,
+      "rag_retrieved_examples": 4,
+      "rag_avg_similarity_score": 0.4296943,
+      "llm_usage_total": {
+        "input_tokens": 20310,
+        "output_tokens": 13148,
+        "total_tokens": 33458,
+        "cost_usd": 0.0911275
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 449119.6989,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4654,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonJellyfish.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonJellyfish.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonJellyfish_1.png",
+          "rag_components_decomposed": 8,
+          "rag_retrieved_examples": 8,
+          "rag_avg_similarity_score": 0.3360568,
+          "llm_usage": {
+            "input_tokens": 8507,
+            "output_tokens": 7557,
+            "total_tokens": 16064,
+            "cost_usd": 0.04841875
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 612122.7722,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonJellyfish description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonJellyfish_2_vlm.png",
+          "hlsl_length": 6369,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonJellyfish.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonJellyfish.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonJellyfish_2.png",
+          "rag_components_decomposed": 4,
+          "rag_retrieved_examples": 4,
+          "rag_avg_similarity_score": 0.4296943,
+          "llm_usage": {
+            "input_tokens": 11803,
+            "output_tokens": 5591,
+            "total_tokens": 17394,
+            "cost_usd": 0.04270875
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon paper airplane icon consisting of a main triangular fuselage body pointing to the right where overall length and wingspan are adjustable, a top-deck crease line running along the spine of the fuselage suggesting a center fold with adjustable line width, a pair of swept-back wing panels on each side of the fuselage with adjustable wing angle and span, a small tail fin at the rear with adjustable height, the entire shape using a light paper-white or adjustable tint color, optional fold crease lines on the wing surface with adjustable opacity, flat 2D cartoon style with crisp clean lines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 369929.1182,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The CartoonPaperAirplane is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 5,
+      "rag_retrieved_examples": 5,
+      "rag_avg_similarity_score": 0.4322535,
+      "llm_usage_total": {
+        "input_tokens": 9999,
+        "output_tokens": 7279,
+        "total_tokens": 17278,
+        "cost_usd": 0.04889375
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 369929.1182,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The CartoonPaperAirplane is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonPaperAirplane_1_vlm.png",
+          "hlsl_length": 6782,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonPaperAirplane.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonPaperAirplane.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonPaperAirplane_1.png",
+          "rag_components_decomposed": 5,
+          "rag_retrieved_examples": 5,
+          "rag_avg_similarity_score": 0.4322535,
+          "llm_usage": {
+            "input_tokens": 9999,
+            "output_tokens": 7279,
+            "total_tokens": 17278,
+            "cost_usd": 0.04889375
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon Saturn planet icon consisting of a large circular planet body with adjustable radius and surface color, a horizontal equatorial band stripe crossing the planet with adjustable thickness and band color, a wide elliptical ring circling the planet from side to side where ring width, radial thickness, tilt angle, and ring color are adjustable, the ring segment that passes behind the planet drawn as a lighter semi-transparent arc, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 475049.6155,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The CartoonSaturnPlanet is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 6,
+      "rag_retrieved_examples": 6,
+      "rag_avg_similarity_score": 0.3997612,
+      "llm_usage_total": {
+        "input_tokens": 8770,
+        "output_tokens": 7554,
+        "total_tokens": 16324,
+        "cost_usd": 0.0487325
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 475049.6155,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The CartoonSaturnPlanet is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonSaturnPlanet_1_vlm.png",
+          "hlsl_length": 8168,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonSaturnPlanet.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonSaturnPlanet.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonSaturnPlanet_1.png",
+          "rag_components_decomposed": 6,
+          "rag_retrieved_examples": 6,
+          "rag_avg_similarity_score": 0.3997612,
+          "llm_usage": {
+            "input_tokens": 8770,
+            "output_tokens": 7554,
+            "total_tokens": 16324,
+            "cost_usd": 0.0487325
+          }
+        }
+      ]
+    }
+  ]
+}

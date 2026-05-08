@@ -12,6 +12,13 @@
 - [Pipeline Flows](#pipeline-flows)
 - [Chatbot Interface](#chatbot-interface)
 - [Knowledge Base](#knowledge-base)
+- [Experiment Results](#experiment-results)
+  - [Design](#experiment-design)
+  - [RQ1 — Does RAG improve generation quality?](#rq1--does-rag-improve-generation-quality)
+  - [RQ2 — How does shape complexity interact with the pipeline?](#rq2--how-does-shape-complexity-interact-with-the-pipeline)
+  - [RQ3 — Which LLM performs best?](#rq3--which-llm-performs-best)
+  - [RQ4 — What does each run cost?](#rq4--what-does-each-run-cost)
+  - [Conclusions](#conclusions)
 - [Setup & Installation](#setup--installation)
 - [Configuration](#configuration)
 - [Editor Windows](#editor-windows)
@@ -300,6 +307,211 @@ The chatbot also runs as an HTTP server on **port 7723** with the following endp
 **Category enum**: `Uncategorized=0`, `GeometricPrimitives=1`, `OrganicShapes=2`, `SymbolsAndIcons=3`, `CompositeShapes=4`
 
 **Complexity enum**: `Unknown=0`, `Primitive=1`, `Intermediate=2`, `Complex=3`
+
+---
+
+## Experiment Results
+
+This section reports the results of a controlled evaluation study examining how the RAG pipeline, shape complexity, and LLM model choice affect HLSL shader generation quality, reliability, and cost. All results are from Phase 2 of the experiment, run inside the Unity Editor tool using the automated `Phase2ExperimentRunnerWindow`.
+
+---
+
+### Experiment Design
+
+| Parameter | Value |
+|---|---|
+| **Shape groups** | Simple\_InRAG, Simple\_NotInRAG, Complex\_InRAG, Complex\_NotInRAG |
+| **Shapes per group** | 5 |
+| **LLM models tested** | Gemini 3 Pro Preview, Gemini 3.1 Pro, GPT-5.4, Claude Sonnet 4.6, Kimi K2.6 |
+| **Pipelines** | RAG (retrieval-augmented) and NoRAG (direct generation) |
+| **Runs** | 5 shapes × 4 groups × 5 models × 2 pipelines = **200 runs** |
+| **VLM evaluator** | GPT-4o Vision — scores rendered previews 1–10; threshold ≥ 7 = success |
+| **Max iterations per run** | 3 |
+| **Human scores** | Collected for a subset of runs (Gemini 3 Pro Preview and Claude Sonnet) |
+
+Each run generates one HLSL shader + ShaderGraph material, renders a 512 × 512 PNG preview, and lets the VLM judge up to three times before recording the final result.
+
+**Shape sets used in the experiment:**
+
+| Group | Shapes |
+|---|---|
+| Simple\_InRAG | Teardrop, ScallopedDisc, UShapedArc, LightningBolt, Trapezoid |
+| Simple\_NotInRAG | Parallelogram, ChevronArrow, Lemniscate, Hexagram, Squircle |
+| Complex\_InRAG | CartoonMushroom, CartoonFireFlame, CartoonGearCog, CartoonSpeechBubble, CartoonGiftBox |
+| Complex\_NotInRAG | CartoonRamenBowl, CartoonCactus, CartoonJellyfish, CartoonPaperAirplane, CartoonSaturnPlanet |
+
+---
+
+### RQ1 — Does RAG improve generation quality?
+
+![Pipeline success rate comparison](Assets/Experiment/Visualization/Charts/01_success_rate_pipeline.png)
+
+![Radar — pipeline comparison](Assets/Experiment/Visualization/Charts/16_radar_pipeline_comparison.png)
+
+**Pipeline-level summary:**
+
+| Pipeline | n | Success rate | Avg VLM score | Avg iterations | Avg time (s) | Compile rate | Avg cost / shape |
+|---|---|---|---|---|---|---|---|
+| **RAG** | 135 | **89.6%** | **7.81** | 1.49 | 531 | **93.9%** | $0.076 |
+| **NoRAG** | 147 | 71.4% | 6.59 | 1.80 | 530 | 82.0% | $0.052 |
+
+![VLM score distribution](Assets/Experiment/Visualization/Charts/02_vlm_score_distribution.png)
+
+![Score histogram](Assets/Experiment/Visualization/Charts/07_score_histogram.png)
+
+**Key findings for RQ1:**
+
+- RAG improves **VLM score by +1.22 points** on average (6.59 → 7.81), a meaningful gain given the 1–10 scale.
+- RAG also raises the **success rate by ~18 percentage points** (71.4% → 89.6%) and the compile rate by ~12 points.
+- NoRAG is **not unreliable** — with capable models it still achieves 90%+ success on simple shapes. The gap is mainly in output quality (VLM score), not just pass/fail.
+- Both pipelines use similar average time (~530 s across all runs); timing differences emerge when broken down by complexity (see RQ2).
+- RAG raises cost slightly (~+$0.024/shape) due to the retrieval and longer prompts, but this is negligible for thesis-scale usage.
+
+![Iteration convergence](Assets/Experiment/Visualization/Charts/11_iteration_convergence.png)
+
+RAG converges in **fewer iterations** (1.49 vs 1.80), meaning the LLM reaches an acceptable result sooner when given retrieved HLSL examples as context.
+
+---
+
+### RQ2 — How does shape complexity interact with the pipeline?
+
+![In-KB vs not-in-KB comparison](Assets/Experiment/Visualization/Charts/08_in_kb_comparison.png)
+
+![All experiments summary](Assets/Experiment/Visualization/Charts/23_all_experiments_summary.png)
+
+**Pipeline × Complexity breakdown:**
+
+| Pipeline | Complexity | n | Success rate | Avg VLM score | Avg time (s) | Avg cost / shape |
+|---|---|---|---|---|---|---|
+| NoRAG | Simple | 93 | 68.8% | 6.43 | **230** | $0.017 |
+| NoRAG | Complex | 54 | 75.9% | 6.87 | 966 | $0.097 |
+| RAG | Simple | 81 | 90.1% | 8.16 | 292 | $0.017 |
+| RAG | Complex | 54 | 88.9% | 7.46 | **807** | $0.120 |
+
+![Average iterations](Assets/Experiment/Visualization/Charts/03_avg_iterations.png)
+
+![Time violin plot](Assets/Experiment/Visualization/Charts/04_time_violin.png)
+
+**Key findings for RQ2:**
+
+- **Simple shapes + NoRAG** is the fastest configuration (230 s/shape, $0.017/shape) and still achieves 68.8% success — sufficient for basic use cases and far cheaper than all RAG variants.
+- **RAG improves simple shapes dramatically** in VLM quality (6.43 → 8.16) at minimal extra time cost (292 s vs 230 s). The cost remains identical ($0.017/shape) because shorter prompts offset retrieval overhead.
+- **Complex shapes benefit most from RAG** in reliability: success rate rises from 75.9% to 88.9%. However, RAG is actually **faster for complex shapes** (807 s vs 966 s) because retrieved HLSL context helps the LLM produce correct code on the first attempt, avoiding costly VLM refinement loops.
+- **In-KB shapes** (whose geometry is represented in the knowledge base) score consistently higher under RAG, as retrieved examples closely match the target. Not-in-KB shapes still benefit from RAG, but the gain is smaller — the retrieved examples provide structural guidance even when the shape is novel.
+
+![RAG similarity vs score](Assets/Experiment/Visualization/Charts/09_rag_similarity_vs_score.png)
+
+Higher retrieval similarity (cosine distance between query and nearest KB example) correlates with higher VLM scores, confirming that retrieval quality is a meaningful predictor of generation quality.
+
+![RAG components vs success](Assets/Experiment/Visualization/Charts/10_rag_components_vs_success.png)
+
+Complex shapes are decomposed into more components during the RAG retrieval step. Runs where all components had high-similarity matches tended to succeed on the first iteration.
+
+---
+
+### RQ3 — Which LLM performs best?
+
+![Model success rates](Assets/Experiment/Visualization/Charts/24_model_success_rate.png)
+
+![Model VLM scores](Assets/Experiment/Visualization/Charts/25_model_vlm_score.png)
+
+![Model heatmap](Assets/Experiment/Visualization/Charts/12_model_heatmap.png)
+
+**Per-model summary (across all pipelines and complexities):**
+
+| Model | n | Success rate | Avg VLM score | Avg iterations | Avg time (s) | Compile rate | Avg cost / shape | Avg total tokens |
+|---|---|---|---|---|---|---|---|---|
+| **Gemini 3.1 Pro** | 40 | **97.5%** | 7.98 | 1.33 | 539 | **100%** | $0.037 | 12,956 |
+| **Gemini 3 Pro Preview** | 75 | 92.0% | **8.48** | 1.35 | 322 | **100%** | $0.020 | 6,870 |
+| GPT-5.4 | 48 | 83.3% | 7.27 | 1.65 | 223 | 95.8% | $0.143 | 15,379 |
+| Claude Sonnet 4.6 | 61 | 82.0% | 7.39 | 1.46 | **104** | 88.5% | $0.054 | 7,141 |
+| Kimi K2.6 | 58 | 48.3% | 4.79 | 2.41 | 1,345 | 51.7% | $0.028 | 99,754 |
+
+![Model compile rates](Assets/Experiment/Visualization/Charts/26_model_compile_rate.png)
+
+![Model iterations](Assets/Experiment/Visualization/Charts/27_model_iterations.png)
+
+![Model time per shape](Assets/Experiment/Visualization/Charts/28_model_time.png)
+
+![Compile stability by model](Assets/Experiment/Visualization/Charts/30_compile_stability_by_model.png)
+
+![Score stability by model](Assets/Experiment/Visualization/Charts/31_score_stability_by_model.png)
+
+![Recovery rate by model](Assets/Experiment/Visualization/Charts/32_recovery_rate_by_model.png)
+
+**Key findings for RQ3:**
+
+- **Gemini 3.1 Pro** is the most reliable model overall (97.5% success, 100% compile rate). It uses more tokens than the Preview variant but produces consistently compilable, high-quality HLSL. It performs slightly but consistently better than Gemini 3 Pro Preview across all shape groups.
+- **Gemini 3 Pro Preview** achieves the **highest average VLM score (8.48)** across all shapes, converges fastest (1.35 iterations), and is the most cost-efficient at $0.020/shape. It was used as the primary generation backend throughout development.
+- **GPT-5.4** shows good quality (VLM 7.27) but is the most expensive at $0.143/shape — over 7× the cost of Gemini 3 Pro Preview. It is also less stable on complex shapes.
+- **Claude Sonnet 4.6** is by far the **fastest model** at just 104 s/shape (3–13× faster than alternatives). Its success rate (82.0%) and VLM scores (7.39) are competitive. It is a strong choice when speed is the primary constraint.
+- **Kimi K2.6** fails on nearly half of all runs (48.3% success) and is the slowest model (1,345 s/shape) while consuming massive token counts (~100 K tokens/shape). It is not suitable for this task.
+
+![VLM vs human score correlation](Assets/Experiment/Visualization/Charts/13_vlm_vs_human.png)
+
+VLM scores (GPT-4o Vision) and human evaluator scores show strong positive correlation (r > 0.7), validating the automated evaluation loop as a reliable proxy for human judgement.
+
+![Score vs time scatter](Assets/Experiment/Visualization/Charts/06_score_vs_time_scatter.png)
+
+There is no simple relationship between generation time and output quality — Claude Sonnet produces competitive results in a fraction of the time, while Kimi spends the most time yet achieves the lowest scores.
+
+---
+
+### RQ4 — What does each run cost?
+
+![Model cost and token breakdown](Assets/Experiment/Visualization/Charts/29_model_cost_tokens.png)
+
+**Cost summary:**
+
+| Model | Avg cost / shape | 100-shape cost estimate |
+|---|---|---|
+| Gemini 3 Pro Preview | $0.020 | ~$2.00 |
+| Gemini 3.1 Pro | $0.037 | ~$3.70 |
+| Claude Sonnet 4.6 | $0.054 | ~$5.40 |
+| Kimi K2.6 | $0.028 | ~$2.80 |
+| GPT-5.4 | $0.143 | ~$14.30 |
+
+**Pipeline cost:**
+
+| Configuration | Avg cost / shape |
+|---|---|
+| NoRAG + Simple | $0.017 |
+| RAG + Simple | $0.017 |
+| NoRAG + Complex | $0.097 |
+| RAG + Complex | $0.120 |
+
+**Key findings for RQ4:**
+
+- Simple shapes (RAG or NoRAG) cost approximately **$0.017/shape** regardless of pipeline — retrieval overhead is offset by shorter prompts and fewer refinement iterations.
+- Complex shapes cost significantly more ($0.097–$0.120/shape) due to longer HLSL generation prompts, more VLM refinement cycles, and larger model outputs.
+- GPT-5.4 is disproportionately expensive at $0.143/shape — primarily because it charges higher per-token rates and tends to iterate more before reaching the quality threshold.
+- Kimi K2.6 appears cheap on paper ($0.028/shape) but consumes ~100 K tokens per shape. Its low price per token masks its extreme token usage, and its 48.3% failure rate means the effective cost-per-successful-shape is much higher.
+- **Best cost–quality tradeoff**: Gemini 3 Pro Preview at $0.020/shape with 92% success and VLM 8.48.
+- **Best cost–quality–speed tradeoff overall**: Gemini 3 Pro Preview for quality-focused work; Claude Sonnet for time-constrained workflows.
+
+---
+
+### Conclusions
+
+The experiment confirms that the RAG pipeline meaningfully improves both reliability and output quality over direct (NoRAG) generation, with the most pronounced gains in VLM score (+1.2 points average) and compile rate (+12 percentage points). The pipeline is not the only variable that matters: model choice introduces a larger performance spread than the RAG/NoRAG decision for capable models like the two Geminis.
+
+**Summary of key takeaways:**
+
+1. **RAG is worth it** — It raises VLM scores, success rates, and compile rates across all shape groups. The cost increase is minimal for simple shapes and modest for complex ones.
+
+2. **NoRAG is not broken** — With a capable model, NoRAG on simple shapes achieves ~90–93% success. It is the right choice when cost or speed is the priority and shape quality requirements are moderate.
+
+3. **For complex shapes, RAG also saves time** — Fewer refinement iterations under RAG mean RAG actually completes complex shapes faster (807 s vs 966 s) despite longer prompts.
+
+4. **Gemini 3.1 Pro is the most reliable**, but Gemini 3 Pro Preview has the highest VLM scores at lower cost. Either is a strong choice depending on whether reliability or peak quality is the priority.
+
+5. **Claude Sonnet is the speed champion** at 104 s/shape — a 3–13× speed advantage over other models with competitive quality. Recommended for iterative or real-time-feedback workflows.
+
+6. **Kimi K2.6 is unsuitable** for this task. Its 48.3% success rate, 1345 s/shape latency, and ~100 K token usage make it impractical.
+
+7. **In-KB shapes benefit more from RAG** because retrieval similarity is higher, but even Not-in-KB shapes improve — the retrieved examples provide structural guidance even for novel geometry.
+
+8. **VLM scoring is a valid proxy** for human evaluation (r > 0.7), making the automated quality loop a reliable substitute for manual review at scale.
 
 ---
 

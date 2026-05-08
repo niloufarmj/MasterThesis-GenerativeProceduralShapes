@@ -1,0 +1,422 @@
+{
+  "experiment_type": "generation",
+  "run_id": "0e3b241f",
+  "timestamp_utc": "2026-04-28T19:44:00.0000000Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Complex_NotInRAG",
+  "llm_provider": "gpt-5.4",
+  "llm_model_id": "gpt-5.4",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.6,
+  "summary_avg_vlm_score": 6.0,
+  "summary_avg_iterations": 2.4,
+  "summary_avg_time_ms": 534684.081,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 45174,
+  "summary_total_output_tokens": 76991,
+  "summary_total_tokens": 122165,
+  "summary_total_cost_usd": 1.380735,
+  "shapes": [
+    {
+      "prompt": "a cartoon ramen noodle bowl consisting of a wide circular bowl body with a rounded bottom and a slightly flared rim at the top where bowl width, height, and ceramic color are adjustable, wavy noodle lines filling the upper interior of the bowl where noodle count, wave amplitude, thickness, and noodle color are adjustable, circular toppings on the surface including a soft-boiled egg half with adjustable yolk and white colors and one or two leaf or meat slice shapes with adjustable colors, two or three wispy steam curves rising from the top where steam opacity and curvature are adjustable, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 702460.9749,
+      "final_vlm_score": 1,
+      "final_vlm_explanation": "HLSL compilation error: unexpected token in shader function body.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 11948,
+        "output_tokens": 19032,
+        "total_tokens": 30980,
+        "cost_usd": 0.34522
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 202064.0618,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 5987,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonRamenBowl_4a31102c-f1ab-445b-916c-5696dbde51db.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3154,
+            "output_tokens": 7018,
+            "total_tokens": 10172,
+            "cost_usd": 0.12104
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 198404.9593,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 8408,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonRamenBowl_6966f447-0382-4f04-9d3d-7e3e34849d57.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3623,
+            "output_tokens": 6893,
+            "total_tokens": 10516,
+            "cost_usd": 0.12151
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 301991.9538,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "HLSL compilation error: unexpected token in shader function body.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 5171,
+            "output_tokens": 5121,
+            "total_tokens": 10292,
+            "cost_usd": 0.10267
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon cactus consisting of a tall vertical main trunk with a rounded top and slightly tapered body where trunk width, height, and green color are adjustable, two side arms branching outward and then upward from the mid-section of the trunk where each arm length, width, and branch angle are adjustable, small evenly spaced spine lines dotting the trunk and arm surfaces where spine length, count, and color are adjustable, a small flower with petals blooming at the top of each arm with adjustable petal color and petal count, a flat oval base at the bottom representing ground with adjustable width and color, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 181541.4424,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The CartoonCactus is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 2686,
+        "output_tokens": 7003,
+        "total_tokens": 9689,
+        "cost_usd": 0.118475
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 181541.4424,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The CartoonCactus is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonCactus_b9e8ebc0-f97f-4927-95ff-3ddfbdf5ca86_vlm.png",
+          "hlsl_length": 8403,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonCactus_b9e8ebc0-f97f-4927-95ff-3ddfbdf5ca86.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2686,
+            "output_tokens": 7003,
+            "total_tokens": 9689,
+            "cost_usd": 0.118475
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon jellyfish icon consisting of a large dome-shaped bell body at the top with a smooth rounded surface where bell width, height, and translucent body color are adjustable, a ruffled or wavy skirt edge along the underside of the bell with adjustable frill count and undulation depth, four to six flowing tentacle strands hanging below the bell where tentacle length, thickness, curvature amplitude, and color are adjustable, a subtle radial glow or spot pattern on the bell surface suggesting bioluminescence with adjustable intensity and tint color, flat 2D cartoon style with smooth curves and adjustable outline thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 389709.4689,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The CartoonJellyfish is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 6569,
+        "output_tokens": 12551,
+        "total_tokens": 19120,
+        "cost_usd": 0.22111
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 192994.3414,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4412,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonJellyfish_2ac0d2de-76ae-4082-9833-f45862b61263.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3346,
+            "output_tokens": 4591,
+            "total_tokens": 7937,
+            "cost_usd": 0.085595
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 196715.1275,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The CartoonJellyfish is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonJellyfish_5773cdc6-c82d-418c-ae94-1aeca7d26b79_vlm.png",
+          "hlsl_length": 4600,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonJellyfish_5773cdc6-c82d-418c-ae94-1aeca7d26b79.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3223,
+            "output_tokens": 7960,
+            "total_tokens": 11183,
+            "cost_usd": 0.135515
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon paper airplane icon consisting of a main triangular fuselage body pointing to the right where overall length and wingspan are adjustable, a top-deck crease line running along the spine of the fuselage suggesting a center fold with adjustable line width, a pair of swept-back wing panels on each side of the fuselage with adjustable wing angle and span, a small tail fin at the rear with adjustable height, the entire shape using a light paper-white or adjustable tint color, optional fold crease lines on the wing surface with adjustable opacity, flat 2D cartoon style with crisp clean lines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 769432.1814,
+      "final_vlm_score": 6,
+      "final_vlm_explanation": "Rejected by human evaluator.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 12379,
+        "output_tokens": 17332,
+        "total_tokens": 29711,
+        "cost_usd": 0.321875
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 235617.3688,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 6092,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonPaperAirplane_63fcc10d-a107-4ebe-8b53-922ae0f03d25.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3014,
+            "output_tokens": 4384,
+            "total_tokens": 7398,
+            "cost_usd": 0.08083
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 285002.843,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 5001,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonPaperAirplane_8c30487f-0dc1-4408-871a-68a2eaa7eca2.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4383,
+            "output_tokens": 6759,
+            "total_tokens": 11142,
+            "cost_usd": 0.1233
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 248811.9696,
+          "compile_ok": true,
+          "vlm_score": 6,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 6649,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonPaperAirplane_e1273a19-6b3f-4a58-aaeb-966da9f8a068.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4982,
+            "output_tokens": 6189,
+            "total_tokens": 11171,
+            "cost_usd": 0.117745
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon Saturn planet icon consisting of a large circular planet body with adjustable radius and surface color, a horizontal equatorial band stripe crossing the planet with adjustable thickness and band color, a wide elliptical ring circling the planet from side to side where ring width, radial thickness, tilt angle, and ring color are adjustable, the ring segment that passes behind the planet drawn as a lighter semi-transparent arc, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 3,
+      "total_time_ms": 630276.3363,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The CartoonSaturnPlanet is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 11592,
+        "output_tokens": 21073,
+        "total_tokens": 32665,
+        "cost_usd": 0.374055
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 314976.8312,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 8162,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_a4168341-567f-495a-824f-b778d96b57f2.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2944,
+            "output_tokens": 7788,
+            "total_tokens": 10732,
+            "cost_usd": 0.13154
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 145240.585,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4447,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_8f254ace-05f2-46b6-9cfa-5ac74ddc3afe.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3668,
+            "output_tokens": 6324,
+            "total_tokens": 9992,
+            "cost_usd": 0.1132
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 170058.9201,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The CartoonSaturnPlanet is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_66a98300-0fee-4cbc-ba55-ceeae30fd98c_vlm.png",
+          "hlsl_length": 6720,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_66a98300-0fee-4cbc-ba55-ceeae30fd98c.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4980,
+            "output_tokens": 6961,
+            "total_tokens": 11941,
+            "cost_usd": 0.129315
+          }
+        }
+      ]
+    }
+  ]
+}

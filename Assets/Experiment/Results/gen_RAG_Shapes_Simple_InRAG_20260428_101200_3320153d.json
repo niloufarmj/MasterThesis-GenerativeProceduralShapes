@@ -1,0 +1,261 @@
+{
+  "experiment_type": "generation",
+  "run_id": "3320153d",
+  "timestamp_utc": "2026-04-28T10:12:00.0000000Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 8.4,
+  "summary_avg_iterations": 1.0,
+  "summary_avg_time_ms": 294521.617,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 24504,
+  "summary_total_output_tokens": 5703,
+  "summary_total_tokens": 30207,
+  "summary_total_cost_usd": 0.059145,
+  "shapes": [
+    {
+      "prompt": "a teardrop shape with a smooth round bottom and a tapering pointed top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 171564.8805,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested Teardrop description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.5299504,
+      "llm_usage_total": {
+        "input_tokens": 5364,
+        "output_tokens": 1168,
+        "total_tokens": 6532,
+        "cost_usd": 0.012545
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 171564.8805,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested Teardrop description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Teardrop_1_vlm.png",
+          "hlsl_length": 1878,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Teardrop.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Teardrop.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Teardrop_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.5299504,
+          "llm_usage": {
+            "input_tokens": 5364,
+            "output_tokens": 1168,
+            "total_tokens": 6532,
+            "cost_usd": 0.012545
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a scalloped disc with evenly spaced smooth convex bumps distributed around its circular perimeter, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 303024.1134,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested ScallopedDisc description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.6057827,
+      "llm_usage_total": {
+        "input_tokens": 5310,
+        "output_tokens": 1232,
+        "total_tokens": 6542,
+        "cost_usd": 0.0127975
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 303024.1134,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested ScallopedDisc description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ScallopedDisc_1_vlm.png",
+          "hlsl_length": 830,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\ScallopedDisc.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\ScallopedDisc.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ScallopedDisc_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.6057827,
+          "llm_usage": {
+            "input_tokens": 5310,
+            "output_tokens": 1232,
+            "total_tokens": 6542,
+            "cost_usd": 0.0127975
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a U-shaped thick arc with two parallel straight arms and a rounded bottom, open at the top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 297229.2145,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The UShapedArc is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.5888798,
+      "llm_usage_total": {
+        "input_tokens": 4257,
+        "output_tokens": 1363,
+        "total_tokens": 5620,
+        "cost_usd": 0.01213625
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 297229.2145,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The UShapedArc is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\UShapedArc_1_vlm.png",
+          "hlsl_length": 879,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\UShapedArc.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\UShapedArc.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\UShapedArc_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.5888798,
+          "llm_usage": {
+            "input_tokens": 4257,
+            "output_tokens": 1363,
+            "total_tokens": 5620,
+            "cost_usd": 0.01213625
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a lightning bolt formed by two angled segments meeting at a sharp midpoint, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 382658.554,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The LightningBolt is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.4935499,
+      "llm_usage_total": {
+        "input_tokens": 4560,
+        "output_tokens": 874,
+        "total_tokens": 5434,
+        "cost_usd": 0.01007
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 382658.554,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The LightningBolt is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\LightningBolt_1_vlm.png",
+          "hlsl_length": 1877,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\LightningBolt.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\LightningBolt.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\LightningBolt_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.4935499,
+          "llm_usage": {
+            "input_tokens": 4560,
+            "output_tokens": 874,
+            "total_tokens": 5434,
+            "cost_usd": 0.01007
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a trapezoid with a wider base and a shorter parallel top edge, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": true,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 318131.3204,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The Trapezoid is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.5164542,
+      "llm_usage_total": {
+        "input_tokens": 5013,
+        "output_tokens": 1066,
+        "total_tokens": 6079,
+        "cost_usd": 0.01159625
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 318131.3204,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The Trapezoid is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Trapezoid_1_vlm.png",
+          "hlsl_length": 1840,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Trapezoid.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Trapezoid.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Trapezoid_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.5164542,
+          "llm_usage": {
+            "input_tokens": 5013,
+            "output_tokens": 1066,
+            "total_tokens": 6079,
+            "cost_usd": 0.01159625
+          }
+        }
+      ]
+    }
+  ]
+}

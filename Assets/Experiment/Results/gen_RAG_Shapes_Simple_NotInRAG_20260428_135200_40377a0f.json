@@ -1,0 +1,284 @@
+{
+  "experiment_type": "generation",
+  "run_id": "40377a0f",
+  "timestamp_utc": "2026-04-28T13:52:00.0000000Z",
+  "pipeline": "RAG",
+  "shape_set_name": "Shapes_Simple_NotInRAG",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 8.0,
+  "summary_avg_iterations": 1.2,
+  "summary_avg_time_ms": 356818.707,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 29196,
+  "summary_total_output_tokens": 7092,
+  "summary_total_tokens": 36288,
+  "summary_total_cost_usd": 0.071955,
+  "shapes": [
+    {
+      "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 270852.6948,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The Parallelogram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.3355677,
+      "llm_usage_total": {
+        "input_tokens": 4700,
+        "output_tokens": 1099,
+        "total_tokens": 5799,
+        "cost_usd": 0.01137
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 270852.6948,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The Parallelogram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1_vlm.png",
+          "hlsl_length": 1356,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.3355677,
+          "llm_usage": {
+            "input_tokens": 4700,
+            "output_tokens": 1099,
+            "total_tokens": 5799,
+            "cost_usd": 0.01137
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a right-pointing chevron arrow formed by two diagonal lines meeting at a sharp point, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 636217.8902,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The ChevronArrow is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 3,
+      "rag_retrieved_examples": 3,
+      "rag_avg_similarity_score": 0.4294675,
+      "llm_usage_total": {
+        "input_tokens": 11518,
+        "output_tokens": 2686,
+        "total_tokens": 14204,
+        "cost_usd": 0.0278275
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 380903.571,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 1299,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\ChevronArrow.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\ChevronArrow.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronArrow_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.3378778,
+          "llm_usage": {
+            "input_tokens": 5001,
+            "output_tokens": 1180,
+            "total_tokens": 6181,
+            "cost_usd": 0.01215125
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 255314.3192,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The ChevronArrow is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronArrow_2_vlm.png",
+          "hlsl_length": 1624,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\ChevronArrow.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\ChevronArrow.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronArrow_2.png",
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.4294675,
+          "llm_usage": {
+            "input_tokens": 6517,
+            "output_tokens": 1506,
+            "total_tokens": 8023,
+            "cost_usd": 0.01567625
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a lemniscate or figure-eight curve lying horizontally with two lobes of equal size, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 312482.5676,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The Lemniscate is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.3412072,
+      "llm_usage_total": {
+        "input_tokens": 4056,
+        "output_tokens": 1188,
+        "total_tokens": 5244,
+        "cost_usd": 0.01101
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 312482.5676,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The Lemniscate is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Lemniscate_1_vlm.png",
+          "hlsl_length": 1620,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Lemniscate.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Lemniscate.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Lemniscate_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.3412072,
+          "llm_usage": {
+            "input_tokens": 4056,
+            "output_tokens": 1188,
+            "total_tokens": 5244,
+            "cost_usd": 0.01101
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a hexagram composed of two overlapping equilateral triangles forming a six-pointed star, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 295045.6437,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The Hexagram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 2,
+      "rag_retrieved_examples": 2,
+      "rag_avg_similarity_score": 0.3138543,
+      "llm_usage_total": {
+        "input_tokens": 4466,
+        "output_tokens": 1357,
+        "total_tokens": 5823,
+        "cost_usd": 0.0123675
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 295045.6437,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The Hexagram is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Hexagram_1_vlm.png",
+          "hlsl_length": 1628,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Hexagram.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Hexagram.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Hexagram_1.png",
+          "rag_components_decomposed": 2,
+          "rag_retrieved_examples": 2,
+          "rag_avg_similarity_score": 0.3138543,
+          "llm_usage": {
+            "input_tokens": 4466,
+            "output_tokens": 1357,
+            "total_tokens": 5823,
+            "cost_usd": 0.0123675
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a squircle that blends smoothly between a square and a circle using a superellipse curve, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 269494.7367,
+      "final_vlm_score": 8,
+      "final_vlm_explanation": "The Squircle is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 1,
+      "rag_retrieved_examples": 1,
+      "rag_avg_similarity_score": 0.2619233,
+      "llm_usage_total": {
+        "input_tokens": 4456,
+        "output_tokens": 762,
+        "total_tokens": 5218,
+        "cost_usd": 0.00938
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 269494.7367,
+          "compile_ok": true,
+          "vlm_score": 8,
+          "vlm_explanation": "The Squircle is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Squircle_1_vlm.png",
+          "hlsl_length": 1788,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Squircle.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\Squircle.mat",
+          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Squircle_1.png",
+          "rag_components_decomposed": 1,
+          "rag_retrieved_examples": 1,
+          "rag_avg_similarity_score": 0.2619233,
+          "llm_usage": {
+            "input_tokens": 4456,
+            "output_tokens": 762,
+            "total_tokens": 5218,
+            "cost_usd": 0.00938
+          }
+        }
+      ]
+    }
+  ]
+}

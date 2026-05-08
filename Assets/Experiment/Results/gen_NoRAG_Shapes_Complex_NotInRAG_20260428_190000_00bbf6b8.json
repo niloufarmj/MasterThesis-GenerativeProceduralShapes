@@ -1,0 +1,399 @@
+{
+  "experiment_type": "generation",
+  "run_id": "00bbf6b8",
+  "timestamp_utc": "2026-04-28T19:00:00.0000000Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Complex_NotInRAG",
+  "llm_provider": "gemini-3-pro-preview",
+  "llm_model_id": "gemini-3-pro-preview",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 0.8,
+  "summary_avg_vlm_score": 7.8,
+  "summary_avg_iterations": 2.2,
+  "summary_avg_time_ms": 882887.933,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 41944,
+  "summary_total_output_tokens": 58446,
+  "summary_total_tokens": 100390,
+  "summary_total_cost_usd": 0.34466,
+  "shapes": [
+    {
+      "prompt": "a cartoon ramen noodle bowl consisting of a wide circular bowl body with a rounded bottom and a slightly flared rim at the top where bowl width, height, and ceramic color are adjustable, wavy noodle lines filling the upper interior of the bowl where noodle count, wave amplitude, thickness, and noodle color are adjustable, circular toppings on the surface including a soft-boiled egg half with adjustable yolk and white colors and one or two leaf or meat slice shapes with adjustable colors, two or three wispy steam curves rising from the top where steam opacity and curvature are adjustable, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 300271.8488,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The CartoonRamenBowl is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 3727,
+        "output_tokens": 4730,
+        "total_tokens": 8457,
+        "cost_usd": 0.02830875
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 300271.8488,
+          "compile_ok": true,
+          "vlm_score": 7,
+          "vlm_explanation": "The CartoonRamenBowl is clearly recognizable and meets the core requirements. Minor visual imperfections are noted but do not affect overall quality.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonRamenBowl_d03da299-ef04-411c-a758-11bae82f2017_vlm.png",
+          "hlsl_length": 4855,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonRamenBowl_d03da299-ef04-411c-a758-11bae82f2017.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3727,
+            "output_tokens": 4730,
+            "total_tokens": 8457,
+            "cost_usd": 0.02830875
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon cactus consisting of a tall vertical main trunk with a rounded top and slightly tapered body where trunk width, height, and green color are adjustable, two side arms branching outward and then upward from the mid-section of the trunk where each arm length, width, and branch angle are adjustable, small evenly spaced spine lines dotting the trunk and arm surfaces where spine length, count, and color are adjustable, a small flower with petals blooming at the top of each arm with adjustable petal color and petal count, a flat oval base at the bottom representing ground with adjustable width and color, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 766674.7654,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonCactus description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 7486,
+        "output_tokens": 14618,
+        "total_tokens": 22104,
+        "cost_usd": 0.0824475
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 291890.0629,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 7328,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonCactus_ad3aba18-ae45-4116-a6a7-b5bed435e44c.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3206,
+            "output_tokens": 7309,
+            "total_tokens": 10515,
+            "cost_usd": 0.0405525
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 474784.7025,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonCactus description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonCactus_eee8da4a-7aca-4b24-aa8b-6bfc5f4c6b20_vlm.png",
+          "hlsl_length": 4886,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonCactus_eee8da4a-7aca-4b24-aa8b-6bfc5f4c6b20.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4280,
+            "output_tokens": 7309,
+            "total_tokens": 11589,
+            "cost_usd": 0.041895
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon jellyfish icon consisting of a large dome-shaped bell body at the top with a smooth rounded surface where bell width, height, and translucent body color are adjustable, a ruffled or wavy skirt edge along the underside of the bell with adjustable frill count and undulation depth, four to six flowing tentacle strands hanging below the bell where tentacle length, thickness, curvature amplitude, and color are adjustable, a subtle radial glow or spot pattern on the bell surface suggesting bioluminescence with adjustable intensity and tint color, flat 2D cartoon style with smooth curves and adjustable outline thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": false,
+      "iterations_used": 3,
+      "total_time_ms": 1266531.5427,
+      "final_vlm_score": 5,
+      "final_vlm_explanation": "Rejected by human evaluator.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 12018,
+        "output_tokens": 15235,
+        "total_tokens": 27253,
+        "cost_usd": 0.0911975
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 506454.2363,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4880,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonJellyfish_50eb063c-3b16-40d4-9b10-b77df5bce367.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3346,
+            "output_tokens": 5159,
+            "total_tokens": 8505,
+            "cost_usd": 0.0299775
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 321435.0716,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 7571,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonJellyfish_29fcbaaa-ecd6-4379-9ca5-218201b3eacd.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3807,
+            "output_tokens": 5239,
+            "total_tokens": 9046,
+            "cost_usd": 0.03095375
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 438642.2348,
+          "compile_ok": true,
+          "vlm_score": 5,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4536,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonJellyfish_0bafb0d5-81ac-4f6a-acb3-646ae9ff0ce4.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4865,
+            "output_tokens": 4837,
+            "total_tokens": 9702,
+            "cost_usd": 0.03026625
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon paper airplane icon consisting of a main triangular fuselage body pointing to the right where overall length and wingspan are adjustable, a top-deck crease line running along the spine of the fuselage suggesting a center fold with adjustable line width, a pair of swept-back wing panels on each side of the fuselage with adjustable wing angle and span, a small tail fin at the rear with adjustable height, the entire shape using a light paper-white or adjustable tint color, optional fold crease lines on the wing surface with adjustable opacity, flat 2D cartoon style with crisp clean lines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 950377.6008,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonPaperAirplane description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 6724,
+        "output_tokens": 8813,
+        "total_tokens": 15537,
+        "cost_usd": 0.05247
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 520260.1348,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 7340,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonPaperAirplane_d99d055a-8a4b-4b31-88b5-c9cfab2e76ad.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2983,
+            "output_tokens": 4641,
+            "total_tokens": 7624,
+            "cost_usd": 0.02693375
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 430117.466,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonPaperAirplane description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonPaperAirplane_572607bc-25d9-4ac9-ac97-f530367a904d_vlm.png",
+          "hlsl_length": 6939,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonPaperAirplane_572607bc-25d9-4ac9-ac97-f530367a904d.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3741,
+            "output_tokens": 4172,
+            "total_tokens": 7913,
+            "cost_usd": 0.02553625
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a cartoon Saturn planet icon consisting of a large circular planet body with adjustable radius and surface color, a horizontal equatorial band stripe crossing the planet with adjustable thickness and band color, a wide elliptical ring circling the planet from side to side where ring width, radial thickness, tilt angle, and ring color are adjustable, the ring segment that passes behind the planet drawn as a lighter semi-transparent arc, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
+      "shape_complexity": "Complex",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 3,
+      "total_time_ms": 1130583.9055,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "The rendered shape perfectly matches the requested CartoonSaturnPlanet description with clean geometry and accurate proportions throughout.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 11989,
+        "output_tokens": 15050,
+        "total_tokens": 27039,
+        "cost_usd": 0.09023625
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 310560.8037,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 6449,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_5c23baa7-e93c-4e3b-bf72-c961aec63149.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3798,
+            "output_tokens": 4222,
+            "total_tokens": 8020,
+            "cost_usd": 0.0258575
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 398671.745,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Rejected by human evaluator.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 6262,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_22dbe602-e66d-411b-8251-7cd15d7afd0e.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4129,
+            "output_tokens": 4297,
+            "total_tokens": 8426,
+            "cost_usd": 0.02664625
+          }
+        },
+        {
+          "iteration_index": 3,
+          "iteration_time_ms": 421351.3568,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The rendered shape perfectly matches the requested CartoonSaturnPlanet description with clean geometry and accurate proportions throughout.",
+          "human_score": 0,
+          "vlm_screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_9aee40b2-71f7-466c-9dec-0239d7cae4c5_vlm.png",
+          "hlsl_length": 4034,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\CartoonSaturnPlanet_9aee40b2-71f7-466c-9dec-0239d7cae4c5.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 4062,
+            "output_tokens": 6531,
+            "total_tokens": 10593,
+            "cost_usd": 0.0377325
+          }
+        }
+      ]
+    }
+  ]
+}
