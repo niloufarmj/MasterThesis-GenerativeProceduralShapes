@@ -7,11 +7,14 @@
 ## Table of Contents
 
 - [Overview](#overview)
+- [Generated Shape Gallery](#generated-shape-gallery)
 - [Features](#features)
 - [Architecture](#architecture)
 - [Pipeline Flows](#pipeline-flows)
 - [Chatbot Interface](#chatbot-interface)
+  - [User Experience](#user-experience)
 - [Knowledge Base](#knowledge-base)
+- [Human Review & Knowledge Base Curation](#human-review--knowledge-base-curation)
 - [Experiment Results](#experiment-results)
   - [Design](#experiment-design)
   - [RQ1 — Does RAG improve generation quality?](#rq1--does-rag-improve-generation-quality)
@@ -55,6 +58,21 @@ User Prompt / Reference Image
 
 ---
 
+## Generated Shape Gallery
+
+All shapes below are purely procedural HLSL — no textures, no sprites. Each is generated end-to-end from a natural language prompt, rendered in Unity's Universal Render Pipeline at 512 × 512 px. Colours, proportions, and style parameters are adjustable through exposed ShaderGraph properties without touching any code.
+
+| | | |
+|:---:|:---:|:---:|
+| ![Fox Face](Assets/ShaderGraphs/Previews/FoxFace.hlsl_preview_1.png) | ![Procedural Sword](Assets/ShaderGraphs/Previews/ProceduralSword.hlsl_preview_1.png) | ![Cartoon Sunflower](Assets/ShaderGraphs/Generated/Previews/CartoonSunflower_15d4b7f7-1523-4b5d-b4ec-ab7b74533b01.png) |
+| *Fox Face* | *Procedural Sword* | *Cartoon Sunflower* |
+| ![Cartoon Mushroom](Assets/ShaderGraphs/Generated/Previews/MushroomCartoon_c83688c9-7a6f-4799-87cc-e7503154884b.png) | ![Ice Cream Cone](Assets/ShaderGraphs/Generated/Previews/IceCreamCone_632b17bf-6256-47e2-af26-45cd29aa6d7c.png) | ![Watermelon Slice](Assets/ShaderGraphs/Previews/CartoonWatermelonSlice_3.png) |
+| *Cartoon Mushroom* | *Ice Cream Cone* | *Watermelon Slice* |
+| ![Stylized Christmas Tree](Assets/ShaderGraphs/Previews/StylizedChristmasTree.hlsl_preview_1.png) | ![Cartoon Rainbow](Assets/ShaderGraphs/Generated/Previews/CartoonRainbow_4736493f-24e5-46b4-90f9-c30e17a21dc7.png) | ![Procedural Hot Dog](Assets/ShaderGraphs/Previews/ProceduralHotDog.hlsl_preview_1.png) |
+| *Stylized Christmas Tree* | *Cartoon Rainbow* | *Procedural Hot Dog* |
+
+---
+
 ## Features
 
 | Feature | Description |
@@ -75,6 +93,8 @@ User Prompt / Reference Image
 ---
 
 ## Architecture
+
+![System Architecture Diagram](images/diagram.png)
 
 ```
 Assets/ShaderGraphGenerator/
@@ -191,6 +211,13 @@ User edit request + material
                                   → Preview quad + result image in chat
 ```
 
+**Editing example** — scarf pattern updated via a single natural language instruction:
+
+| Before | After |
+|:---:|:---:|
+| ![Snowman before edit](Assets/ShaderGraphs/Previews/CartoonSnowman_before.png) | ![Snowman after edit](Assets/ShaderGraphs/Previews/CartoonSnowman_after_1.png) |
+| *"A cartoon snowman"* | *"Make the scarf striped"* |
+
 ### 5. Animation
 
 ```
@@ -238,6 +265,15 @@ Source material
 - Applying Pixelation to a Glowed material → output named `{base}_Glow_Pixelated`
 - Both effects are always re-generated from the original HLSL source, so stacking is lossless
 
+**Visual effects example** — same Fox Face shape with each post-process applied:
+
+| Original | Pixelation Effect | Glow Effect |
+|:---:|:---:|:---:|
+| ![Cartoon Hamburger original](Assets/ShaderGraphs/Previews/CartoonHamburger.hlsl_preview_2.png) | ![Cartoon Hamburger pixelated](Assets/ShaderGraphs/Previews/CartoonHamburger.hlsl_Pixelated.png) | ![CuteStar with glow](Assets/ShaderGraphs/Previews/CuteStar.hlsl_Glow.png) |
+| *Original shader* | *Pixelation (PixelCount = 32)* | *Glow (glowIntensity = 2, URP Bloom)* |
+
+Both effects are zero-cost (no LLM call) and take under 2 seconds to apply.
+
 ---
 
 ## Chatbot Interface
@@ -268,6 +304,29 @@ The chatbot also runs as an HTTP server on **port 7723** with the following endp
 | `/status` | GET | Returns current status message and last preview path |
 | `/abort` | GET | Cancels the current in-progress pipeline |
 | `/history` | GET | Returns full chat history, current state, and state config |
+
+### User Experience
+
+Users interact through typed messages and **quick-reply buttons** that appear contextually. A typical session:
+
+1. The window opens at `MainMenu` — quick replies: **New Shape**, **Edit Shape**, **Animate**, **Add Effect**, **Import HLSL**.
+2. **New Shape → Text**: type a description (e.g. *"a cartoon cactus in a flower pot"*). The pipeline runs automatically and a preview image appears inside the chat bubble.
+3. The bot responds with the generated preview and post-generation quick replies: **Edit this**, **Animate it**, **Add Effect**, **Done**.
+4. **Edit this**: type the change in plain language (*"make the pot blue and add a face to the cactus"*). The classifier decides whether a property tweak or a full HLSL rewrite is needed and applies the change.
+5. **Animate it**: describe the desired motion (*"make it slowly bounce up and down"*). The system generates a C# `MonoBehaviour`, writes it to disk, waits for Unity's domain reload, then attaches it to the preview quad automatically.
+6. **Add Effect → Glow** or **Pixelation**: applied instantly with no LLM call; result shown in chat.
+7. At any point the user can type freely outside quick replies — the state machine interprets the message in context.
+
+The **Image-to-Shape** flow works the same way but starts with an image upload button; GPT-4o describes the image and the pipeline proceeds from there.
+
+The chatbot also runs as an HTTP server on **port 7723**, so it can be driven from a browser at `http://localhost:7723` — useful for demo setups where the Unity Editor runs headless or on a different machine. The web interface (`chat.html`) mirrors the IMGUI window exactly.
+
+**Chatbot UI — example sessions:**
+
+| Main menu | HLSL import flow | Pixelation effect |
+|:---:|:---:|:---:|
+| ![Chat main menu](images/Capture1.PNG) | ![HLSL import result](images/Capture2.PNG) | ![Pixelation via chat](images/Capture3.PNG) |
+| *Welcome screen with quick-reply buttons* | *Importing an HLSL file → material generated in chat* | *Applying pixelation to a Cartoon Hamburger* |
 
 ---
 
@@ -307,6 +366,42 @@ The chatbot also runs as an HTTP server on **port 7723** with the following endp
 **Category enum**: `Uncategorized=0`, `GeometricPrimitives=1`, `OrganicShapes=2`, `SymbolsAndIcons=3`, `CompositeShapes=4`
 
 **Complexity enum**: `Unknown=0`, `Primitive=1`, `Intermediate=2`, `Complex=3`
+
+---
+
+## Human Review & Knowledge Base Curation
+
+Generated shapes that pass the automated VLM quality loop (score ≥ 7) can optionally be reviewed by a human before being added to the knowledge base. This two-step curation process ensures the KB stays high-quality over time.
+
+### Review Flow
+
+```
+Generation run completes (VLM score ≥ 7)
+        ↓
+  Human Review Window (RAGHumanReviewWindow.cs)
+  — lists pending shapes with their preview PNG, prompt, and VLM score
+  — reviewer assigns a score 1–10 and writes optional notes
+        ↓
+  Accept (score ≥ 8)  →  KnowledgeBaseUpdater.IngestShape()
+                         — appends shape to shape_metadata.json
+                         — generates embedding via OpenAI text-embedding-3-small
+                         — tags + categorises the new entry
+        ↓
+  Reject  →  shape discarded; files remain in RAG_Generated/ for reference
+```
+
+### Auto Learn
+
+For bulk ingestion of successful results (e.g. after an experiment run), the **Auto Learn** window (`RAGAutoLearnWindow.cs`) scans `RAG_Generated/` for shapes with a logged VLM score ≥ a configurable threshold and ingests them automatically without requiring per-shape human review. This is used to grow the KB rapidly from a batch of high-quality generations.
+
+### Knowledge Base Growth
+
+| Method | Speed | Quality control |
+|---|---|---|
+| **Human Review** | Manual, per shape | Highest — reviewer inspects the preview image |
+| **Auto Learn** | Automated batch | Medium — relies on VLM score threshold |
+
+The KB ships with **184 verified shapes**. Each accepted shape immediately improves future RAG retrievals for semantically similar prompts, creating a compounding quality improvement over time.
 
 ---
 
