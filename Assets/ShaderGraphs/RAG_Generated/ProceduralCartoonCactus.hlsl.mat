@@ -1,0 +1,127 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: ProceduralCartoonCactus.hlsl
+  m_Shader: {fileID: -6465566751694194690, guid: df744651d713775498a891363f3b4141, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CactusLightColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CactusShadowColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowerCenterColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowerPetalColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PotBaseColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PotHighlightColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PotRimColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StripeColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThornColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _FlowerCenterSize: 0.3
+    - _FlowerPetalCount: 5
+    - _FlowerPetalSize: 0.8
+    - _FlowerSize: 0.15
+    - _LeftHandCurve: 1.2
+    - _LeftHandRot: -0.6
+    - _LeftHandSize: 0.5
+    - _LeftHandWidth: 0.15
+    - _MainBodyHeight: 0.9
+    - _MainBodyWidth: 0.22
+    - _PotHeight: 0.4
+    - _PotSize: 1
+    - _PotWidth: 0.35
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _RightHandCurve: -1
+    - _RightHandRot: 0.5
+    - _RightHandSize: 0.4
+    - _RightHandWidth: 0.14
+    - _ThornsDensity: 12
+    m_Colors:
+    - _CactusLightColor: {r: 0.64, g: 0.8, b: 0.24, a: 1}
+    - _CactusShadowColor: {r: 0.49, g: 0.69, b: 0.17, a: 1}
+    - _FlowerCenterColor: {r: 0.98, g: 0.72, b: 0.1, a: 1}
+    - _FlowerPetalColor: {r: 0.96, g: 0.29, b: 0.3, a: 1}
+    - _LeftHandPos: {r: -0.18, g: 0, b: 0, a: 0}
+    - _PotBaseColor: {r: 0.82, g: 0.1, b: 0.52, a: 1}
+    - _PotHighlightColor: {r: 0.94, g: 0.39, b: 0.69, a: 1}
+    - _PotRimColor: {r: 0.9, g: 0.15, b: 0.59, a: 1}
+    - _RightHandPos: {r: 0.18, g: -0.1, b: 0, a: 0}
+    - _StripeColor: {r: 0.35, g: 0.5, b: 0.13, a: 0.8}
+    - _ThornColor: {r: 0.26, g: 0.37, b: 0.1, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &6668991186535260969
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9

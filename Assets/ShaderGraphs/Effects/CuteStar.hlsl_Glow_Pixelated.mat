@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-6152532096200970135
+--- !u!114 &-3798476518985734838
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CuteStar.hlsl_Pixelated 1
-  m_Shader: {fileID: -6465566751694194690, guid: c7ab5324e4ca5884ba33d6b68299d37d, type: 3}
+  m_Name: CuteStar.hlsl_Glow_Pixelated
+  m_Shader: {fileID: -6465566751694194690, guid: 02d753f80e89e944b9322fdc71a2a668, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -73,6 +73,7 @@ Material:
     m_Floats:
     - PixelCount: 64
     - _EyeDistance: 0.18
+    - _GlowIntensity: 2
     - _InnerRadius: 0.52
     - _LengthOfLegs: 0.38
     - _MouthCurve: 0.03
@@ -84,9 +85,9 @@ Material:
     m_Colors:
     - _EyeSize: {r: 0.02, g: 0.035, b: 0, a: 0}
     - _FaceOffset: {r: 0, g: -0.02, b: 0, a: 0}
-    - _FeatureColor: {r: 0.00024414057, g: 0.000117187425, b: 0.000048828093, a: 1}
+    - _FeatureColor: {r: 0.00024414058, g: 0.000117187425, b: 0.000048828093, a: 1}
     - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0.4415095, g: 0.24799994, b: 0.14244927, a: 1}
-    - _StarColor: {r: 1, g: 0.9928866, b: 0.12549019, a: 1}
+    - _OutlineColor: {r: 0.44150946, g: 0.2479999, b: 0.14244923, a: 1}
+    - _StarColor: {r: 1, g: 0.9928866, b: 0.12549016, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

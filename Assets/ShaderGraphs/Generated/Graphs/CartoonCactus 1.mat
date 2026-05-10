@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!114 &-6152532096200970135
+--- !u!114 &-6742633962560713290
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}
@@ -20,8 +20,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: CuteStar.hlsl_Pixelated 1
-  m_Shader: {fileID: -6465566751694194690, guid: c7ab5324e4ca5884ba33d6b68299d37d, type: 3}
+  m_Name: CartoonCactus 1
+  m_Shader: {fileID: -6465566751694194690, guid: 8b471cd1037309c45a2f33baa1616e4e, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -41,11 +41,15 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _FeatureColorTex:
+    - _CactusColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _HighlightColorTex:
+    - _FlowerCenterColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowerColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -53,7 +57,15 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
-    - _StarColorTex:
+    - _PotColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _RidgeColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThornColorTex:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
@@ -71,22 +83,26 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - PixelCount: 64
-    - _EyeDistance: 0.18
-    - _InnerRadius: 0.52
-    - _LengthOfLegs: 0.38
-    - _MouthCurve: 0.03
-    - _MouthThickness: 0.008
-    - _OutlineThickness: 0.05
-    - _OverallShapeCurvature: 0.06
+    - _HandAngle: 0.7
+    - _OutlineWidth: 0.01
+    - _PotPosY: -0.28
+    - _PotRimWidth: 0.26
     - _QueueControl: 0
     - _QueueOffset: 0
     m_Colors:
-    - _EyeSize: {r: 0.02, g: 0.035, b: 0, a: 0}
-    - _FaceOffset: {r: 0, g: -0.02, b: 0, a: 0}
-    - _FeatureColor: {r: 0.00024414057, g: 0.000117187425, b: 0.000048828093, a: 1}
-    - _HighlightColor: {r: 1, g: 1, b: 1, a: 1}
-    - _OutlineColor: {r: 0.4415095, g: 0.24799994, b: 0.14244927, a: 1}
-    - _StarColor: {r: 1, g: 0.9928866, b: 0.12549019, a: 1}
+    - _BodyParams: {r: 0.1, g: 0.27, b: 0.11, a: 0.4}
+    - _CactusColor: {r: 0.6509804, g: 0.87843144, b: 0.3137255, a: 1}
+    - _FlowerCenterColor: {r: 0.9, g: 0.8, b: 0.2, a: 1}
+    - _FlowerColor: {r: 1, g: 0.32156864, b: 0.5294118, a: 1}
+    - _FlowerParams: {r: 0.04, g: 0.02, b: 8, a: 0}
+    - _HandOffset: {r: 0.15, g: 0.02, b: 0, a: 0}
+    - _HandParams: {r: 0.07, g: 0.16, b: 0.07, a: 0.53}
+    - _OutlineColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+    - _PotColor: {r: 0.29411766, g: 0.38431376, b: 0.9294118, a: 1}
+    - _PotParams: {r: 0.18, g: 0.22, b: 0.16, a: 0.04}
+    - _RidgeColor: {r: 0.5176471, g: 0.69411767, b: 0.23529413, a: 1}
+    - _RidgeParams: {r: 20.38, g: 0.07, b: 0, a: 0}
+    - _ThornColor: {r: 0.38823533, g: 0.5176471, b: 0.16078432, a: 1}
+    - _ThornParams: {r: 13.59, g: 0.05, b: 0.1, a: 1}
   m_BuildTextureStacks: []
   m_AllowLocking: 1

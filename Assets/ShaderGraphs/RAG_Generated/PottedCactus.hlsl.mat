@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: PottedCactus.hlsl
+  m_Shader: {fileID: -6465566751694194690, guid: eeeb1d817963791479b4411b304b9b59, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CactusColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CactusDarkColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _CactusHighlightColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowerCenterColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _FlowerPetalColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PotColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PotHighlightColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _PotLipColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _ThornColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _ArmCCurve: 0.1
+    - _ArmCFatness: 0.12
+    - _ArmCRot: 0.13
+    - _ArmCSize: 0.3
+    - _ArmLCurve: 1.58
+    - _ArmLFatness: 0.11
+    - _ArmLRot: 1.11
+    - _ArmLSize: 0.11
+    - _ArmRCurve: -0.5
+    - _ArmRFatness: 0.08
+    - _ArmRRot: -0.79
+    - _ArmRSize: 0.25
+    - _FlowerCenterSize: 0.58
+    - _FlowerPetals: 7
+    - _FlowerSize: 0.05
+    - _PotBottomScale: 0.55
+    - _PotHeight: 0.25
+    - _PotSize: 0.67
+    - _PotWidth: 0.4
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _ThornDensity: 30.79
+    m_Colors:
+    - _ArmCPos: {r: 0.49, g: 0.44, b: 0, a: 0}
+    - _ArmLPos: {r: 0.34, g: 0.52, b: 0, a: 0}
+    - _ArmRPos: {r: 0.6, g: 0.42, b: 0, a: 0}
+    - _CactusColor: {r: 0.655, g: 0.878, b: 0.314, a: 1}
+    - _CactusDarkColor: {r: 0.388, g: 0.518, b: 0.161, a: 1}
+    - _CactusHighlightColor: {r: 0.75, g: 0.95, b: 0.4, a: 1}
+    - _FlowerCenterColor: {r: 1, g: 0.7540005, b: 0.020754695, a: 1}
+    - _FlowerPetalColor: {r: 1, g: 0.3215686, b: 0.5331459, a: 1}
+    - _PotColor: {r: 0.2941176, g: 0.38605392, b: 0.93333334, a: 1}
+    - _PotHighlightColor: {r: 0.34254885, g: 0.50634146, b: 0.89433956, a: 1}
+    - _PotLipColor: {r: 0.17527229, g: 0.37976584, b: 0.90188676, a: 1}
+    - _PotPos: {r: 0.5, g: 0.17, b: 0, a: 0}
+    - _ThornColor: {r: 0.388, g: 0.518, b: 0.161, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1
+--- !u!114 &4599529095358016543
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9

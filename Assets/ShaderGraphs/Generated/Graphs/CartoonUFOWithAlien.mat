@@ -1,0 +1,131 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &-6035321426545751803
+MonoBehaviour:
+  m_ObjectHideFlags: 11
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  version: 9
+--- !u!21 &2100000
+Material:
+  serializedVersion: 8
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: CartoonUFOWithAlien
+  m_Shader: {fileID: -6465566751694194690, guid: dcb1eb7c89c888b49b62979bb45bfb7a, type: 3}
+  m_Parent: {fileID: 0}
+  m_ModifiedSerializedProperties: 0
+  m_ValidKeywords: []
+  m_InvalidKeywords: []
+  m_LightmapFlags: 4
+  m_EnableInstancingVariants: 0
+  m_DoubleSidedGI: 0
+  m_CustomRenderQueue: -1
+  stringTagMap: {}
+  disabledShaderPasses:
+  - MOTIONVECTORS
+  m_LockedProperties: 
+  m_SavedProperties:
+    serializedVersion: 3
+    m_TexEnvs:
+    - MainTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _AntennaColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _BlushColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _DomeColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _EyeColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _HeadColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _InnerFlameColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _LightColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _MidFlameColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _OuterFlameColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _SaucerColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _StrokeColorTex:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_Lightmaps:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_LightmapsInd:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - unity_ShadowMasks:
+        m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    m_Ints: []
+    m_Floats:
+    - _AntennaThickness: -0.1
+    - _DomeCurve: 0.5
+    - _HeadTopRadius: 0.08
+    - _QueueControl: 0
+    - _QueueOffset: 0
+    - _Rotation: -0.2
+    - _SaucerCurve: 1.87
+    - _Size: 0.91
+    - _StrokeWidth: 0.01
+    m_Colors:
+    - _AntennaColor: {r: 0.4, g: 0.9, b: 0.5, a: 1}
+    - _AntennaParams: {r: 0.08, g: 0.06, b: -0.01, a: 0.015}
+    - _BlushColor: {r: 0.9, g: 0.3, b: 0.4, a: 0.6}
+    - _DomeColor: {r: 0.39999998, g: 0.8, b: 1, a: 0.29411766}
+    - _DomeSize: {r: 0.26, g: 0.29, b: 0, a: 0}
+    - _EyeColor: {r: 0.1, g: 0.1, b: 0.1, a: 1}
+    - _FaceParams: {r: 0.015, g: 0.03, b: 0.001, a: 17.23}
+    - _FlameParams: {r: 0.12, g: 0.31, b: -0.01, a: 30}
+    - _HeadColor: {r: 0.4, g: 0.9, b: 0.5, a: 1}
+    - _HeadSize: {r: 0.08, g: 0.08, b: 0, a: 0}
+    - _InnerFlameColor: {r: 1, g: 1, b: 0.5, a: 1}
+    - _LightColor: {r: 0.9, g: 1, b: 0.2, a: 1}
+    - _LightParams: {r: 4, g: 0.02, b: 0.1, a: 0}
+    - _MidFlameColor: {r: 1, g: 0.7, b: 0, a: 1}
+    - _OuterFlameColor: {r: 1, g: 0.3, b: 0, a: 1}
+    - _SaucerColor: {r: 0.6, g: 0.6, b: 0.65, a: 1}
+    - _SaucerSize: {r: 0.32, g: 0.07, b: 0, a: 0}
+    - _StrokeColor: {r: 0.1, g: 0.1, b: 0.15, a: 1}
+  m_BuildTextureStacks: []
+  m_AllowLocking: 1

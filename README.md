@@ -38,6 +38,12 @@ This Unity Editor tool enables non-programmers to create, edit, animate, and app
 
 The system combines a **RAG (Retrieval-Augmented Generation)** pipeline, multiple **LLM providers** (Google Gemini, OpenAI GPT-4o, Anthropic Claude), and an interactive **chatbot interface** to guide users through the full asset creation lifecycle.
 
+All shapes are built on **Signed Distance Fields (SDF)** — mathematical functions that return the distance from any point to a shape's boundary, enabling smooth, resolution-independent procedural geometry entirely in HLSL with no textures.
+
+![SDF Concept](images/sdf_concept.png)
+
+*SDF concept: f(p) < 0 = inside the shape, f(p) = 0 = on the boundary, f(p) > 0 = outside. Every generated HLSL shader composes multiple SDF primitives to construct the final shape.*
+
 ```
 User Prompt / Reference Image
         ↓
@@ -70,6 +76,8 @@ All shapes below are purely procedural HLSL — no textures, no sprites. Each is
 | *Cartoon Mushroom* | *Ice Cream Cone* | *Watermelon Slice* |
 | ![Stylized Christmas Tree](Assets/ShaderGraphs/Previews/StylizedChristmasTree.hlsl_preview_1.png) | ![Cartoon Rainbow](Assets/ShaderGraphs/Generated/Previews/CartoonRainbow_4736493f-24e5-46b4-90f9-c30e17a21dc7.png) | ![Procedural Hot Dog](Assets/ShaderGraphs/Previews/ProceduralHotDog.hlsl_preview_1.png) |
 | *Stylized Christmas Tree* | *Cartoon Rainbow* | *Procedural Hot Dog* |
+| ![Cute Star](images/CuteStar.png) | ![Cartoon Cactus](images/CartoonCactus_RAG.png) | ![Cartoon UFO](images/CartoonUFO_RAG.png) |
+| *Cute Star* | *Cartoon Cactus* | *Cartoon UFO* |
 
 ---
 
@@ -95,6 +103,13 @@ All shapes below are purely procedural HLSL — no textures, no sprites. Each is
 ## Architecture
 
 ![System Architecture Diagram](images/diagram.png)
+
+Each generated HLSL shader is automatically wired into a Unity ShaderGraph with all parameters exposed as editable material properties:
+
+| Generated ShaderGraph | Exposed Material Properties |
+|:---:|:---:|
+| ![ShaderGraph node graph](images/shadergraph_base.png) | ![Sword material inspector](images/sword_material_inspector.png) |
+| *Auto-generated ShaderGraph node graph for a procedural shape* | *Exposed shader properties in the Unity Inspector — adjustable without touching code* |
 
 ```
 Assets/ShaderGraphGenerator/
@@ -173,6 +188,10 @@ User text prompt
 → OpenAIApiService               (VLM score 1–10; if < 7 refine, max 3 tries)
 → Result: .hlsl + .shadergraph + .mat + preview PNG
 ```
+
+![Decomposition and Retrieval](images/decomposition_retrieval.png)
+
+*Stages 1–4 of the RAG pipeline: the user prompt is decomposed into visual components (e.g. "tall cactus body", "flower pot with rim", "small oval spines"), each component is matched against the 184-shape Knowledge Base via embedding search, and the retrieved HLSL examples are passed to Gemini to compose the final shader.*
 
 ### 2. Image-to-Shape
 
@@ -265,20 +284,22 @@ Source material
 - Applying Pixelation to a Glowed material → output named `{base}_Glow_Pixelated`
 - Both effects are always re-generated from the original HLSL source, so stacking is lossless
 
-**Visual effects example** — same Fox Face shape with each post-process applied:
+**Visual effects example** — same Cute Star shape with each post-process applied, including the stacked Glow + Pixelated variant:
 
-| Original | Pixelation Effect | Glow Effect |
-|:---:|:---:|:---:|
-| ![Cartoon Hamburger original](Assets/ShaderGraphs/Previews/CartoonHamburger.hlsl_preview_2.png) | ![Cartoon Hamburger pixelated](Assets/ShaderGraphs/Previews/CartoonHamburger.hlsl_Pixelated.png) | ![CuteStar with glow](Assets/ShaderGraphs/Previews/CuteStar.hlsl_Glow.png) |
-| *Original shader* | *Pixelation (PixelCount = 32)* | *Glow (glowIntensity = 2, URP Bloom)* |
+| Original | Pixelation Effect | Glow Effect | Glow + Pixelated |
+|:---:|:---:|:---:|:---:|
+| ![CuteStar original](images/CuteStar.png) | ![CuteStar pixelated](images/CuteStar_Pixelated.png) | ![CuteStar glow](images/CuteStar_Glow.png) | ![CuteStar glow and pixelated](images/CuteStar_Glow_Pixelated.png) |
+| *Original shader* | *Pixelation (PixelCount = 64)* | *Glow (glowIntensity = 2, URP Bloom)* | *Both effects stacked (`_Glow_Pixelated`)* |
 
-Both effects are zero-cost (no LLM call) and take under 2 seconds to apply.
+All effects are zero-cost (no LLM call) and take under 2 seconds to apply.
 
 ---
 
 ## Chatbot Interface
 
 The chatbot (`ChatbotWindow.cs` + `ChatBridge.cs`) is driven by a 26-state machine:
+
+![Chatbot State Machine](images/state_machine.png)
 
 ```
 MainMenu
@@ -453,6 +474,14 @@ Each run generates one HLSL shader + ShaderGraph material, renders a 512 × 512 
 ![VLM score distribution](Assets/Experiment/Visualization/Charts/02_vlm_score_distribution.png)
 
 ![Score histogram](Assets/Experiment/Visualization/Charts/07_score_histogram.png)
+
+**RAG vs NoRAG — visual output comparison on the same prompts:**
+
+| Shape | NoRAG | RAG |
+|:---:|:---:|:---:|
+| *Cartoon Cactus* | ![CartoonCactus NoRAG](images/CartoonCactus_NoRAG.png) | ![CartoonCactus RAG](images/CartoonCactus_RAG.png) |
+| *Cartoon Mushroom* | ![CartoonMushroom NoRAG](images/CartoonMushroom_NoRAG.png) | ![CartoonMushroom RAG](images/CartoonMushroom_RAG.png) |
+| *Cartoon UFO* | ![CartoonUFO NoRAG](images/CartoonUFO_NoRAG.png) | ![CartoonUFO RAG](images/CartoonUFO_RAG.png) |
 
 **Key findings for RQ1:**
 
