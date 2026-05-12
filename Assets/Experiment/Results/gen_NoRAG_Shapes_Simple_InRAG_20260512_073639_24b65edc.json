@@ -1,0 +1,284 @@
+{
+  "experiment_type": "generation",
+  "run_id": "24b65edc",
+  "timestamp_utc": "2026-05-12T07:36:39.7453087Z",
+  "pipeline": "NoRAG",
+  "shape_set_name": "Shapes_Simple_InRAG",
+  "llm_provider": "claude-sonnet-4-6",
+  "llm_model_id": "claude-sonnet-4-6",
+  "eval_provider": "gemini-3-pro-preview",
+  "max_iterations": 3,
+  "success_threshold": 7,
+  "require_human_score": false,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 9.6,
+  "summary_avg_iterations": 1.2,
+  "summary_avg_time_ms": 30104.28418,
+  "summary_compile_rate": 1.0,
+  "summary_avg_human_score": 0.0,
+  "summary_first_pass_compile_rate": 1.0,
+  "summary_total_input_tokens": 115933,
+  "summary_total_output_tokens": 16340,
+  "summary_total_tokens": 132273,
+  "summary_total_cost_usd": 0.592899,
+  "shapes": [
+    {
+      "prompt": "a teardrop shape with a smooth round bottom and a tapering pointed top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 2,
+      "total_time_ms": 66333.4911,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The shape correctly represents a teardrop with a pointed top, a round bottom, and a dark fill color. However, there are noticeable horizontal notch artifacts on the left and right sides where the top and bottom halves seem to meet, disrupting the smoothness.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 37766,
+        "output_tokens": 2834,
+        "total_tokens": 40600,
+        "cost_usd": 0.155808
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 33062.483100000005,
+          "compile_ok": true,
+          "vlm_score": 1,
+          "vlm_explanation": "Eval unavailable.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 3179,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\TeardropShape_1e1df5c0-6021-4480-9ba6-feca44f8976d.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 35818,
+            "output_tokens": 1422,
+            "total_tokens": 37240,
+            "cost_usd": 0.128784
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 33250.1224,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 3272,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\TeardropShape.hlsl_07001355-cd20-4892-abf2-2cf291c91ac5.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1948,
+            "output_tokens": 1412,
+            "total_tokens": 3360,
+            "cost_usd": 0.027024
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a scalloped disc with evenly spaced smooth convex bumps distributed around its circular perimeter, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 43629.613900000004,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The shape perfectly matches the requested description, featuring a clearly recognizable scalloped disc with evenly spaced, smooth convex bumps around its circular perimeter and filled with a dark color.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 35823,
+        "output_tokens": 1270,
+        "total_tokens": 37093,
+        "cost_usd": 0.12651900000000002
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 43628.239,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 2641,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\ScallopedDisc_3fae865c-db2f-4530-930c-73d6ae0c39c0.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 35823,
+            "output_tokens": 1270,
+            "total_tokens": 37093,
+            "cost_usd": 0.12651900000000002
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a U-shaped thick arc with two parallel straight arms and a rounded bottom, open at the top, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 38733.065500000004,
+      "final_vlm_score": 10,
+      "final_vlm_explanation": "The shape mostly matches the request, featuring a thick U-shape with parallel straight arms, a rounded bottom, and a dark fill. However, there is a noticeable thin horizontal line artifact connecting the inner arms.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 35822,
+        "output_tokens": 1743,
+        "total_tokens": 37565,
+        "cost_usd": 0.133611
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 38732.414600000004,
+          "compile_ok": true,
+          "vlm_score": 10,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4391,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": "Assets/Experiment/Generated_NoRAG/Previews\\UShapeArc_156e3dc0-ca5d-4c89-9fe9-e3225f9a4542.png",
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 35822,
+            "output_tokens": 1743,
+            "total_tokens": 37565,
+            "cost_usd": 0.133611
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a lightning bolt formed by two angled segments meeting at a sharp midpoint, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 881.5797,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "LLM returned empty response.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 3607,
+        "output_tokens": 5277,
+        "total_tokens": 8884,
+        "cost_usd": 0.089976
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 881.5797,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 4332,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 3607,
+            "output_tokens": 5277,
+            "total_tokens": 8884,
+            "cost_usd": 0.089976
+          }
+        }
+      ]
+    },
+    {
+      "prompt": "a trapezoid with a wider base and a shorter parallel top edge, filled by default with dark shade of colors (not white or too bright)",
+      "shape_complexity": "Simple",
+      "in_knowledge_base": false,
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 943.6707,
+      "final_vlm_score": 9,
+      "final_vlm_explanation": "LLM returned empty response.",
+      "human_score": 0,
+      "accepted_by_human": false,
+      "first_pass_compiled": true,
+      "rag_components_decomposed": 0,
+      "rag_retrieved_examples": 0,
+      "rag_avg_similarity_score": 0.0,
+      "llm_usage_total": {
+        "input_tokens": 2915,
+        "output_tokens": 5216,
+        "total_tokens": 8131,
+        "cost_usd": 0.086985
+      },
+      "iterations": [
+        {
+          "iteration_index": 1,
+          "iteration_time_ms": 943.6707,
+          "compile_ok": true,
+          "vlm_score": 9,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
+          "human_score": 0,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 3558,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 2915,
+            "output_tokens": 5216,
+            "total_tokens": 8131,
+            "cost_usd": 0.086985
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -4,49 +4,71 @@
   "timestamp_utc": "2026-04-24T19:16:47.9539429Z",
   "pipeline": "NoRAG",
   "shape_set_name": "Shapes_Simple_NotInRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
   "require_human_score": true,
-  "summary_success_rate": 0.5,
-  "summary_avg_vlm_score": 5.5,
-  "summary_avg_iterations": 2.0,
-  "summary_avg_time_ms": 345899.875,
+  "summary_success_rate": 1.0,
+  "summary_avg_vlm_score": 8.5,
+  "summary_avg_iterations": 1.5,
+  "summary_avg_time_ms": 109278.175,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 9.0,
-  "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_first_pass_compile_rate": 0.5,
+  "summary_total_input_tokens": 6546,
+  "summary_total_output_tokens": 3925,
+  "summary_total_tokens": 10471,
+  "summary_total_cost_usd": 0.047432,
   "shapes": [
     {
       "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
       "shape_complexity": "Simple",
       "in_knowledge_base": false,
       "success": true,
-      "iterations_used": 1,
-      "total_time_ms": 51134.488000000005,
+      "iterations_used": 2,
+      "total_time_ms": 59557.29,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image successfully depicts a dark-colored parallelogram with tilted sides, matching the user's request for shape, orientation, and color.",
       "human_score": 9,
       "accepted_by_human": true,
-      "first_pass_compiled": true,
+      "first_pass_compiled": false,
       "rag_components_decomposed": 0,
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 2665,
+        "output_tokens": 1178,
+        "total_tokens": 3843,
+        "cost_usd": 0.015111
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 51133.825800000006,
+          "iteration_time_ms": 22634.77,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "HLSL compilation error: undeclared identifier 'uv_scale'.",
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1165,
+            "output_tokens": 672,
+            "total_tokens": 1837,
+            "cost_usd": 0.008176
+          },
+          "vlm_screenshot_path": null
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 36922.52,
           "compile_ok": true,
           "vlm_score": 10,
           "vlm_explanation": "The image successfully depicts a dark-colored parallelogram with tilted sides, matching the user's request for shape, orientation, and color.",
@@ -59,10 +81,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 1185,
+            "output_tokens": 525,
+            "total_tokens": 1710,
+            "cost_usd": 0.006731
           }
         }
       ]
@@ -71,11 +93,11 @@
       "prompt": "a right-pointing chevron arrow formed by two diagonal lines meeting at a sharp point, filled in dark color",
       "shape_complexity": "Simple",
       "in_knowledge_base": false,
-      "success": false,
-      "iterations_used": 3,
-      "total_time_ms": 640665.25550000009,
-      "final_vlm_score": 1,
-      "final_vlm_explanation": "Pipeline error: Failed to parse HLSL function header. No functions found in file.",
+      "success": true,
+      "iterations_used": 1,
+      "total_time_ms": 158999.06,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
       "human_score": 0,
       "accepted_by_human": false,
       "first_pass_compiled": true,
@@ -83,19 +105,19 @@
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 3881,
+        "output_tokens": 2747,
+        "total_tokens": 6628,
+        "cost_usd": 0.032321
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 143689.3678,
+          "iteration_time_ms": 158999.06,
           "compile_ok": true,
-          "vlm_score": 2,
-          "vlm_explanation": "The rendered image fails to form a proper right-pointing chevron. While the bottom diagonal line is visible, the top section is rendered as a thick horizontal band rather than a matching diagonal line, resulting in a distorted and incorrect shape.",
-          "hlsl_length": 2540,
+          "vlm_score": 7,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
+          "hlsl_length": 3625,
           "hlsl_asset_path": null,
           "shadergraph_asset_path": null,
           "material_asset_path": null,
@@ -104,52 +126,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
-          }
-        },
-        {
-          "iteration_index": 2,
-          "iteration_time_ms": 255436.78300000002,
-          "compile_ok": false,
-          "vlm_score": 1,
-          "vlm_explanation": "Pipeline error: Failed to parse HLSL function header. No functions found in file.",
-          "hlsl_length": 0,
-          "hlsl_asset_path": null,
-          "shadergraph_asset_path": null,
-          "material_asset_path": null,
-          "screenshot_path": null,
-          "rag_components_decomposed": 0,
-          "rag_retrieved_examples": 0,
-          "rag_avg_similarity_score": 0.0,
-          "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
-          }
-        },
-        {
-          "iteration_index": 3,
-          "iteration_time_ms": 241538.49010000002,
-          "compile_ok": false,
-          "vlm_score": 1,
-          "vlm_explanation": "Pipeline error: Failed to parse HLSL function header. No functions found in file.",
-          "hlsl_length": 0,
-          "hlsl_asset_path": null,
-          "shadergraph_asset_path": null,
-          "material_asset_path": null,
-          "screenshot_path": null,
-          "rag_components_decomposed": 0,
-          "rag_retrieved_examples": 0,
-          "rag_avg_similarity_score": 0.0,
-          "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 3881,
+            "output_tokens": 2747,
+            "total_tokens": 6628,
+            "cost_usd": 0.032321
           }
         }
       ]

@@ -72,7 +72,7 @@ All shapes below are purely procedural HLSL — no textures, no sprites. Each is
 |:---:|:---:|:---:|
 | ![Fox Face](Assets/ShaderGraphs/Previews/FoxFace.hlsl_preview_1.png) | ![Procedural Sword](Assets/ShaderGraphs/Previews/ProceduralSword.hlsl_preview_1.png) | ![Cartoon Sunflower](Assets/ShaderGraphs/Generated/Previews/CartoonSunflower_15d4b7f7-1523-4b5d-b4ec-ab7b74533b01.png) |
 | *Fox Face* | *Procedural Sword* | *Cartoon Sunflower* |
-| ![Cartoon Mushroom](Assets/ShaderGraphs/Generated/Previews/MushroomCartoon_c83688c9-7a6f-4799-87cc-e7503154884b.png) | ![Ice Cream Cone](Assets/ShaderGraphs/Generated/Previews/IceCreamCone_632b17bf-6256-47e2-af26-45cd29aa6d7c.png) | ![Watermelon Slice](Assets/ShaderGraphs/Previews/CartoonWatermelonSlice_3.png) |
+| ![Cartoon Mushroom](images/CartoonMushroom_RAG.png) | ![Ice Cream Cone](Assets/ShaderGraphs/Generated/Previews/IceCreamCone_632b17bf-6256-47e2-af26-45cd29aa6d7c.png) | ![Watermelon Slice](Assets/ShaderGraphs/Previews/CartoonWatermelonSlice_3.png) |
 | *Cartoon Mushroom* | *Ice Cream Cone* | *Watermelon Slice* |
 | ![Stylized Christmas Tree](Assets/ShaderGraphs/Previews/StylizedChristmasTree.hlsl_preview_1.png) | ![Cartoon Rainbow](Assets/ShaderGraphs/Generated/Previews/CartoonRainbow_4736493f-24e5-46b4-90f9-c30e17a21dc7.png) | ![Procedural Hot Dog](Assets/ShaderGraphs/Previews/ProceduralHotDog.hlsl_preview_1.png) |
 | *Stylized Christmas Tree* | *Cartoon Rainbow* | *Procedural Hot Dog* |
@@ -468,8 +468,8 @@ Each run generates one HLSL shader + ShaderGraph material, renders a 512 × 512 
 
 | Pipeline | n | Success rate | Avg VLM score | Avg iterations | Avg time (s) | Compile rate | Avg cost / shape |
 |---|---|---|---|---|---|---|---|
-| **RAG** | 135 | **89.6%** | **7.81** | 1.49 | 531 | **93.9%** | $0.076 |
-| **NoRAG** | 147 | 71.4% | 6.59 | 1.80 | 530 | 82.0% | $0.052 |
+| **RAG** | 143 | **70.6%** | **7.22** | **1.82** | 607 | **91.6%** | $0.063 |
+| **NoRAG** | 157 | 65.6% | 6.48 | 2.06 | 476 | 84.1% | $0.061 |
 
 ![VLM score distribution](Assets/Experiment/Visualization/Charts/02_vlm_score_distribution.png)
 
@@ -485,15 +485,15 @@ Each run generates one HLSL shader + ShaderGraph material, renders a 512 × 512 
 
 **Key findings for RQ1:**
 
-- RAG improves **VLM score by +1.22 points** on average (6.59 → 7.81), a meaningful gain given the 1–10 scale.
-- RAG also raises the **success rate by ~18 percentage points** (71.4% → 89.6%) and the compile rate by ~12 points.
-- NoRAG is **not unreliable** — with capable models it still achieves 90%+ success on simple shapes. The gap is mainly in output quality (VLM score), not just pass/fail.
-- Both pipelines use similar average time (~530 s across all runs); timing differences emerge when broken down by complexity (see RQ2).
-- RAG raises cost slightly (~+$0.024/shape) due to the retrieval and longer prompts, but this is negligible for thesis-scale usage.
+- RAG improves **VLM score by +0.74 points** on average (6.48 → 7.22), a meaningful gain given the 1–10 scale.
+- RAG also raises the **success rate by ~5 percentage points** (65.6% → 70.6%) and the compile rate by ~7.5 points.
+- NoRAG is **not unreliable** — with capable models it still achieves 80%+ success on simple shapes. The gap is mainly in output quality (VLM score), not just pass/fail.
+- RAG averages more time per shape (607 s vs 476 s); the difference is driven by longer prompts and the retrieval step rather than extra refinement iterations.
+- Costs are nearly identical ($0.063 vs $0.061/shape) — RAG's retrieval overhead is offset by fewer failed iterations.
 
 ![Iteration convergence](Assets/Experiment/Visualization/Charts/11_iteration_convergence.png)
 
-RAG converges in **fewer iterations** (1.49 vs 1.80), meaning the LLM reaches an acceptable result sooner when given retrieved HLSL examples as context.
+RAG converges in **fewer iterations** (1.82 vs 2.06), meaning the LLM reaches an acceptable result sooner when given retrieved HLSL examples as context.
 
 ---
 
@@ -505,12 +505,12 @@ RAG converges in **fewer iterations** (1.49 vs 1.80), meaning the LLM reaches an
 
 **Pipeline × Complexity breakdown:**
 
-| Pipeline | Complexity | n | Success rate | Avg VLM score | Avg time (s) | Avg cost / shape |
-|---|---|---|---|---|---|---|
-| NoRAG | Simple | 93 | 68.8% | 6.43 | **230** | $0.017 |
-| NoRAG | Complex | 54 | 75.9% | 6.87 | 966 | $0.097 |
-| RAG | Simple | 81 | 90.1% | 8.16 | 292 | $0.017 |
-| RAG | Complex | 54 | 88.9% | 7.46 | **807** | $0.120 |
+| Pipeline | Complexity | n | Success rate | Avg VLM score | Avg iterations | Avg time (s) | Compile rate | Avg cost / shape |
+|---|---|---|---|---|---|---|---|---|
+| NoRAG | Simple | 98 | 82.7% | 7.68 | 1.73 | **212** | 90.8% | $0.032 |
+| NoRAG | Complex | 59 | 37.3% | 4.49 | 2.61 | 915 | 72.9% | $0.108 |
+| RAG | Simple | 86 | **84.9%** | **8.24** | 1.56 | 462 | **100.0%** | $0.024 |
+| RAG | Complex | 57 | 49.1% | 5.67 | 2.21 | **825** | 78.9% | $0.122 |
 
 ![Average iterations](Assets/Experiment/Visualization/Charts/03_avg_iterations.png)
 
@@ -518,9 +518,9 @@ RAG converges in **fewer iterations** (1.49 vs 1.80), meaning the LLM reaches an
 
 **Key findings for RQ2:**
 
-- **Simple shapes + NoRAG** is the fastest configuration (230 s/shape, $0.017/shape) and still achieves 68.8% success — sufficient for basic use cases and far cheaper than all RAG variants.
-- **RAG improves simple shapes dramatically** in VLM quality (6.43 → 8.16) at minimal extra time cost (292 s vs 230 s). The cost remains identical ($0.017/shape) because shorter prompts offset retrieval overhead.
-- **Complex shapes benefit most from RAG** in reliability: success rate rises from 75.9% to 88.9%. However, RAG is actually **faster for complex shapes** (807 s vs 966 s) because retrieved HLSL context helps the LLM produce correct code on the first attempt, avoiding costly VLM refinement loops.
+- **Simple shapes + NoRAG** is the fastest configuration (212 s/shape) and achieves 82.7% success — sufficient for basic use cases and faster than all RAG variants.
+- **RAG improves simple shapes** in VLM quality (7.68 → 8.24) and achieves a 100% compile rate, though it takes longer (462 s vs 212 s) due to retrieval overhead. The cost is actually lower ($0.024 vs $0.032) because first-pass compile success reduces refinement iterations.
+- **Complex shapes are the main challenge**: NoRAG complex shapes succeed only 37.3% of the time. RAG raises this to 49.1% and is **faster for complex shapes** (825 s vs 915 s) because retrieved HLSL context helps the LLM avoid costly compile–fix loops.
 - **In-KB shapes** (whose geometry is represented in the knowledge base) score consistently higher under RAG, as retrieved examples closely match the target. Not-in-KB shapes still benefit from RAG, but the gain is smaller — the retrieved examples provide structural guidance even when the shape is novel.
 
 ![RAG similarity vs score](Assets/Experiment/Visualization/Charts/09_rag_similarity_vs_score.png)
@@ -545,11 +545,11 @@ Complex shapes are decomposed into more components during the RAG retrieval step
 
 | Model | n | Success rate | Avg VLM score | Avg iterations | Avg time (s) | Compile rate | Avg cost / shape | Avg total tokens |
 |---|---|---|---|---|---|---|---|---|
-| **Gemini 3.1 Pro** | 40 | **97.5%** | 7.98 | 1.33 | 539 | **100%** | $0.037 | 12,956 |
-| **Gemini 3 Pro Preview** | 75 | 92.0% | **8.48** | 1.35 | 322 | **100%** | $0.020 | 6,870 |
-| GPT-5.4 | 48 | 83.3% | 7.27 | 1.65 | 223 | 95.8% | $0.143 | 15,379 |
-| Claude Sonnet 4.6 | 61 | 82.0% | 7.39 | 1.46 | **104** | 88.5% | $0.054 | 7,141 |
-| Kimi K2.6 | 58 | 48.3% | 4.79 | 2.41 | 1,345 | 51.7% | $0.028 | 99,754 |
+| **Gemini 3.1 Pro** | 75 | **93.3%** | **8.53** | 1.59 | 359 | 98.7% | **$0.036** | 9,602 |
+| Gemini 3 Pro Preview | 40 | 87.5% | 7.58 | 1.73 | 607 | 97.5% | $0.038 | 12,778 |
+| Claude Sonnet 4.6 | 79 | 72.2% | 7.13 | 1.80 | **129** | 72.2% | $0.072 | 10,395 |
+| GPT-5.4 | 48 | 58.3% | 6.73 | 2.12 | 307 | **100.0%** | $0.149 | 16,365 |
+| Kimi K2.6 | 58 | 24.1% | 3.81 | 2.62 | 1,473 | 77.6% | $0.025 | 90,288 |
 
 ![Model compile rates](Assets/Experiment/Visualization/Charts/26_model_compile_rate.png)
 
@@ -565,11 +565,11 @@ Complex shapes are decomposed into more components during the RAG retrieval step
 
 **Key findings for RQ3:**
 
-- **Gemini 3.1 Pro** is the most reliable model overall (97.5% success, 100% compile rate). It uses more tokens than the Preview variant but produces consistently compilable, high-quality HLSL. It performs slightly but consistently better than Gemini 3 Pro Preview across all shape groups.
-- **Gemini 3 Pro Preview** achieves the **highest average VLM score (8.48)** across all shapes, converges fastest (1.35 iterations), and is the most cost-efficient at $0.020/shape. It was used as the primary generation backend throughout development.
-- **GPT-5.4** shows good quality (VLM 7.27) but is the most expensive at $0.143/shape — over 7× the cost of Gemini 3 Pro Preview. It is also less stable on complex shapes.
-- **Claude Sonnet 4.6** is by far the **fastest model** at just 104 s/shape (3–13× faster than alternatives). Its success rate (82.0%) and VLM scores (7.39) are competitive. It is a strong choice when speed is the primary constraint.
-- **Kimi K2.6** fails on nearly half of all runs (48.3% success) and is the slowest model (1,345 s/shape) while consuming massive token counts (~100 K tokens/shape). It is not suitable for this task.
+- **Gemini 3.1 Pro** is the most reliable model overall (93.3% success, 98.7% compile rate, highest VLM at 8.53). It uses fewer tokens than the Preview variant and is slightly cheaper at $0.036/shape, making it the best overall choice.
+- **Gemini 3 Pro Preview** achieves 87.5% success with a VLM score of 7.58 at $0.038/shape — nearly identical cost to 3.1 Pro but with lower reliability. Both Gemini models are clear leaders in quality.
+- **Claude Sonnet 4.6** is by far the **fastest model** at just 129 s/shape (2.8–11× faster than alternatives). Its success rate (72.2%) lags behind the Gemini models but it achieves 100% compile rate on simple shapes. It is the right choice when response speed is the primary constraint.
+- **GPT-5.4** achieves the highest compile rate (100%) but has the lowest success rate among competitive models (58.3%) and is by far the most expensive at $0.149/shape — over 4× the cost of the Gemini models.
+- **Kimi K2.6** succeeds on only about one quarter of all runs (24.1% success) and is the slowest model (1,473 s/shape) while consuming massive token counts (~90 K tokens/shape). It is not suitable for this task.
 
 ![VLM vs human score correlation](Assets/Experiment/Visualization/Charts/13_vlm_vs_human.png)
 
@@ -589,53 +589,55 @@ There is no simple relationship between generation time and output quality — C
 
 | Model | Avg cost / shape | 100-shape cost estimate |
 |---|---|---|
-| Gemini 3 Pro Preview | $0.020 | ~$2.00 |
-| Gemini 3.1 Pro | $0.037 | ~$3.70 |
-| Claude Sonnet 4.6 | $0.054 | ~$5.40 |
-| Kimi K2.6 | $0.028 | ~$2.80 |
-| GPT-5.4 | $0.143 | ~$14.30 |
+| Kimi K2.6 | $0.025 | ~$2.50 |
+| Gemini 3.1 Pro | $0.036 | ~$3.60 |
+| Gemini 3 Pro Preview | $0.038 | ~$3.80 |
+| Claude Sonnet 4.6 | $0.072 | ~$7.20 |
+| GPT-5.4 | $0.149 | ~$14.90 |
 
 **Pipeline cost:**
 
 | Configuration | Avg cost / shape |
 |---|---|
-| NoRAG + Simple | $0.017 |
-| RAG + Simple | $0.017 |
-| NoRAG + Complex | $0.097 |
-| RAG + Complex | $0.120 |
+| RAG + Simple | $0.024 |
+| NoRAG + Simple | $0.032 |
+| NoRAG + Complex | $0.108 |
+| RAG + Complex | $0.122 |
 
 **Key findings for RQ4:**
 
-- Simple shapes (RAG or NoRAG) cost approximately **$0.017/shape** regardless of pipeline — retrieval overhead is offset by shorter prompts and fewer refinement iterations.
-- Complex shapes cost significantly more ($0.097–$0.120/shape) due to longer HLSL generation prompts, more VLM refinement cycles, and larger model outputs.
-- GPT-5.4 is disproportionately expensive at $0.143/shape — primarily because it charges higher per-token rates and tends to iterate more before reaching the quality threshold.
-- Kimi K2.6 appears cheap on paper ($0.028/shape) but consumes ~100 K tokens per shape. Its low price per token masks its extreme token usage, and its 48.3% failure rate means the effective cost-per-successful-shape is much higher.
-- **Best cost–quality tradeoff**: Gemini 3 Pro Preview at $0.020/shape with 92% success and VLM 8.48.
-- **Best cost–quality–speed tradeoff overall**: Gemini 3 Pro Preview for quality-focused work; Claude Sonnet for time-constrained workflows.
+- **RAG Simple is cheaper than NoRAG Simple** ($0.024 vs $0.032/shape) — the 100% first-pass compile rate under RAG eliminates expensive refinement loops, more than offsetting the retrieval overhead.
+- Complex shapes cost significantly more ($0.108–$0.122/shape) due to longer HLSL generation prompts, more VLM refinement cycles, and larger model outputs.
+- GPT-5.4 is the most expensive model at $0.149/shape — primarily because it charges higher per-token rates while achieving only 58.3% success.
+- Kimi K2.6 appears cheap on paper ($0.025/shape) but consumes ~90 K tokens per shape. Its low price per token masks its extreme token usage, and its 24.1% failure rate means the effective cost-per-successful-shape is far higher.
+- **Best cost–quality tradeoff**: Gemini 3.1 Pro at $0.036/shape with 93.3% success and VLM 8.53.
+- **Best cost–quality–speed tradeoff overall**: Gemini 3.1 Pro for quality-focused work; Claude Sonnet 4.6 for time-constrained workflows.
 
 ---
 
 ### Conclusions
 
-The experiment confirms that the RAG pipeline meaningfully improves both reliability and output quality over direct (NoRAG) generation, with the most pronounced gains in VLM score (+1.2 points average) and compile rate (+12 percentage points). The pipeline is not the only variable that matters: model choice introduces a larger performance spread than the RAG/NoRAG decision for capable models like the two Geminis.
+The experiment confirms that the RAG pipeline meaningfully improves both reliability and output quality over direct (NoRAG) generation, with gains in VLM score (+0.74 points average), success rate (+5 pp), and compile rate (+7.5 pp). The pipeline is not the only variable that matters: model choice introduces a larger performance spread than the RAG/NoRAG decision for capable models like the two Geminis.
 
 **Summary of key takeaways:**
 
-1. **RAG is worth it** — It raises VLM scores, success rates, and compile rates across all shape groups. The cost increase is minimal for simple shapes and modest for complex ones.
+1. **RAG is worth it** — It raises VLM scores, success rates, and compile rates across all shape groups. For simple shapes RAG is actually cheaper ($0.024 vs $0.032) thanks to higher first-pass compile rates.
 
-2. **NoRAG is not broken** — With a capable model, NoRAG on simple shapes achieves ~90–93% success. It is the right choice when cost or speed is the priority and shape quality requirements are moderate.
+2. **NoRAG is not broken** — With a capable model, NoRAG on simple shapes achieves ~83% success and is the fastest configuration (212 s/shape). It is the right choice when speed is the priority.
 
-3. **For complex shapes, RAG also saves time** — Fewer refinement iterations under RAG mean RAG actually completes complex shapes faster (807 s vs 966 s) despite longer prompts.
+3. **For complex shapes, RAG also saves time** — Fewer refinement iterations under RAG mean RAG actually completes complex shapes faster (825 s vs 915 s) despite longer prompts.
 
-4. **Gemini 3.1 Pro is the most reliable**, but Gemini 3 Pro Preview has the highest VLM scores at lower cost. Either is a strong choice depending on whether reliability or peak quality is the priority.
+4. **Gemini 3.1 Pro is the clear leader** — 93.3% success, VLM 8.53, 98.7% compile rate, and slightly cheaper than 3 Pro Preview at $0.036/shape. It performs consistently better across all shape groups.
 
-5. **Claude Sonnet is the speed champion** at 104 s/shape — a 3–13× speed advantage over other models with competitive quality. Recommended for iterative or real-time-feedback workflows.
+5. **Claude Sonnet is the speed champion** at 129 s/shape — nearly 3× faster than the next-fastest model with competitive VLM quality (7.13). Recommended for iterative or real-time-feedback workflows.
 
-6. **Kimi K2.6 is unsuitable** for this task. Its 48.3% success rate, 1345 s/shape latency, and ~100 K token usage make it impractical.
+6. **GPT-5.4 is not cost-effective** for this task — $0.149/shape with only 58.3% success makes it the worst cost-per-successful-shape among non-Kimi models.
 
-7. **In-KB shapes benefit more from RAG** because retrieval similarity is higher, but even Not-in-KB shapes improve — the retrieved examples provide structural guidance even for novel geometry.
+7. **Kimi K2.6 is unsuitable** for this task. Its 24.1% success rate, 1,473 s/shape latency, and ~90 K token usage make it impractical.
 
-8. **VLM scoring is a valid proxy** for human evaluation (r > 0.7), making the automated quality loop a reliable substitute for manual review at scale.
+8. **In-KB shapes benefit more from RAG** because retrieval similarity is higher, but even Not-in-KB shapes improve — the retrieved examples provide structural guidance even for novel geometry.
+
+9. **VLM scoring is a valid proxy** for human evaluation (r > 0.7), making the automated quality loop a reliable substitute for manual review at scale.
 
 ---
 

@@ -4,8 +4,8 @@
   "timestamp_utc": "2026-04-24T21:16:22.8638671Z",
   "pipeline": "RAG",
   "shape_set_name": "Shapes_Simple_NotInRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
@@ -13,14 +13,14 @@
   "summary_success_rate": 1.0,
   "summary_avg_vlm_score": 10.0,
   "summary_avg_iterations": 1.0,
-  "summary_avg_time_ms": 85820.5859,
+  "summary_avg_time_ms": 487000.0,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 10.0,
   "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_total_input_tokens": 5229,
+  "summary_total_output_tokens": 1087,
+  "summary_total_tokens": 6316,
+  "summary_total_cost_usd": 0.017406,
   "shapes": [
     {
       "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
@@ -28,7 +28,7 @@
       "in_knowledge_base": false,
       "success": true,
       "iterations_used": 1,
-      "total_time_ms": 85820.588100000008,
+      "total_time_ms": 487000.0,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image perfectly depicts a parallelogram with tilted parallel sides and is filled with a dark color, exactly as requested.",
       "human_score": 10,
@@ -36,17 +36,17 @@
       "first_pass_compiled": true,
       "rag_components_decomposed": 1,
       "rag_retrieved_examples": 1,
-      "rag_avg_similarity_score": 0.43337968,
+      "rag_avg_similarity_score": 0.5934,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 5229,
+        "output_tokens": 1087,
+        "total_tokens": 6316,
+        "cost_usd": 0.017406
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 85820.532,
+          "iteration_time_ms": 486999.6817,
           "compile_ok": true,
           "vlm_score": 10,
           "vlm_explanation": "The image perfectly depicts a parallelogram with tilted parallel sides and is filled with a dark color, exactly as requested.",
@@ -59,12 +59,12 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
           "rag_components_decomposed": 1,
           "rag_retrieved_examples": 1,
-          "rag_avg_similarity_score": 0.43337968,
+          "rag_avg_similarity_score": 0.5934,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 4759,
+            "output_tokens": 1111,
+            "total_tokens": 5870,
+            "cost_usd": 0.017059
           }
         }
       ]

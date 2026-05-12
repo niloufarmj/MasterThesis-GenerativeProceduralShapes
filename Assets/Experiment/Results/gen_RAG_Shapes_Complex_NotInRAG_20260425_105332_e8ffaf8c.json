@@ -4,23 +4,23 @@
   "timestamp_utc": "2026-04-25T10:53:32.5452057Z",
   "pipeline": "RAG",
   "shape_set_name": "Shapes_Complex_NotInRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
   "require_human_score": true,
   "summary_success_rate": 1.0,
-  "summary_avg_vlm_score": 8.5,
+  "summary_avg_vlm_score": 8.0,
   "summary_avg_iterations": 1.5,
-  "summary_avg_time_ms": 482274.063,
+  "summary_avg_time_ms": 349055.7452,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 8.5,
   "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_total_input_tokens": 19535,
+  "summary_total_output_tokens": 13281,
+  "summary_total_tokens": 32816,
+  "summary_total_cost_usd": 0.157229,
   "shapes": [
     {
       "prompt": "a cartoon ramen noodle bowl consisting of a wide circular bowl body with a rounded bottom and a slightly flared rim at the top where bowl width, height, and ceramic color are adjustable, wavy noodle lines filling the upper interior of the bowl where noodle count, wave amplitude, thickness, and noodle color are adjustable, circular toppings on the surface including a soft-boiled egg half with adjustable yolk and white colors and one or two leaf or meat slice shapes with adjustable colors, two or three wispy steam curves rising from the top where steam opacity and curvature are adjustable, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
@@ -28,43 +28,43 @@
       "in_knowledge_base": true,
       "success": true,
       "iterations_used": 1,
-      "total_time_ms": 440235.4035,
-      "final_vlm_score": 10,
-      "final_vlm_explanation": "The rendered shape perfectly matches the request, featuring a wide bowl with a flared rim, wavy noodles, distinct toppings including a soft-boiled egg half, a meat slice, and a leaf, as well as wispy steam lines. The flat 2D cartoon style with clean outlines is executed exactly as specified.",
+      "total_time_ms": 173798.78,
+      "final_vlm_score": 7,
+      "final_vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
       "human_score": 8,
       "accepted_by_human": true,
       "first_pass_compiled": true,
-      "rag_components_decomposed": 6,
-      "rag_retrieved_examples": 6,
-      "rag_avg_similarity_score": 0.428937644,
+      "rag_components_decomposed": 3,
+      "rag_retrieved_examples": 3,
+      "rag_avg_similarity_score": 0.8054,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 4646,
+        "output_tokens": 4358,
+        "total_tokens": 9004,
+        "cost_usd": 0.049388
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 440235.3618,
+          "iteration_time_ms": 173798.78,
           "compile_ok": true,
-          "vlm_score": 10,
-          "vlm_explanation": "The rendered shape perfectly matches the request, featuring a wide bowl with a flared rim, wavy noodles, distinct toppings including a soft-boiled egg half, a meat slice, and a leaf, as well as wispy steam lines. The flat 2D cartoon style with clean outlines is executed exactly as specified.",
+          "vlm_score": 7,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
           "human_score": 8,
-          "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonRamenBowl_1.png",
-          "hlsl_length": 6460,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 3102,
           "hlsl_asset_path": null,
           "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonRamenBowl.shadergraph",
           "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonRamenBowl.mat",
-          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonRamenBowl_1.png",
-          "rag_components_decomposed": 6,
-          "rag_retrieved_examples": 6,
-          "rag_avg_similarity_score": 0.428937644,
+          "screenshot_path": null,
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.8054,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 4646,
+            "output_tokens": 4358,
+            "total_tokens": 9004,
+            "cost_usd": 0.049388
           }
         }
       ]
@@ -76,19 +76,19 @@
       "success": true,
       "iterations_used": 2,
       "total_time_ms": 524312.7104,
-      "final_vlm_score": 7,
+      "final_vlm_score": 9,
       "final_vlm_explanation": "The rendered shape successfully includes all requested elements: a central trunk, two arms, spines, flowers on the arms, and an oval base. It is clearly recognizable as a cartoon cactus. However, there are notable imperfections: the side arms are taller than the main trunk (which was described as 'tall'), and the outlines are overly thick and messy, filling in gaps between the arms and trunk and creating awkward overlapping at the base and flowers.",
       "human_score": 9,
       "accepted_by_human": true,
       "first_pass_compiled": true,
       "rag_components_decomposed": 7,
       "rag_retrieved_examples": 7,
-      "rag_avg_similarity_score": 0.5224524,
+      "rag_avg_similarity_score": 0.5505,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 14889,
+        "output_tokens": 8923,
+        "total_tokens": 23812,
+        "cost_usd": 0.107841
       },
       "iterations": [
         {
@@ -106,20 +106,20 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonCactus_1.png",
           "rag_components_decomposed": 9,
           "rag_retrieved_examples": 9,
-          "rag_avg_similarity_score": 0.471159667,
+          "rag_avg_similarity_score": 0.5505,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 8550,
+            "output_tokens": 4067,
+            "total_tokens": 12617,
+            "cost_usd": 0.051358
           }
         },
         {
           "iteration_index": 2,
           "iteration_time_ms": 317840.3801,
           "compile_ok": true,
-          "vlm_score": 7,
-          "vlm_explanation": "The rendered shape successfully includes all requested elements: a central trunk, two arms, spines, flowers on the arms, and an oval base. It is clearly recognizable as a cartoon cactus. However, there are notable imperfections: the side arms are taller than the main trunk (which was described as 'tall'), and the outlines are overly thick and messy, filling in gaps between the arms and trunk and creating awkward overlapping at the base and flowers.",
+          "vlm_score": 9,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
           "human_score": 9,
           "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonCactus_1_vlm.png",
           "hlsl_length": 7884,
@@ -129,12 +129,12 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonCactus_1.png",
           "rag_components_decomposed": 7,
           "rag_retrieved_examples": 7,
-          "rag_avg_similarity_score": 0.5224524,
+          "rag_avg_similarity_score": 0.5505,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 6626,
+            "output_tokens": 4111,
+            "total_tokens": 10737,
+            "cost_usd": 0.049392
           }
         }
       ]

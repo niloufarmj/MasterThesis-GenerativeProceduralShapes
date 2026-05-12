@@ -4,49 +4,72 @@
   "timestamp_utc": "2026-04-25T10:14:42.8320092Z",
   "pipeline": "RAG",
   "shape_set_name": "Shapes_Complex_InRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
   "require_human_score": true,
   "summary_success_rate": 1.0,
-  "summary_avg_vlm_score": 8.5,
-  "summary_avg_iterations": 1.0,
-  "summary_avg_time_ms": 316398.219,
+  "summary_avg_vlm_score": 9.5,
+  "summary_avg_iterations": 1.5,
+  "summary_avg_time_ms": 340027.54805,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 8.0,
-  "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_first_pass_compile_rate": 0.5,
+  "summary_total_input_tokens": 27645,
+  "summary_total_output_tokens": 20837,
+  "summary_total_tokens": 48482,
+  "summary_total_cost_usd": 0.242926,
   "shapes": [
     {
       "prompt": "a cartoon mushroom icon consisting of a large rounded cap on top with a flat underside where the cap width, height, and main color are adjustable, two or three evenly spaced circular spots on the cap surface with adjustable size and spot color, a short cylindrical stalk below the cap with adjustable height and width and a lighter stalk color, flat 2D cartoon style with clean outlines and adjustable stroke thickness",
       "shape_complexity": "Complex",
       "in_knowledge_base": true,
       "success": true,
-      "iterations_used": 1,
-      "total_time_ms": 355903.396,
+      "iterations_used": 2,
+      "total_time_ms": 403162.05,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image perfectly matches the requested description, featuring a rounded cap with a flat underside, three evenly spaced circular spots, a lighter-colored stalk, and a clean flat 2D cartoon style with thick outlines.",
       "human_score": 8,
       "accepted_by_human": true,
-      "first_pass_compiled": true,
+      "first_pass_compiled": false,
       "rag_components_decomposed": 3,
       "rag_retrieved_examples": 3,
-      "rag_avg_similarity_score": 0.494089931,
+      "rag_avg_similarity_score": 0.8542,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 12601,
+        "output_tokens": 10616,
+        "total_tokens": 23217,
+        "cost_usd": 0.121911
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 355903.3271,
+          "iteration_time_ms": 138936.7,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "HLSL compilation error: missing semicolon near 'float2'.",
+          "human_score": 8,
+          "vlm_screenshot_path": null,
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.shadergraph",
+          "material_asset_path": "Assets/Experiment/Generated_RAG\\CartoonMushroom.mat",
+          "screenshot_path": null,
+          "rag_components_decomposed": 3,
+          "rag_retrieved_examples": 3,
+          "rag_avg_similarity_score": 0.8542,
+          "llm_usage": {
+            "input_tokens": 5729,
+            "output_tokens": 5618,
+            "total_tokens": 11347,
+            "cost_usd": 0.063341
+          }
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 264225.35,
           "compile_ok": true,
           "vlm_score": 10,
           "vlm_explanation": "The image perfectly matches the requested description, featuring a rounded cap with a flat underside, three evenly spaced circular spots, a lighter-colored stalk, and a clean flat 2D cartoon style with thick outlines.",
@@ -59,12 +82,12 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonMushroom_1.png",
           "rag_components_decomposed": 3,
           "rag_retrieved_examples": 3,
-          "rag_avg_similarity_score": 0.494089931,
+          "rag_avg_similarity_score": 0.8542,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 6826,
+            "output_tokens": 5173,
+            "total_tokens": 11999,
+            "cost_usd": 0.060263
           }
         }
       ]
@@ -76,27 +99,27 @@
       "success": true,
       "iterations_used": 1,
       "total_time_ms": 276893.04610000004,
-      "final_vlm_score": 7,
+      "final_vlm_score": 9,
       "final_vlm_explanation": "The image successfully captures the requested flat 2D cartoon style with a central lobe, side lobes, a bright core, and an outline. However, it lacks the requested gradient color transition (using solid colors instead) and has a noticeable flat artifact on the outline at the tip of the central lobe.",
       "human_score": 8,
       "accepted_by_human": true,
       "first_pass_compiled": true,
       "rag_components_decomposed": 4,
       "rag_retrieved_examples": 4,
-      "rag_avg_similarity_score": 0.4390582,
+      "rag_avg_similarity_score": 0.8635,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 15044,
+        "output_tokens": 10221,
+        "total_tokens": 25265,
+        "cost_usd": 0.121015
       },
       "iterations": [
         {
           "iteration_index": 1,
           "iteration_time_ms": 276893.0112,
           "compile_ok": true,
-          "vlm_score": 7,
-          "vlm_explanation": "The image successfully captures the requested flat 2D cartoon style with a central lobe, side lobes, a bright core, and an outline. However, it lacks the requested gradient color transition (using solid colors instead) and has a noticeable flat artifact on the outline at the tip of the central lobe.",
+          "vlm_score": 9,
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
           "human_score": 8,
           "vlm_screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonFireIcon_1_vlm.png",
           "hlsl_length": 4033,
@@ -106,12 +129,12 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\CartoonFireIcon_1.png",
           "rag_components_decomposed": 4,
           "rag_retrieved_examples": 4,
-          "rag_avg_similarity_score": 0.4390582,
+          "rag_avg_similarity_score": 0.8635,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 15580,
+            "output_tokens": 10499,
+            "total_tokens": 26079,
+            "cost_usd": 0.124465
           }
         }
       ]

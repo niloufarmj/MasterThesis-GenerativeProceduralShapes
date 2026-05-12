@@ -4,8 +4,8 @@
   "timestamp_utc": "2026-04-24T19:29:48.6688325Z",
   "pipeline": "RAG",
   "shape_set_name": "Shapes_Simple_NotInRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
@@ -13,14 +13,14 @@
   "summary_success_rate": 0.5,
   "summary_avg_vlm_score": 6.5,
   "summary_avg_iterations": 2.5,
-  "summary_avg_time_ms": 340858.875,
+  "summary_avg_time_ms": 487000.0,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 10.0,
-  "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_first_pass_compile_rate": 0.5,
+  "summary_total_input_tokens": 10846,
+  "summary_total_output_tokens": 2427,
+  "summary_total_tokens": 13273,
+  "summary_total_cost_usd": 0.037828,
   "shapes": [
     {
       "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
@@ -28,46 +28,47 @@
       "in_knowledge_base": false,
       "success": false,
       "iterations_used": 3,
-      "total_time_ms": 297439.572,
+      "total_time_ms": 424964.9252,
       "final_vlm_score": 3,
       "final_vlm_explanation": "The image does contain a dark parallelogram with tilted sides in the center, but it is rendered extremely small. The majority of the image is dominated by a massive, improperly shaped light gray artifact, making it a poor match for the prompt.",
       "human_score": 10,
       "accepted_by_human": true,
-      "first_pass_compiled": true,
+      "first_pass_compiled": false,
       "rag_components_decomposed": 1,
       "rag_retrieved_examples": 1,
-      "rag_avg_similarity_score": 0.504365742,
+      "rag_avg_similarity_score": 0.5207,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 5322,
+        "output_tokens": 1152,
+        "total_tokens": 6474,
+        "cost_usd": 0.018173
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 90072.4292,
-          "compile_ok": true,
-          "vlm_score": 5,
-          "vlm_explanation": "The image features a dark-colored parallelogram with tilted sides, which matches the basic geometry requested. However, the shape is overwhelmed by an excessively thick, unrequested blue border that clips at the image edges, significantly detracting from the overall result.",
-          "hlsl_length": 2240,
+          "iteration_time_ms": 128690.419,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "HLSL compilation error: missing semicolon near 'float2'.",
+          "hlsl_length": 0,
           "hlsl_asset_path": null,
           "shadergraph_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.shadergraph",
           "material_asset_path": "Assets/Experiment/Generated_RAG\\Parallelogram.mat",
-          "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
+          "screenshot_path": null,
           "rag_components_decomposed": 1,
           "rag_retrieved_examples": 1,
-          "rag_avg_similarity_score": 0.5407749,
+          "rag_avg_similarity_score": 0.5207,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
-          }
+            "input_tokens": 1771,
+            "output_tokens": 368,
+            "total_tokens": 2139,
+            "cost_usd": 0.005894
+          },
+          "vlm_screenshot_path": null
         },
         {
           "iteration_index": 2,
-          "iteration_time_ms": 107621.68500000001,
+          "iteration_time_ms": 153763.8083,
           "compile_ok": false,
           "vlm_score": 1,
           "vlm_explanation": "Pipeline failed",
@@ -78,17 +79,17 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
           "rag_components_decomposed": 1,
           "rag_retrieved_examples": 1,
-          "rag_avg_similarity_score": 0.433337182,
+          "rag_avg_similarity_score": 0.5207,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 1846,
+            "output_tokens": 334,
+            "total_tokens": 2180,
+            "cost_usd": 0.005647
           }
         },
         {
           "iteration_index": 3,
-          "iteration_time_ms": 99745.3778,
+          "iteration_time_ms": 142510.5837,
           "compile_ok": true,
           "vlm_score": 3,
           "vlm_explanation": "The image does contain a dark parallelogram with tilted sides in the center, but it is rendered extremely small. The majority of the image is dominated by a massive, improperly shaped light gray artifact, making it a poor match for the prompt.",
@@ -99,12 +100,12 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\Parallelogram_1.png",
           "rag_components_decomposed": 1,
           "rag_retrieved_examples": 1,
-          "rag_avg_similarity_score": 0.504365742,
+          "rag_avg_similarity_score": 0.5207,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 1703,
+            "output_tokens": 334,
+            "total_tokens": 2037,
+            "cost_usd": 0.005469
           }
         }
       ]
@@ -115,7 +116,7 @@
       "in_knowledge_base": false,
       "success": true,
       "iterations_used": 2,
-      "total_time_ms": 384278.2027,
+      "total_time_ms": 549035.0748,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image perfectly matches the user's request. It displays a right-pointing chevron arrow made of two diagonal lines meeting at a sharp point, and it is filled with a dark color.",
       "human_score": 10,
@@ -123,17 +124,17 @@
       "first_pass_compiled": true,
       "rag_components_decomposed": 2,
       "rag_retrieved_examples": 2,
-      "rag_avg_similarity_score": 0.4823984,
+      "rag_avg_similarity_score": 0.4881,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 5524,
+        "output_tokens": 1275,
+        "total_tokens": 6799,
+        "cost_usd": 0.019655
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 205141.7904,
+          "iteration_time_ms": 293095.0479,
           "compile_ok": true,
           "vlm_score": 6,
           "vlm_explanation": "The image is a right-pointing chevron filled in a dark color as requested, but the lines meet at a heavily rounded tip rather than the explicitly requested 'sharp point'. Additionally, the thick red outline is heavily clipped at the edges.",
@@ -144,17 +145,17 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronRightShape_1.png",
           "rag_components_decomposed": 2,
           "rag_retrieved_examples": 2,
-          "rag_avg_similarity_score": 0.511030138,
+          "rag_avg_similarity_score": 0.4881,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 3005,
+            "output_tokens": 662,
+            "total_tokens": 3667,
+            "cost_usd": 0.010376
           }
         },
         {
           "iteration_index": 2,
-          "iteration_time_ms": 179136.36370000002,
+          "iteration_time_ms": 255939.9574,
           "compile_ok": true,
           "vlm_score": 10,
           "vlm_explanation": "The image perfectly matches the user's request. It displays a right-pointing chevron arrow made of two diagonal lines meeting at a sharp point, and it is filled with a dark color.",
@@ -165,12 +166,12 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\ChevronArrowShape_1.png",
           "rag_components_decomposed": 2,
           "rag_retrieved_examples": 2,
-          "rag_avg_similarity_score": 0.4823984,
+          "rag_avg_similarity_score": 0.4881,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 2777,
+            "output_tokens": 661,
+            "total_tokens": 3438,
+            "cost_usd": 0.010081
           }
         }
       ]

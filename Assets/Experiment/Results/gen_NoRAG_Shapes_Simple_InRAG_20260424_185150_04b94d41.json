@@ -4,8 +4,8 @@
   "timestamp_utc": "2026-04-24T18:51:50.6327753Z",
   "pipeline": "NoRAG",
   "shape_set_name": "Shapes_Simple_InRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
@@ -13,14 +13,14 @@
   "summary_success_rate": 1.0,
   "summary_avg_vlm_score": 10.0,
   "summary_avg_iterations": 1.0,
-  "summary_avg_time_ms": 61337.1523,
+  "summary_avg_time_ms": 56393.8732,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 9.5,
   "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_total_input_tokens": 6783,
+  "summary_total_output_tokens": 2433,
+  "summary_total_tokens": 9216,
+  "summary_total_cost_usd": 0.032809,
   "shapes": [
     {
       "prompt": "a filled circle in dark color",
@@ -28,7 +28,7 @@
       "in_knowledge_base": false,
       "success": true,
       "iterations_used": 1,
-      "total_time_ms": 35081.680700000004,
+      "total_time_ms": 25195.12,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image perfectly depicts a filled circle and is rendered in a dark color, exactly matching the user's request.",
       "human_score": 10,
@@ -38,15 +38,15 @@
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 3387,
+        "output_tokens": 1201,
+        "total_tokens": 4588,
+        "cost_usd": 0.016244
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 35078.918900000004,
+          "iteration_time_ms": 25195.12,
           "compile_ok": true,
           "vlm_score": 10,
           "vlm_explanation": "The image perfectly depicts a filled circle and is rendered in a dark color, exactly matching the user's request.",
@@ -59,10 +59,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 3350,
+            "output_tokens": 1308,
+            "total_tokens": 4658,
+            "cost_usd": 0.017268
           }
         }
       ]
@@ -73,7 +73,7 @@
       "in_knowledge_base": false,
       "success": true,
       "iterations_used": 1,
-      "total_time_ms": 87592.626400000008,
+      "total_time_ms": 87592.62640000001,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image perfectly matches the user's request. It displays a centered, 5-pointed star with a clear color, demonstrating the successful procedural generation of the requested shape.",
       "human_score": 9,
@@ -83,10 +83,10 @@
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 3396,
+        "output_tokens": 1232,
+        "total_tokens": 4628,
+        "cost_usd": 0.016565
       },
       "iterations": [
         {
@@ -104,10 +104,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 3119,
+            "output_tokens": 1127,
+            "total_tokens": 4246,
+            "cost_usd": 0.015169
           }
         }
       ]

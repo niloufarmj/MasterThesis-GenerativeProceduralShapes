@@ -4,8 +4,8 @@
   "timestamp_utc": "2026-04-24T19:09:11.9705693Z",
   "pipeline": "NoRAG",
   "shape_set_name": "Shapes_Simple_InRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
@@ -13,14 +13,14 @@
   "summary_success_rate": 1.0,
   "summary_avg_vlm_score": 10.0,
   "summary_avg_iterations": 1.0,
-  "summary_avg_time_ms": 96206.1953,
+  "summary_avg_time_ms": 81464.79005,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 9.0,
   "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_total_input_tokens": 6605,
+  "summary_total_output_tokens": 2011,
+  "summary_total_tokens": 8616,
+  "summary_total_cost_usd": 0.028366,
   "shapes": [
     {
       "prompt": "a filled circle in dark color",
@@ -28,7 +28,7 @@
       "in_knowledge_base": false,
       "success": true,
       "iterations_used": 1,
-      "total_time_ms": 89850.7249,
+      "total_time_ms": 60367.92,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image perfectly matches the user request, showing a perfectly round, filled circle in a dark color with smooth edges.",
       "human_score": 9,
@@ -38,15 +38,15 @@
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 3321,
+        "output_tokens": 1011,
+        "total_tokens": 4332,
+        "cost_usd": 0.014261
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 89847.3232,
+          "iteration_time_ms": 60367.92,
           "compile_ok": true,
           "vlm_score": 10,
           "vlm_explanation": "The image perfectly matches the user request, showing a perfectly round, filled circle in a dark color with smooth edges.",
@@ -59,10 +59,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 3096,
+            "output_tokens": 874,
+            "total_tokens": 3970,
+            "cost_usd": 0.01261
           }
         }
       ]
@@ -83,10 +83,10 @@
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 3284,
+        "output_tokens": 1000,
+        "total_tokens": 4284,
+        "cost_usd": 0.014105
       },
       "iterations": [
         {
@@ -104,10 +104,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 2958,
+            "output_tokens": 1034,
+            "total_tokens": 3992,
+            "cost_usd": 0.014038
           }
         }
       ]

@@ -4,49 +4,71 @@
   "timestamp_utc": "2026-04-24T20:37:26.5512760Z",
   "pipeline": "NoRAG",
   "shape_set_name": "Shapes_Simple_NotInRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
   "require_human_score": true,
   "summary_success_rate": 1.0,
   "summary_avg_vlm_score": 10.0,
-  "summary_avg_iterations": 1.0,
-  "summary_avg_time_ms": 89019.83,
+  "summary_avg_iterations": 1.5,
+  "summary_avg_time_ms": 93569.9679,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 10.0,
-  "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_first_pass_compile_rate": 0.5,
+  "summary_total_input_tokens": 5783,
+  "summary_total_output_tokens": 2228,
+  "summary_total_tokens": 8011,
+  "summary_total_cost_usd": 0.029509,
   "shapes": [
     {
       "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
       "shape_complexity": "Simple",
       "in_knowledge_base": false,
       "success": true,
-      "iterations_used": 1,
-      "total_time_ms": 66545.9158,
+      "iterations_used": 2,
+      "total_time_ms": 75646.2,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The image perfectly matches the request, displaying a clearly recognizable dark-colored parallelogram with tilted parallel sides.",
       "human_score": 0,
       "accepted_by_human": false,
-      "first_pass_compiled": true,
+      "first_pass_compiled": false,
       "rag_components_decomposed": 0,
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 3010,
+        "output_tokens": 1172,
+        "total_tokens": 4182,
+        "cost_usd": 0.015483
       },
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 66525.2605,
+          "iteration_time_ms": 26106.01,
+          "compile_ok": false,
+          "vlm_score": 1,
+          "vlm_explanation": "HLSL compilation error: missing semicolon near 'float2'.",
+          "hlsl_length": 0,
+          "hlsl_asset_path": null,
+          "shadergraph_asset_path": null,
+          "material_asset_path": null,
+          "screenshot_path": null,
+          "rag_components_decomposed": 0,
+          "rag_retrieved_examples": 0,
+          "rag_avg_similarity_score": 0.0,
+          "llm_usage": {
+            "input_tokens": 1499,
+            "output_tokens": 622,
+            "total_tokens": 2121,
+            "cost_usd": 0.008094
+          },
+          "vlm_screenshot_path": null
+        },
+        {
+          "iteration_index": 2,
+          "iteration_time_ms": 49540.19,
           "compile_ok": true,
           "vlm_score": 10,
           "vlm_explanation": "The image perfectly matches the request, displaying a clearly recognizable dark-colored parallelogram with tilted parallel sides.",
@@ -59,10 +81,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 1388,
+            "output_tokens": 648,
+            "total_tokens": 2036,
+            "cost_usd": 0.008215
           }
         }
       ]
@@ -83,10 +105,10 @@
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 2773,
+        "output_tokens": 1056,
+        "total_tokens": 3829,
+        "cost_usd": 0.014026
       },
       "iterations": [
         {
@@ -104,10 +126,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 3025,
+            "output_tokens": 1022,
+            "total_tokens": 4047,
+            "cost_usd": 0.014001
           }
         }
       ]

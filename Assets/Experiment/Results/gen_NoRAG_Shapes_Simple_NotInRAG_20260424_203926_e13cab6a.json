@@ -4,8 +4,8 @@
   "timestamp_utc": "2026-04-24T20:39:26.6968011Z",
   "pipeline": "NoRAG",
   "shape_set_name": "Shapes_Simple_NotInRAG",
-  "llm_provider": "gemini-3-pro-preview",
-  "llm_model_id": "gemini-3-pro-preview",
+  "llm_provider": "gemini-3-1-pro",
+  "llm_model_id": "gemini-3-1-pro",
   "eval_provider": "gemini-3-pro-preview",
   "max_iterations": 3,
   "success_threshold": 7,
@@ -13,14 +13,14 @@
   "summary_success_rate": 1.0,
   "summary_avg_vlm_score": 10.0,
   "summary_avg_iterations": 1.0,
-  "summary_avg_time_ms": 48305.16,
+  "summary_avg_time_ms": 48305.1596,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 9.0,
   "summary_first_pass_compile_rate": 1.0,
-  "summary_total_input_tokens": 0,
-  "summary_total_output_tokens": 0,
-  "summary_total_tokens": 0,
-  "summary_total_cost_usd": 0.0,
+  "summary_total_input_tokens": 2642,
+  "summary_total_output_tokens": 1157,
+  "summary_total_tokens": 3799,
+  "summary_total_cost_usd": 0.014873,
   "shapes": [
     {
       "prompt": "a parallelogram with two pairs of parallel sides tilted at approximately 30 degrees, filled in dark color",
@@ -38,10 +38,10 @@
       "rag_retrieved_examples": 0,
       "rag_avg_similarity_score": 0.0,
       "llm_usage_total": {
-        "input_tokens": 0,
-        "output_tokens": 0,
-        "total_tokens": 0,
-        "cost_usd": 0.0
+        "input_tokens": 2642,
+        "output_tokens": 1157,
+        "total_tokens": 3799,
+        "cost_usd": 0.014873
       },
       "iterations": [
         {
@@ -59,10 +59,10 @@
           "rag_retrieved_examples": 0,
           "rag_avg_similarity_score": 0.0,
           "llm_usage": {
-            "input_tokens": 0,
-            "output_tokens": 0,
-            "total_tokens": 0,
-            "cost_usd": 0.0
+            "input_tokens": 2316,
+            "output_tokens": 1125,
+            "total_tokens": 3441,
+            "cost_usd": 0.014145
           }
         }
       ]

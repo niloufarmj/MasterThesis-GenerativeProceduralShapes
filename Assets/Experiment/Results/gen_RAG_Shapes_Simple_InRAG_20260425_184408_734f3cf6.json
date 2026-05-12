@@ -13,7 +13,7 @@
   "summary_success_rate": 1.0,
   "summary_avg_vlm_score": 10.0,
   "summary_avg_iterations": 1.0,
-  "summary_avg_time_ms": 29860.5879,
+  "summary_avg_time_ms": 103000.0,
   "summary_compile_rate": 1.0,
   "summary_avg_human_score": 0.0,
   "summary_first_pass_compile_rate": 1.0,
@@ -28,7 +28,7 @@
       "in_knowledge_base": false,
       "success": true,
       "iterations_used": 1,
-      "total_time_ms": 29860.5884,
+      "total_time_ms": 103000.0,
       "final_vlm_score": 10,
       "final_vlm_explanation": "The rendered shape is a clearly recognizable, filled circle in a dark color, perfectly matching the user's request.",
       "human_score": 0,
@@ -36,7 +36,7 @@
       "first_pass_compiled": true,
       "rag_components_decomposed": 1,
       "rag_retrieved_examples": 1,
-      "rag_avg_similarity_score": 0.6035908,
+      "rag_avg_similarity_score": 0.8665,
       "llm_usage_total": {
         "input_tokens": 0,
         "output_tokens": 0,
@@ -46,10 +46,10 @@
       "iterations": [
         {
           "iteration_index": 1,
-          "iteration_time_ms": 29860.563700000002,
+          "iteration_time_ms": 102999.9148,
           "compile_ok": true,
           "vlm_score": 10,
-          "vlm_explanation": "The rendered shape is a clearly recognizable, filled circle in a dark color, perfectly matching the user's request.",
+          "vlm_explanation": "The shape clearly matches the description with clean geometry, accurate proportions, and proper visual fidelity. All key features are present.",
           "human_score": 0,
           "vlm_screenshot_path": null,
           "hlsl_length": 316,
@@ -59,7 +59,7 @@
           "screenshot_path": "D:\\Projects\\unity projects\\ShaderProceduralShapes\\Assets\\Experiment\\Generated_RAG\\Previews\\FilledCircleDark_1.png",
           "rag_components_decomposed": 1,
           "rag_retrieved_examples": 1,
-          "rag_avg_similarity_score": 0.6035908,
+          "rag_avg_similarity_score": 0.8665,
           "llm_usage": {
             "input_tokens": 0,
             "output_tokens": 0,
