@@ -449,7 +449,7 @@ namespace ShaderGraphGenerator.Chat
             GUILayout.BeginHorizontal();
             GUILayout.Space(10);
             float tw = 44f;
-            float th = tw * _pendingThumb.height / Mathf.Max(1, _pendingThumb.width);
+            float th = Mathf.Min(tw, tw * _pendingThumb.height / Mathf.Max(1, _pendingThumb.width));
             GUILayout.Box(_pendingThumb, GUIStyle.none,
                 GUILayout.Width(tw), GUILayout.Height(th));
             GUILayout.Space(6);

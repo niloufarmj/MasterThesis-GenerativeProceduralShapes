@@ -56,6 +56,14 @@ namespace ShaderGraphGenerator.RAG
                 return (null, 0, 0);
             }
 
+            // Enforce < 5 component cap based on experiment results
+            if (decomposition.components.Count > 4)
+            {
+                Debug.LogWarning($"[RAG] Decomposition returned {decomposition.components.Count} components — capping to 4.");
+                decomposition.components = decomposition.components.Take(4).ToList();
+                decomposition.total_components = 4;
+            }
+
             Debug.Log($"[RAG] Decomposed into {decomposition.total_components} components");
             Debug.Log($"[RAG] Uses existing shapes: {decomposition.uses_existing_shapes}");
 
@@ -178,6 +186,14 @@ namespace ShaderGraphGenerator.RAG
             {
                 Debug.LogError("[RAG Image] Decomposition failed");
                 return null;
+            }
+
+            // Enforce < 5 component cap based on experiment results
+            if (decomposition.components.Count > 4)
+            {
+                Debug.LogWarning($"[RAG Image] Decomposition returned {decomposition.components.Count} components — capping to 4.");
+                decomposition.components = decomposition.components.Take(4).ToList();
+                decomposition.total_components = 4;
             }
 
             Debug.Log($"[RAG Image] Decomposed into {decomposition.total_components} components");

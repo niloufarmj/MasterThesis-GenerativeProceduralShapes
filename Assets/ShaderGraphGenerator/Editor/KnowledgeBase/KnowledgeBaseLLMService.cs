@@ -101,7 +101,7 @@ Do NOT include markdown formatting, code blocks, or any text outside the JSON ob
 
         private static async Task<string> CallGeminiAsync(string prompt, string apiKey)
         {
-            const string model = "gemini-3-pro-preview";
+            const string model = "gemini-3.1-pro-preview";
             string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
             var bodyObj = new

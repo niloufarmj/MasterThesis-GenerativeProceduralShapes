@@ -12,7 +12,7 @@ namespace ShaderGraphGenerator.Editor
     /// </summary>
     public static class GeminiApiService
     {
-        private const string DEFAULT_MODEL = "gemini-3-pro-preview";
+        private const string DEFAULT_MODEL = "gemini-3.1-pro-preview";
 
         /// <summary>
         /// Calls Gemini with a text-only prompt. Used for HLSL code generation.

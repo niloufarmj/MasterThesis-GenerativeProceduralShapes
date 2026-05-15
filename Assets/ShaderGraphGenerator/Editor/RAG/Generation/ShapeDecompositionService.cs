@@ -69,6 +69,7 @@ Decompose this request into component shapes that can be combined. You should:
 
 **Guidelines for Decomposition:**
 - Break the shape into the SIMPLEST possible components
+- **MAXIMUM 4 COMPONENTS TOTAL** — merge minor details into the nearest relevant component rather than listing them separately
 - Each component should be describable as a single primitive or existing shape
 - Identify the role of each component (base, decoration, feature, etc.)
 - Suggest spatial relationships and composition strategy
@@ -200,7 +201,7 @@ Do NOT include markdown formatting, code blocks, or any text outside the JSON ob
 
         private static async Task<string> CallGeminiAsync(string prompt, string apiKey)
         {
-            const string model = "gemini-3-pro-preview";
+            const string model = "gemini-3.1-pro-preview";
             string url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
 
             var bodyObj = new
