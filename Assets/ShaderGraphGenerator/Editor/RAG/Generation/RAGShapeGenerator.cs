@@ -70,6 +70,7 @@ namespace ShaderGraphGenerator.RAG
             // Step 2: Retrieve best matching primitives for each component
             Debug.Log("[RAG] Step 2: Retrieving primitives...");
             var retrievedExamples = new List<RetrievedExample>();
+            const float MIN_SIMILARITY = 0.45f;
 
             foreach (var component in decomposition.components)
             {
@@ -83,6 +84,12 @@ namespace ShaderGraphGenerator.RAG
                 bool matched = false;
                 foreach (var candidate in searchResults)
                 {
+                    if (candidate.similarity < MIN_SIMILARITY)
+                    {
+                        Debug.Log($"[RAG]   {component.role}: Skipping '{candidate.shape.fileName}' — similarity too low ({candidate.similarity:F3} < {MIN_SIMILARITY})");
+                        break;
+                    }
+
                     if (!File.Exists(candidate.shape.filePath))
                     {
                         Debug.LogWarning($"[RAG]   {component.role}: Skipping '{candidate.shape.fileName}' — file not found at {candidate.shape.filePath}");
@@ -108,7 +115,7 @@ namespace ShaderGraphGenerator.RAG
 
                 if (!matched)
                 {
-                    Debug.LogWarning($"[RAG]   {component.role}: No valid matches found - will generate from scratch");
+                    Debug.LogWarning($"[RAG]   {component.role}: No valid matches found above threshold ({MIN_SIMILARITY}) - will generate from scratch");
                 }
             }
 
@@ -201,6 +208,7 @@ namespace ShaderGraphGenerator.RAG
             // ── Step 3: Retrieve KB examples per component ───────────────────
             Debug.Log("[RAG Image] Step 3: Retrieving primitives...");
             var retrievedExamples = new List<RetrievedExample>();
+            const float MIN_SIMILARITY = 0.5f;
 
             foreach (var component in decomposition.components)
             {
@@ -209,6 +217,12 @@ namespace ShaderGraphGenerator.RAG
 
                 foreach (var candidate in searchResults)
                 {
+                    if (candidate.similarity < MIN_SIMILARITY)
+                    {
+                        Debug.Log($"[RAG Image]   {component.role}: Skipping '{candidate.shape.fileName}' — similarity too low ({candidate.similarity:F3} < {MIN_SIMILARITY})");
+                        break;
+                    }
+
                     if (!File.Exists(candidate.shape.filePath)) continue;
                     retrievedExamples.Add(new RetrievedExample
                     {
@@ -299,13 +313,17 @@ namespace ShaderGraphGenerator.RAG
 
             if (retrievedExamples.Count > 0)
             {
+                const int MAX_HLSL_CHARS = 1500;
                 sb.AppendLine("## RETRIEVED LIBRARY EXAMPLES (technique reference)");
                 foreach (var ex in retrievedExamples)
                 {
+                    string hlsl = ex.hlslCode.Length > MAX_HLSL_CHARS
+                        ? ex.hlslCode.Substring(0, MAX_HLSL_CHARS) + "\n// [truncated]"
+                        : ex.hlslCode;
                     sb.AppendLine($"### {ex.componentRole}: {ex.matchedShapeName} (sim={ex.similarityScore:F2})");
                     sb.AppendLine($"Description: {ex.matchedShapeDescription}");
                     sb.AppendLine("```hlsl");
-                    sb.AppendLine(ex.hlslCode);
+                    sb.AppendLine(hlsl);
                     sb.AppendLine("```");
                     sb.AppendLine();
                 }
@@ -379,8 +397,12 @@ namespace ShaderGraphGenerator.RAG
                 sb.AppendLine("### Retrieved Example Shapes (for inspiration)");
                 sb.AppendLine();
 
+                const int MAX_HLSL_CHARS = 1500;
                 foreach (var example in retrievedExamples)
                 {
+                    string hlsl = example.hlslCode.Length > MAX_HLSL_CHARS
+                        ? example.hlslCode.Substring(0, MAX_HLSL_CHARS) + "\n// [truncated]"
+                        : example.hlslCode;
                     sb.AppendLine($"#### Component: {example.componentRole}");
                     sb.AppendLine($"**Needed**: {example.componentDescription}");
                     sb.AppendLine($"**Retrieved Match**: {example.matchedShapeName} (similarity: {example.similarityScore:F2})");
@@ -389,7 +411,7 @@ namespace ShaderGraphGenerator.RAG
                     sb.AppendLine();
                     sb.AppendLine("**HLSL Code (for reference):**");
                     sb.AppendLine("```hlsl");
-                    sb.AppendLine(example.hlslCode);
+                    sb.AppendLine(hlsl);
                     sb.AppendLine("```");
                     sb.AppendLine();
                 }

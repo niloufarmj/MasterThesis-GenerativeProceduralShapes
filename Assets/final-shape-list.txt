@@ -283,3 +283,38 @@ reflectionIntensity — strength of the simulated surface reflection gradient
 baseColor — primary blue-teal color of the column
 grooveColor — color of the recessed shadow grooves between bands
 
+A solid rectangular column built from classic red fired-clay bricks laid in a standard running-bond pattern. Each brick is a warm red-orange tone with slight variation between bricks. Mortar joints are uniform grey-white lines. Brick surfaces show subtle texture and occasional small chips at edges. The column has sharp 90-degree corners.
+
+Editable parameters:
+
+totalHeight — full column height
+totalWidth — width of the column face
+columnDepth — depth (side dimension) of the rectangular column
+brickRowCount — number of horizontal brick rows
+brickHeight — height of each individual brick
+brickLength — length of each individual brick
+brickOffsetAmount — horizontal shift of alternating rows (running bond ratio)
+mortarThickness — width of mortar joints between bricks
+mortarColor — color of mortar lines
+featureDensity — density of surface chips, micro-cracks, and texture details per brick
+brickColorVariation — tonal range across individual bricks (low = uniform red, high = mixed)
+surfaceRoughness — grain coarseness of the fired-clay brick texture
+cornerChipAmount — frequency of chipped brick corners at edges
+
+A smooth, solid cylindrical column in vibrant golden-yellow/amber with a perfectly even coating of circular polka dot spots distributed uniformly across the entire curved surface. The dots are slightly darker or lighter than the base, giving a playful, graphic appearance. Top and bottom ends are flat and undecorated.
+
+Editable parameters:
+
+totalHeight — full column height
+totalWidth — cylinder diameter
+dotSize — radius of each individual dot
+featureDensity — total number of dots distributed across the surface
+dotSpacingUniformity — how regular vs. slightly randomized the dot spacing is
+dotArrangement — layout pattern of dots (uniform grid, hexagonal, or scattered)
+dotColorOffset — how much lighter or darker the dots are relative to the base color
+dotBorderThickness — whether dots have a visible outline and how thick it is
+baseColor — primary color of the column body
+dotColor — color of the dot spots
+surfaceSheen — glossiness of the cylinder surface (matte to satin)
+topCapStyle — flat, slightly rounded, or beveled top/bottom ends
+
