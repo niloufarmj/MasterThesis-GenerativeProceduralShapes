@@ -17,16 +17,35 @@ namespace ShaderGraphGenerator.RAG
     public static class RAGShapeGenerator
     {
         /// <summary>
+        /// Minimum cosine-similarity score a KB candidate must have to be included as a
+        /// retrieved example in the RAG prompt. Candidates below this threshold are discarded
+        /// so that weakly-matched HLSL code does not bloat the prompt and confuse the LLM.
+        /// </summary>
+        private const float RETRIEVAL_SIMILARITY_THRESHOLD = 0.45f;
+
+        /// <summary>
+        /// Returns true if a base template exists in the knowledge base for character generation.
+        /// Used by pipeline managers to decide whether to pre-compute decomposition.
+        /// </summary>
+        public static bool HasBaseTemplate(ShapeKnowledgeBase knowledgeBase) =>
+            FindBaseTemplate(knowledgeBase) != null;
+
+        /// <summary>
         /// Generate a complex shape using RAG approach.
         /// When the request is for a character/humanoid and a base template exists in the KB,
         /// routes to GenerateFromBaseTemplateAsync instead of the standard decompose-retrieve path.
         /// </summary>
+        /// <param name="cachedDecomposition">
+        /// Optional pre-computed decomposition from a previous iteration.
+        /// When provided the decomposition API call is skipped entirely, saving time on refinement passes.
+        /// </param>
         public static async Task<(LLMShaderResponse response, int inputTokens, int outputTokens)> GenerateWithRAGAsync(
             string userRequest,
             ShapeKnowledgeBase knowledgeBase,
             ShaderGraphGeneratorConfig config,
             bool useTransparency = true,
-            string codeProvider = null)
+            string codeProvider = null,
+            ShapeDecomposition cachedDecomposition = null)
         {
             Debug.Log($"[RAG] Starting generation for: {userRequest}");
 
@@ -42,13 +61,22 @@ namespace ShaderGraphGenerator.RAG
                 Debug.Log("[RAG] Character request detected but no base template found in KB — using standard RAG.");
             }
 
-            // Step 1: Decompose request into components
-            Debug.Log("[RAG] Step 1: Decomposing request...");
-            var decomposition = await ShapeDecompositionService.DecomposeShapeAsync(
-                userRequest, 
-                knowledgeBase, 
-                config.geminiKey
-            );
+            // Step 1: Decompose request into components (reuse cached result if available)
+            ShapeDecomposition decomposition;
+            if (cachedDecomposition != null)
+            {
+                Debug.Log("[RAG] Step 1: Reusing cached decomposition (skipping API call).");
+                decomposition = cachedDecomposition;
+            }
+            else
+            {
+                Debug.Log("[RAG] Step 1: Decomposing request...");
+                decomposition = await ShapeDecompositionService.DecomposeShapeAsync(
+                    userRequest,
+                    knowledgeBase,
+                    config.geminiKey
+                );
+            }
 
             if (decomposition == null)
             {
@@ -84,10 +112,10 @@ namespace ShaderGraphGenerator.RAG
                 bool matched = false;
                 foreach (var candidate in searchResults)
                 {
-                    if (candidate.similarity < MIN_SIMILARITY)
+                    if (candidate.similarity < RETRIEVAL_SIMILARITY_THRESHOLD)
                     {
-                        Debug.Log($"[RAG]   {component.role}: Skipping '{candidate.shape.fileName}' — similarity too low ({candidate.similarity:F3} < {MIN_SIMILARITY})");
-                        break;
+                        Debug.LogWarning($"[RAG]   {component.role}: Skipping '{candidate.shape.fileName}' — similarity {candidate.similarity:F3} below threshold {RETRIEVAL_SIMILARITY_THRESHOLD:F2}");
+                        continue;
                     }
 
                     if (!File.Exists(candidate.shape.filePath))
@@ -115,7 +143,7 @@ namespace ShaderGraphGenerator.RAG
 
                 if (!matched)
                 {
-                    Debug.LogWarning($"[RAG]   {component.role}: No valid matches found above threshold ({MIN_SIMILARITY}) - will generate from scratch");
+                    Debug.LogWarning($"[RAG]   {component.role}: No match above threshold {RETRIEVAL_SIMILARITY_THRESHOLD:F2} — will generate from scratch");
                 }
             }
 
@@ -162,19 +190,38 @@ namespace ShaderGraphGenerator.RAG
         /// absoluteImagePath must be an absolute filesystem path.
         /// editableHints: user's note about what should be editable properties (can be empty).
         /// </summary>
+        /// <param name="cachedVisualDescription">
+        /// Optional pre-computed visual description from a previous iteration.
+        /// When provided the GPT-4o Vision image-description call is skipped.
+        /// </param>
+        /// <param name="cachedDecomposition">
+        /// Optional pre-computed decomposition from a previous iteration.
+        /// When provided the decomposition API call is skipped entirely, saving time on refinement passes.
+        /// </param>
         public static async Task<LLMShaderResponse> GenerateWithRAGFromImageAsync(
             string absoluteImagePath,
             string editableHints,
             ShapeKnowledgeBase knowledgeBase,
             ShaderGraphGeneratorConfig config,
-            bool useTransparency = true)
+            bool useTransparency = true,
+            string cachedVisualDescription = null,
+            ShapeDecomposition cachedDecomposition = null)
         {
             Debug.Log($"[RAG Image] Starting image-to-shader pipeline for: {absoluteImagePath}");
 
-            // ── Step 1: VLM describes the image ──────────────────────────────
-            Debug.Log("[RAG Image] Step 1: GPT-4o Vision describing image...");
-            string visualDescription = await OpenAIApiService.CallOpenAIDescribeImageAsync(
-                absoluteImagePath, editableHints, config.openAIKey);
+            // ── Step 1: VLM describes the image (reuse cached result if available) ──────────────────────────────
+            string visualDescription;
+            if (!string.IsNullOrEmpty(cachedVisualDescription))
+            {
+                Debug.Log("[RAG Image] Step 1: Reusing cached visual description (skipping API call).");
+                visualDescription = cachedVisualDescription;
+            }
+            else
+            {
+                Debug.Log("[RAG Image] Step 1: GPT-4o Vision describing image...");
+                visualDescription = await OpenAIApiService.CallOpenAIDescribeImageAsync(
+                    absoluteImagePath, editableHints, config.openAIKey);
+            }
 
             if (string.IsNullOrEmpty(visualDescription))
             {
@@ -184,10 +231,19 @@ namespace ShaderGraphGenerator.RAG
 
             Debug.Log($"[RAG Image] Visual description ({visualDescription.Length} chars):\n{visualDescription.Substring(0, System.Math.Min(300, visualDescription.Length))}...");
 
-            // ── Step 2: Decompose visual description into components ───────────
-            Debug.Log("[RAG Image] Step 2: Decomposing visual description...");
-            var decomposition = await ShapeDecompositionService.DecomposeShapeAsync(
-                visualDescription, knowledgeBase, config.geminiKey);
+            // ── Step 2: Decompose visual description into components (reuse cached result if available) ───────────
+            ShapeDecomposition decomposition;
+            if (cachedDecomposition != null)
+            {
+                Debug.Log("[RAG Image] Step 2: Reusing cached decomposition (skipping API call).");
+                decomposition = cachedDecomposition;
+            }
+            else
+            {
+                Debug.Log("[RAG Image] Step 2: Decomposing visual description...");
+                decomposition = await ShapeDecompositionService.DecomposeShapeAsync(
+                    visualDescription, knowledgeBase, config.geminiKey);
+            }
 
             if (decomposition == null)
             {
@@ -217,13 +273,14 @@ namespace ShaderGraphGenerator.RAG
 
                 foreach (var candidate in searchResults)
                 {
-                    if (candidate.similarity < MIN_SIMILARITY)
+                    if (candidate.similarity < RETRIEVAL_SIMILARITY_THRESHOLD)
                     {
-                        Debug.Log($"[RAG Image]   {component.role}: Skipping '{candidate.shape.fileName}' — similarity too low ({candidate.similarity:F3} < {MIN_SIMILARITY})");
-                        break;
+                        Debug.LogWarning($"[RAG Image]   {component.role}: Skipping '{candidate.shape.fileName}' — similarity {candidate.similarity:F3} below threshold {RETRIEVAL_SIMILARITY_THRESHOLD:F2}");
+                        continue;
                     }
 
                     if (!File.Exists(candidate.shape.filePath)) continue;
+
                     retrievedExamples.Add(new RetrievedExample
                     {
                         componentRole           = component.role,

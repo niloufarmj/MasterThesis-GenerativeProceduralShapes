@@ -69,130 +69,148 @@ namespace ShaderGraphGenerator.RAG
 
             try
             {
-                // Ensure directories exist
                 EnsureDirectoriesExist(outputDir, previewDir);
 
-                // Step 1: RAG Generation (Decompose + Retrieve + LLM)
-                Debug.Log($"[RAG Pipeline] Starting for: {userRequest}");
-                var (llmResponse, inTok, outTok) = await RAGShapeGenerator.GenerateWithRAGAsync(
-                    userRequest,
-                    knowledgeBase,
-                    config,
-                    useTransparency: true,
-                    codeProvider: codeProvider
-                );
-                result.llm_input_tokens  = inTok;
-                result.llm_output_tokens = outTok;
+                // Pre-compute decomposition once and reuse it across all refinement iterations.
+                // Character requests that route to a base template skip decomposition entirely,
+                // so we only call it when the standard decompose-retrieve path will actually run.
+                ShapeDecomposition cachedDecomposition = null;
+                bool usesBaseTemplate = SemanticShapeSearch.IsCharacterRequest(userRequest)
+                    && RAGShapeGenerator.HasBaseTemplate(knowledgeBase);
 
-                if (llmResponse == null)
+                if (!usesBaseTemplate)
                 {
-                    result.errorMessage = "LLM generation failed";
-                    return result;
+                    Debug.Log("[RAG Pipeline] Pre-computing decomposition (reused across all iterations)...");
+                    cachedDecomposition = await ShapeDecompositionService.DecomposeShapeAsync(
+                        userRequest, knowledgeBase, config.geminiKey);
+
+                    if (cachedDecomposition == null)
+                    {
+                        result.errorMessage = "Shape decomposition failed";
+                        return result;
+                    }
+                    Debug.Log($"[RAG Pipeline] Decomposition complete: {cachedDecomposition.total_components} components.");
                 }
 
-                result.fileName    = llmResponse.file_name;
-                result.properties = llmResponse.properties;
+                string currentRequest = userRequest;
 
-                // Step 2: Save HLSL (sanitize GLSL→HLSL before writing)
-                llmResponse.hlsl_code = MaterialPreviewHelper.SanitizeHlsl(llmResponse.hlsl_code);
-                result.hlslCode = llmResponse.hlsl_code;
-                string hlslPath = Path.Combine(outputDir, $"{llmResponse.file_name}.hlsl");
-                File.WriteAllText(hlslPath, llmResponse.hlsl_code);
-                AssetDatabase.Refresh();
-                Debug.Log($"[RAG Pipeline] ✓ HLSL saved: {hlslPath}");
-
-                // Step 3: Build ShaderGraph JSON
-                Debug.Log("[RAG Pipeline] Building ShaderGraph JSON...");
-                string sgPath = Path.Combine(outputDir, $"{llmResponse.file_name}.shadergraph");
-                var functionInfo = ShaderGraphBuilder.BuildShaderGraphFromLLMResponse(hlslPath, sgPath, useTransparency: true);
-                AssetDatabase.Refresh();
-                Debug.Log($"[RAG Pipeline] ✓ ShaderGraph saved: {sgPath}");
-
-                result.shaderGraphPath = sgPath;
-
-                // Wait for Unity to import the ShaderGraph
-                await Task.Delay(1000);
-                AssetDatabase.Refresh();
-                await Task.Delay(500);
-
-                // Step 4: Create Material
-                Debug.Log("[RAG Pipeline] Creating material...");
-                var shader = AssetDatabase.LoadAssetAtPath<Shader>(sgPath);
-                
-                if (shader == null)
+                for (int iter = 1; iter <= maxIterations; iter++)
                 {
-                    result.errorMessage = "Failed to load generated ShaderGraph as Shader";
-                    return result;
-                }
+                    Debug.Log($"[RAG Pipeline] Iteration {iter}/{maxIterations} for: {currentRequest}");
 
-                string matPath = Path.Combine(outputDir, $"{llmResponse.file_name}.mat");
-                if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(matPath) != null)
-                    AssetDatabase.DeleteAsset(matPath);
-                var material = new Material(shader);
-                AssetDatabase.CreateAsset(material, matPath);
-                AssetDatabase.SaveAssets();
-                AssetDatabase.Refresh();
-
-                // Apply random sensible defaults first, then overlay with LLM values
-                if (functionInfo != null)
-                    MaterialPreviewHelper.SetRandomMaterialProperties(material, functionInfo);
-                MaterialPreviewHelper.SetDefaultMaterialProperties(material, llmResponse.properties);
-
-                Debug.Log($"[RAG Pipeline] ✓ Material created: {matPath}");
-
-                result.materialPath = matPath;
-
-                // Step 5: Apply to Quad and Render Preview
-                Debug.Log("[RAG Pipeline] Rendering preview...");
-                string projectRoot = Path.GetDirectoryName(Application.dataPath);
-                string previewPath = Path.GetFullPath(Path.Combine(projectRoot, previewDir, $"{llmResponse.file_name}_{maxIterations}.png"));
-                
-                bool renderSuccess = await RenderPreviewAsync(material, previewPath);
-                
-                if (!renderSuccess)
-                {
-                    result.errorMessage = "Preview rendering failed";
-                    return result;
-                }
-
-                result.previewImagePath = previewPath;
-                Debug.Log($"[RAG Pipeline] ✓ Preview rendered: {previewPath}");
-
-                // Step 6: VLM Visual Evaluation
-                Debug.Log("[RAG Pipeline] Evaluating with VLM...");
-                var evaluation = await EvaluateWithVLMAsync(
-                    userRequest,
-                    llmResponse.hlsl_code,
-                    llmResponse.properties,
-                    previewPath,
-                    config.openAIKey
-                );
-
-                result.vmlScore = evaluation.score;
-                result.vmlFeedback = evaluation.explanation;
-                result.success = evaluation.score >= 7;
-
-                Debug.Log($"[RAG Pipeline] ✓ VLM Score: {evaluation.score}/10");
-                Debug.Log($"[RAG Pipeline] ✓ Feedback: {evaluation.explanation}");
-
-                // Step 7: Iterative Refinement (if needed and iterations left)
-                if (!result.success && maxIterations > 1)
-                {
-                    Debug.Log($"[RAG Pipeline] Score below threshold, refining... (iterations left: {maxIterations - 1})");
-                    
-                    // Build refinement prompt
-                    string refinementRequest = BuildRefinementPrompt(userRequest, evaluation.explanation);
-                    
-                    // Recursive call with reduced iterations
-                    return await RunCompletePipelineAsync(
-                        refinementRequest,
+                    // RAG Generation — decomposition is skipped on every iteration after the first
+                    var (llmResponse, inTok, outTok) = await RAGShapeGenerator.GenerateWithRAGAsync(
+                        currentRequest,
                         knowledgeBase,
                         config,
-                        maxIterations - 1,
-                        outputDir,
-                        previewDir,
-                        codeProvider
+                        useTransparency: true,
+                        codeProvider: codeProvider,
+                        cachedDecomposition: cachedDecomposition
                     );
+                    result.llm_input_tokens  += inTok;
+                    result.llm_output_tokens += outTok;
+
+                    if (llmResponse == null)
+                    {
+                        result.errorMessage = "LLM generation failed";
+                        return result;
+                    }
+
+                    result.fileName   = llmResponse.file_name;
+                    result.properties = llmResponse.properties;
+
+                    // Save HLSL (sanitize GLSL→HLSL before writing)
+                    llmResponse.hlsl_code = MaterialPreviewHelper.SanitizeHlsl(llmResponse.hlsl_code);
+                    result.hlslCode = llmResponse.hlsl_code;
+                    string hlslPath = Path.Combine(outputDir, $"{llmResponse.file_name}.hlsl");
+                    File.WriteAllText(hlslPath, llmResponse.hlsl_code);
+                    AssetDatabase.Refresh();
+                    Debug.Log($"[RAG Pipeline] ✓ HLSL saved: {hlslPath}");
+
+                    // Build ShaderGraph JSON
+                    Debug.Log("[RAG Pipeline] Building ShaderGraph JSON...");
+                    string sgPath = Path.Combine(outputDir, $"{llmResponse.file_name}.shadergraph");
+                    var functionInfo = ShaderGraphBuilder.BuildShaderGraphFromLLMResponse(hlslPath, sgPath, useTransparency: true);
+                    AssetDatabase.Refresh();
+                    Debug.Log($"[RAG Pipeline] ✓ ShaderGraph saved: {sgPath}");
+
+                    result.shaderGraphPath = sgPath;
+
+                    // Wait for Unity to import the ShaderGraph
+                    await Task.Delay(1000);
+                    AssetDatabase.Refresh();
+                    await Task.Delay(500);
+
+                    // Create Material
+                    Debug.Log("[RAG Pipeline] Creating material...");
+                    var shader = AssetDatabase.LoadAssetAtPath<Shader>(sgPath);
+
+                    if (shader == null)
+                    {
+                        result.errorMessage = "Failed to load generated ShaderGraph as Shader";
+                        return result;
+                    }
+
+                    string matPath = Path.Combine(outputDir, $"{llmResponse.file_name}.mat");
+                    if (AssetDatabase.LoadAssetAtPath<UnityEngine.Object>(matPath) != null)
+                        AssetDatabase.DeleteAsset(matPath);
+                    var material = new Material(shader);
+                    AssetDatabase.CreateAsset(material, matPath);
+                    AssetDatabase.SaveAssets();
+                    AssetDatabase.Refresh();
+
+                    // Apply random sensible defaults first, then overlay with LLM values
+                    if (functionInfo != null)
+                        MaterialPreviewHelper.SetRandomMaterialProperties(material, functionInfo);
+                    MaterialPreviewHelper.SetDefaultMaterialProperties(material, llmResponse.properties);
+
+                    Debug.Log($"[RAG Pipeline] ✓ Material created: {matPath}");
+                    result.materialPath = matPath;
+
+                    // Render Preview
+                    Debug.Log("[RAG Pipeline] Rendering preview...");
+                    string projectRoot = Path.GetDirectoryName(Application.dataPath);
+                    string previewPath = Path.GetFullPath(Path.Combine(projectRoot, previewDir, $"{llmResponse.file_name}_{iter}.png"));
+
+                    bool renderSuccess = await RenderPreviewAsync(material, previewPath);
+
+                    if (!renderSuccess)
+                    {
+                        result.errorMessage = "Preview rendering failed";
+                        return result;
+                    }
+
+                    result.previewImagePath = previewPath;
+                    Debug.Log($"[RAG Pipeline] ✓ Preview rendered: {previewPath}");
+
+                    // VLM Visual Evaluation (always evaluate against the original user request)
+                    Debug.Log("[RAG Pipeline] Evaluating with VLM...");
+                    var evaluation = await EvaluateWithVLMAsync(
+                        userRequest,
+                        llmResponse.hlsl_code,
+                        llmResponse.properties,
+                        previewPath,
+                        config.openAIKey
+                    );
+
+                    result.vmlScore   = evaluation.score;
+                    result.vmlFeedback = evaluation.explanation;
+
+                    Debug.Log($"[RAG Pipeline] ✓ VLM Score: {evaluation.score}/10");
+                    Debug.Log($"[RAG Pipeline] ✓ Feedback: {evaluation.explanation}");
+
+                    if (evaluation.score >= 7)
+                    {
+                        result.success = true;
+                        return result;
+                    }
+
+                    // Prepare a richer prompt for the next iteration
+                    if (iter < maxIterations)
+                    {
+                        currentRequest = BuildRefinementPrompt(userRequest, evaluation.explanation);
+                        Debug.Log($"[RAG Pipeline] Score below threshold, refining for iteration {iter + 1}...");
+                    }
                 }
 
                 return result;

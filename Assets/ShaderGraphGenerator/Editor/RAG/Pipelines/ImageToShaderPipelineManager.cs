@@ -85,6 +85,20 @@ namespace ShaderGraphGenerator.RAG
                 result.visualDescription = description;
                 Debug.Log($"[Img2Shader] Description ({description.Length} chars) obtained.");
 
+                // ── Pre-compute decomposition once (reused across all VLM iterations) ──
+                // Decomposition is derived from the stable visual description of the reference image,
+                // which never changes between iterations, so computing it once is correct.
+                Debug.Log("[Img2Shader] Pre-computing decomposition (reused across all iterations)...");
+                var cachedDecomposition = await ShapeDecompositionService.DecomposeShapeAsync(
+                    description, knowledgeBase, config.geminiKey);
+
+                if (cachedDecomposition == null)
+                {
+                    result.errorMessage = "Shape decomposition step failed.";
+                    return result;
+                }
+                Debug.Log($"[Img2Shader] Decomposition complete: {cachedDecomposition.total_components} components.");
+
                 // ── VLM iteration loop ────────────────────────────────────────
                 string prevVlmFeedback = null;
 
@@ -92,7 +106,7 @@ namespace ShaderGraphGenerator.RAG
                 {
                     Debug.Log($"[Img2Shader] Generation iteration {iter}/{maxVlmIterations}...");
 
-                    // ── Step 2+3: Decompose + retrieve + generate ─────────────
+                    // ── Step 2+3: Retrieve + generate (decomposition and description are reused) ─────────────
                     var llmResponse = await RAGShapeGenerator.GenerateWithRAGFromImageAsync(
                         absoluteImagePath,
                         string.IsNullOrWhiteSpace(prevVlmFeedback)
@@ -100,7 +114,9 @@ namespace ShaderGraphGenerator.RAG
                             : editableHints + "\n\n[Previous attempt feedback]: " + prevVlmFeedback,
                         knowledgeBase,
                         config,
-                        useTransparency: true);
+                        useTransparency: true,
+                        cachedVisualDescription: description,
+                        cachedDecomposition: cachedDecomposition);
 
                     if (llmResponse == null)
                     {
